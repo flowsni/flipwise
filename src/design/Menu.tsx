@@ -78,6 +78,12 @@ export function Menu({
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
       >
         {icon ?? <IconMore />}
       </IconButton>
@@ -104,7 +110,7 @@ export function Menu({
                 className={cx(si > 0 && 'mt-1 border-t border-line pt-1')}
               >
                 {section.title && (
-                  <div className="px-3 pt-1.5 pb-1 text-xs font-medium text-ink-3">
+                  <div className="px-3 pt-1.5 pb-1 text-[0.8125rem] font-medium text-ink-3">
                     {section.title}
                   </div>
                 )}

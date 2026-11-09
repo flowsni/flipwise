@@ -120,13 +120,13 @@ export function DeckPage() {
               {deck.title}
             </h1>
             {deck.description && <p className="mt-1 text-ink-2">{deck.description}</p>}
-            <p className="mt-2 text-sm text-ink-2">
+            <p className="mt-2 text-[0.9375rem] text-ink-2">
               {t.plural.cards(cards.length)} · {languageName(deck.termLang)} →{' '}
               {languageName(deck.defLang)} · {deck.level}
             </p>
           </div>
           <Ring value={cards.length ? mastered / cards.length : 0} size={60} stroke={6}>
-            <span className="text-xs font-semibold tabular-nums">
+            <span className="text-[0.8125rem] font-semibold tabular-nums">
               {mastered}/{cards.length}
             </span>
           </Ring>
@@ -246,8 +246,8 @@ export function DeckPage() {
 
 const tones = {
   coral: 'bg-coral/15 text-primary',
-  plum: 'bg-plum-soft text-plum dark:text-[#d9c2f0]',
-  sun: 'bg-sun-soft text-[#7a5400] dark:text-sun',
+  plum: 'bg-plum-soft text-plum-ink',
+  sun: 'bg-sun-soft text-sun-ink',
 }
 
 function ModeTile({
@@ -281,10 +281,12 @@ function ModeTile({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
-        <span className="block text-sm text-ink-2">{resumable ? t.deck.sessionSaved : hint}</span>
+        <span className="block text-[0.9375rem] text-ink-2">
+          {resumable ? t.deck.sessionSaved : hint}
+        </span>
       </span>
       {resumable ? (
-        <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-ink">
+        <span className="rounded-full bg-primary px-2.5 py-1 text-[0.8125rem] font-semibold text-primary-ink">
           {t.deck.continue}
         </span>
       ) : (

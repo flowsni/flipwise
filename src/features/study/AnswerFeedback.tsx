@@ -29,10 +29,11 @@ export function AnswerFeedback({
       )}
     >
       <p
+        role="status"
         className={cx(
           'font-semibold',
           verdict === 'correct' && 'text-good',
-          verdict === 'almost' && 'text-[#7a5400] dark:text-sun',
+          verdict === 'almost' && 'text-sun-ink',
           verdict === 'wrong' && 'text-bad',
         )}
       >
@@ -44,9 +45,9 @@ export function AnswerFeedback({
       </p>
       {verdict === 'almost' && (
         <>
-          <p className="mt-1 text-sm text-ink-2">{t.learn.almostHint}</p>
+          <p className="mt-1 text-[0.9375rem] text-ink-2">{t.learn.almostHint}</p>
           <p className="mt-2" lang={lang}>
-            <span className="text-sm text-ink-2">{t.learn.yourAnswer}: </span>
+            <span className="text-[0.9375rem] text-ink-2">{t.learn.yourAnswer}: </span>
             {typoSegments(response, match.matched ?? answer).map((seg, i) =>
               seg.typo ? (
                 // biome-ignore lint/suspicious/noArrayIndexKey: static segments
@@ -63,12 +64,12 @@ export function AnswerFeedback({
       )}
       {verdict !== 'correct' && (
         <p className="mt-2" lang={lang}>
-          <span className="text-sm text-ink-2">{t.learn.correctAnswer}: </span>
+          <span className="text-[0.9375rem] text-ink-2">{t.learn.correctAnswer}: </span>
           <span className="font-semibold">{answer}</span>
         </p>
       )}
       {verdict === 'wrong' && response.trim() && (
-        <p className="mt-1 text-sm text-ink-2" lang={lang}>
+        <p className="mt-1 text-[0.9375rem] text-ink-2" lang={lang}>
           {t.learn.yourAnswer}: <s>{response}</s>
         </p>
       )}

@@ -38,6 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
   const nextId = useRef(1)
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>())
+  const durations = useRef(new Map<number, number>())
 
   const dismiss = useCallback((id: number) => {
     setItems((list) => list.filter((t) => t.id !== id))
@@ -51,6 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       // One toast at a time keeps the bottom of the screen calm.
       setItems([{ ...options, id }])
       const duration = options.duration ?? (options.action ? 5000 : 3000)
+      durations.current.set(id, duration)
       if (duration > 0)
         timers.current.set(
           id,
@@ -60,6 +62,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     [dismiss],
   )
+
+  // WCAG 2.2.1: pause auto-dismiss while the toast is hovered or focused.
+  const pause = (id: number) => clearTimeout(timers.current.get(id))
+  const resume = (id: number) => {
+    const duration = durations.current.get(id) ?? 0
+    if (duration > 0)
+      timers.current.set(
+        id,
+        setTimeout(() => dismiss(id), duration),
+      )
+  }
 
   const api = useMemo(() => ({ show, dismiss }), [show, dismiss])
 
@@ -79,8 +92,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.97 }}
               transition={spring}
-              role="status"
-              className="pointer-events-auto mb-2 flex max-w-md items-center gap-3 rounded-2xl bg-[#2a1b33] py-2.5 pr-2.5 pl-4 text-[0.95rem] text-white shadow-float dark:bg-[#f7eef9] dark:text-[#2a1b33]"
+              onMouseEnter={() => pause(item.id)}
+              onMouseLeave={() => resume(item.id)}
+              onFocus={() => pause(item.id)}
+              onBlur={() => resume(item.id)}
+              className="pointer-events-auto mb-2 flex max-w-md items-center gap-3 rounded-2xl bg-toast py-2 pr-2 pl-4 text-[1.0625rem] text-toast-ink shadow-float"
             >
               <span className="flex-1">{item.message}</span>
               {item.action && (
@@ -90,7 +106,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     item.action?.onClick()
                     dismiss(item.id)
                   }}
-                  className="min-h-11 rounded-xl px-4 font-semibold text-sun hover:bg-white/10 dark:text-plum dark:hover:bg-black/5"
+                  className="min-h-11 rounded-xl px-4 font-semibold text-toast-action hover:bg-white/10 dark:hover:bg-black/5"
                 >
                   {item.action.label}
                 </button>

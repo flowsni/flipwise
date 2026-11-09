@@ -67,11 +67,16 @@ function SheetPanel({
     const panel = panelRef.current
     const first = panel?.querySelector<HTMLElement>('[data-autofocus]') ?? panel
     first?.focus({ preventScroll: true })
+    // Keep screen readers inside the dialog.
+    const root = document.getElementById('root')
+    root?.setAttribute('inert', '')
     const { overflow } = document.body.style
     document.body.style.overflow = 'hidden'
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // An open "…" menu inside the sheet closes first.
+        if ((e.target as HTMLElement | null)?.closest('[role="menu"]')) return
         e.stopPropagation()
         onCloseRef.current()
         return
@@ -95,6 +100,7 @@ function SheetPanel({
     return () => {
       document.removeEventListener('keydown', onKey, true)
       document.body.style.overflow = overflow
+      root?.removeAttribute('inert')
       previouslyFocused?.focus?.({ preventScroll: true })
     }
   }, [])

@@ -274,7 +274,7 @@ function QuestionView({
     >
       <div className="raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wider text-ink-3 uppercase">
+          <span className="text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
             {question.kind === 'choice' ? t.learn.chooseAnswer : t.learn.typeAnswer}
           </span>
           <SpeakButton text={question.prompt} lang={promptLang} className="-mr-2" />
@@ -320,7 +320,7 @@ function QuestionView({
                 >
                   <span
                     className={cx(
-                      'grid size-7 shrink-0 place-items-center rounded-lg text-sm font-semibold',
+                      'grid size-7 shrink-0 place-items-center rounded-lg text-[0.9375rem] font-semibold',
                       state === 'right' ? 'bg-good text-white' : 'bg-surface-2 text-ink-2',
                     )}
                   >
@@ -377,7 +377,7 @@ function QuestionView({
         )}
       </div>
 
-      <div aria-live="assertive" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {feedback && question.kind === 'written' && (
           <AnswerFeedback
             match={feedback.match}
@@ -388,6 +388,7 @@ function QuestionView({
         )}
         {feedback && question.kind === 'choice' && (
           <p
+            role="status"
             className={cx('text-center font-semibold', feedback.correct ? 'text-good' : 'text-bad')}
           >
             {feedback.correct ? t.learn.correct : t.learn.wrong}
@@ -412,7 +413,9 @@ function QuestionView({
           </div>
         )}
         {feedback && (
-          <p className="hidden text-center text-xs text-ink-3 md:block">{t.learn.pressEnter}</p>
+          <p className="hidden text-center text-[0.8125rem] text-ink-3 md:block">
+            {t.learn.pressEnter}
+          </p>
         )}
       </div>
     </motion.section>

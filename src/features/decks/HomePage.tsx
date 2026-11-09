@@ -107,19 +107,19 @@ function DeckTile({ summary }: { summary: DeckSummary }) {
         <h2 className="line-clamp-2 flex-1 text-[1.2rem] leading-snug font-semibold tracking-tight">
           {deck.title}
         </h2>
-        <Ring value={pct} size={44} stroke={5}>
-          <span className="text-[0.7rem] font-semibold text-ink-2 tabular-nums">
+        <Ring value={pct} size={48} stroke={5}>
+          <span className="text-[0.75rem] font-semibold text-ink-2 tabular-nums">
             {Math.round(pct * 100)}%
           </span>
         </Ring>
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-ink-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[0.9375rem] text-ink-2">
         <span className="font-medium text-ink">{t.plural.cards(cardCount)}</span>
         <span aria-hidden="true">·</span>
-        <span className="rounded-full bg-plum-soft px-2 py-0.5 text-xs font-semibold text-plum uppercase dark:text-[#d9c2f0]">
+        <span className="rounded-full bg-plum-soft px-2 py-0.5 text-[0.8125rem] font-semibold text-plum-ink uppercase">
           {deck.termLang} → {deck.defLang}
         </span>
-        <span className="rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-[#7a5400] dark:text-sun">
+        <span className="rounded-full bg-sun-soft px-2 py-0.5 text-[0.8125rem] font-semibold text-sun-ink">
           {deck.level}
         </span>
       </div>

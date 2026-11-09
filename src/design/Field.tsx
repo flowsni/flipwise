@@ -17,11 +17,11 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-ink-2">
+      <label htmlFor={id} className="text-[0.9375rem] font-medium text-ink-2">
         {label}
       </label>
       {children}
-      {hint && <div className="text-sm text-ink-3">{hint}</div>}
+      {hint && <div className="text-[0.9375rem] text-ink-3">{hint}</div>}
     </div>
   )
 }
@@ -77,14 +77,18 @@ export function Segmented<T extends string>({
 }) {
   const name = useId()
   return (
-    <div role="radiogroup" aria-label={label} className="flex min-h-12 rounded-xl bg-surface-2 p-1">
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="flex min-h-[3.25rem] rounded-xl bg-surface-2 p-1"
+    >
       {options.map((o) => {
         const active = o.value === value
         return (
           <label
             key={o.value}
             className={cx(
-              'relative flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-1.5 py-2 text-center text-sm whitespace-nowrap font-medium sm:text-[0.9375rem] transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
+              'relative flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-1.5 py-2 text-center text-[0.9375rem] whitespace-nowrap font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
               active ? 'raised text-ink' : 'text-ink-2 hover:text-ink',
             )}
           >

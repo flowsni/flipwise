@@ -17,7 +17,7 @@ export function StudyBar({
   menu?: ReactNode
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-bg/85 pt-safe backdrop-blur-xl">
+    <header className="sticky top-0 z-30 bg-bg/85 px-safe pt-safe backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-3 sm:px-5">
         <IconButton label={t.study.close} onClick={onClose}>
           <IconX />
@@ -26,7 +26,7 @@ export function StudyBar({
           <ProgressBar value={progress} label={label ?? ''} />
         </div>
         {label && (
-          <span className="min-w-12 text-right text-sm font-medium text-ink-2 tabular-nums">
+          <span className="min-w-12 text-right text-[0.9375rem] font-medium text-ink-2 tabular-nums">
             {label}
           </span>
         )}

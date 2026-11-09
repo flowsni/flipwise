@@ -174,7 +174,7 @@ function Setup({ cardCount, onStart }: { cardCount: number; onStart: (c: TestCon
       <div className="flex flex-col gap-2">
         <label
           htmlFor="test-count"
-          className="flex items-baseline justify-between text-sm font-medium text-ink-2"
+          className="flex items-baseline justify-between text-[0.9375rem] font-medium text-ink-2"
         >
           {t.test.count}
           <span className="text-lg font-semibold text-ink tabular-nums">{count}</span>
@@ -186,20 +186,20 @@ function Setup({ cardCount, onStart }: { cardCount: number; onStart: (c: TestCon
           max={cardCount}
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}
-          className="w-full accent-[var(--fw-primary)]"
+          className="h-11 w-full cursor-pointer accent-[var(--fw-primary)]"
         />
       </div>
       <fieldset className="flex flex-col">
-        <legend className="mb-1 text-sm font-medium text-ink-2">{t.test.types}</legend>
+        <legend className="mb-1 text-[0.9375rem] font-medium text-ink-2">{t.test.types}</legend>
         {QUESTION_TYPES.map((type) => (
           <Checkbox key={type} checked={types.includes(type)} onChange={(on) => toggle(type, on)}>
             {labels[type]}
           </Checkbox>
         ))}
-        {!types.length && <p className="text-sm text-bad">{t.test.needType}</p>}
+        {!types.length && <p className="text-[0.9375rem] text-bad">{t.test.needType}</p>}
       </fieldset>
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-ink-2">{t.study.answerWith}</span>
+        <span className="text-[0.9375rem] font-medium text-ink-2">{t.study.answerWith}</span>
         <Segmented
           label={t.study.answerWith}
           value={answerWith}
@@ -250,7 +250,7 @@ function TestForm({
           className="raised flex flex-col gap-4 rounded-[1.5rem] p-5"
         >
           <legend className="sr-only">{t.test.questionN(i + 1, state.questions.length)}</legend>
-          <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-ink-3 uppercase">
+          <div className="flex items-center justify-between text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
             <span aria-hidden="true">{t.test.questionN(i + 1, state.questions.length)}</span>
             <SpeakButton text={q.prompt} lang={promptLang} className="-my-2 -mr-2" />
           </div>
@@ -286,7 +286,7 @@ function TestForm({
               >
                 {q.shown}
               </p>
-              <p className="text-sm text-ink-2">{t.test.isThisRight}</p>
+              <p className="text-[0.9375rem] text-ink-2">{t.test.isThisRight}</p>
               <div className="grid grid-cols-2 gap-2">
                 <OptionRadio
                   name={q.id}
@@ -383,7 +383,7 @@ function OptionRadio({
           checked ? 'border-plum bg-plum dark:border-sun dark:bg-sun' : 'border-ink-3',
         )}
       >
-        {checked && <span className="size-2 rounded-full bg-white dark:bg-[#1a1124]" />}
+        {checked && <span className="size-2 rounded-full bg-surface" />}
       </span>
       <span className="break-words">{children}</span>
     </label>
@@ -494,14 +494,14 @@ function Results({
                   <span className="font-normal text-ink-2"> — {q.shown}</span>
                 )}
               </p>
-              <p className="flex items-start gap-2 text-sm">
+              <p className="flex items-start gap-2 text-[0.9375rem]">
                 <IconX size={18} className="mt-0.5 shrink-0 text-bad" />
                 <span>
                   <span className="text-ink-2">{t.test.yourAnswer}: </span>
                   {shownGiven || <span className="text-ink-3 italic">{t.test.noAnswer}</span>}
                 </span>
               </p>
-              <p className="flex items-start gap-2 text-sm">
+              <p className="flex items-start gap-2 text-[0.9375rem]">
                 <IconCheck size={18} className="mt-0.5 shrink-0 text-good" />
                 <span>
                   <span className="text-ink-2">{t.test.correctAnswer}: </span>

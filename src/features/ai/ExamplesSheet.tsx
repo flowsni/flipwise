@@ -87,7 +87,7 @@ function ExamplesBody({ card, deck, onClose }: { card: Card; deck: Deck; onClose
   if (!ai.ready && !examples) {
     return (
       <div className="flex flex-col items-center gap-4 py-6 text-center">
-        <span className="grid size-16 place-items-center rounded-2xl bg-sun-soft text-[#7a5400] dark:text-sun">
+        <span className="grid size-16 place-items-center rounded-2xl bg-sun-soft text-sun-ink">
           <IconSparkles size={30} />
         </span>
         <p className="max-w-xs text-ink-2">{t.examples.noKey}</p>
@@ -150,7 +150,7 @@ function ExamplesBody({ card, deck, onClose }: { card: Card; deck: Deck; onClose
       </div>
 
       {examples && !loading && (
-        <p className="text-xs text-ink-3">{t.examples.generatedBy(examples.model)}</p>
+        <p className="text-[0.8125rem] text-ink-3">{t.examples.generatedBy(examples.model)}</p>
       )}
 
       <div className="flex gap-3 pt-1">
@@ -227,7 +227,7 @@ function ExampleRow({ item, index, deck }: { item: ExampleItem; index: number; d
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="block pt-1 text-sm text-ink-3"
+              className="block pt-1 text-[0.9375rem] text-ink-3"
             >
               {mono ? t.examples.showExplanation : t.examples.showTranslation}
             </motion.span>

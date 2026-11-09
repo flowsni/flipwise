@@ -281,7 +281,9 @@ function Flashcards({
               {t.flash.know}
             </Button>
           </div>
-          <p className="mb-3 hidden text-center text-xs text-ink-3 md:block">{t.flash.keys}</p>
+          <p className="mb-3 hidden text-center text-[0.8125rem] text-ink-3 md:block">
+            {t.flash.keys}
+          </p>
         </main>
       )}
 

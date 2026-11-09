@@ -157,7 +157,7 @@ export const SwipeCard = forwardRef<
                 whileTap={{ scale: 0.94 }}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={onExamples}
-                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-sun-soft px-4 py-2 text-sm font-semibold text-[#7a5400] dark:text-sun"
+                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-sun-soft px-4 py-2 text-[0.9375rem] font-semibold text-sun-ink"
               >
                 <IconSparkles size={16} />
                 {t.examples.button}
@@ -212,7 +212,9 @@ function Face({
       )}
     >
       <span className="flex h-9 items-center">
-        <span className="text-xs font-semibold tracking-wider text-ink-3 uppercase">{label}</span>
+        <span className="text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
+          {label}
+        </span>
       </span>
       <span
         lang={lang}
@@ -223,7 +225,9 @@ function Face({
       >
         {text}
       </span>
-      <span className="flex min-h-10 items-center justify-center text-sm text-ink-3">{hint}</span>
+      <span className="flex min-h-10 items-center justify-center text-[0.9375rem] text-ink-3">
+        {hint}
+      </span>
     </span>
   )
 }

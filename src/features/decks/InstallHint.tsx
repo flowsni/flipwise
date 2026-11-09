@@ -31,7 +31,7 @@ export function InstallHint() {
           className="overflow-hidden"
         >
           <div className="mb-5 flex items-start gap-3 rounded-2xl bg-sun-soft p-4 text-[0.95rem]">
-            <IconShare size={20} className="mt-0.5 shrink-0 text-[#7a5400] dark:text-sun" />
+            <IconShare size={20} className="mt-0.5 shrink-0 text-sun-ink" />
             <p className="flex-1">{t.home.installHint}</p>
             <Button size="sm" variant="ghost" onClick={() => setDismissed(true)}>
               {t.home.installDismiss}

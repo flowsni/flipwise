@@ -92,7 +92,7 @@ export function ImportSheet({
       }
     >
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-ink-2">{t.import.hint}</p>
+        <p className="text-[0.9375rem] text-ink-2">{t.import.hint}</p>
         <textarea
           data-autofocus
           value={text}
@@ -101,7 +101,7 @@ export function ImportSheet({
           aria-label={t.import.title}
           rows={6}
           spellCheck={false}
-          className={`${inputClass} min-h-36 resize-y font-mono text-sm leading-relaxed`}
+          className={`${inputClass} min-h-36 resize-y font-mono text-[0.9375rem] leading-relaxed`}
           onKeyDown={(e) => {
             // Let users type real tabs, like in a spreadsheet.
             if (e.key === 'Tab' && !e.shiftKey && termSep === 'tab') {
@@ -116,7 +116,7 @@ export function ImportSheet({
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-ink-2">{t.import.termSep}</span>
+            <span className="text-[0.9375rem] font-medium text-ink-2">{t.import.termSep}</span>
             <Segmented
               label={t.import.termSep}
               value={termSep}
@@ -137,7 +137,7 @@ export function ImportSheet({
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-ink-2">{t.import.cardSep}</span>
+            <span className="text-[0.9375rem] font-medium text-ink-2">{t.import.cardSep}</span>
             <Segmented
               label={t.import.cardSep}
               value={cardSep}
@@ -162,14 +162,14 @@ export function ImportSheet({
           <div className="mb-2 flex items-baseline gap-2" aria-live="polite">
             <span className="font-semibold">{t.import.found(count)}</span>
             {result.skipped.length > 0 && (
-              <span className="text-sm text-ink-3">
+              <span className="text-[0.9375rem] text-ink-3">
                 · {t.import.skipped(result.skipped.length)}
               </span>
             )}
           </div>
           {count > 0 && (
             <div className="max-h-64 overflow-auto rounded-xl border border-line">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-[0.9375rem]">
                 <thead className="sticky top-0 bg-surface-2 text-ink-2">
                   <tr>
                     <th className="w-10 px-3 py-2 font-medium">#</th>

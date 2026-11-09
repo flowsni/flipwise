@@ -48,7 +48,7 @@ export function SettingsSheet({
         <AiSection autoFocus={focusSection === 'ai'} />
         <SpeechSection />
         <DataSection />
-        <p className="text-center text-xs text-ink-3">Flipwise {__APP_VERSION__}</p>
+        <p className="text-center text-[0.8125rem] text-ink-3">Flipwise {__APP_VERSION__}</p>
       </div>
     </Sheet>
   )
@@ -236,7 +236,9 @@ function AiSection({ autoFocus }: { autoFocus: boolean }) {
               {status === 'error' && <span className="text-bad">{errorText}</span>}
             </span>
           </div>
-          <p className="rounded-xl bg-surface-2 p-3 text-sm text-ink-2">{t.settings.keyHint}</p>
+          <p className="rounded-xl bg-surface-2 p-3 text-[0.9375rem] text-ink-2">
+            {t.settings.keyHint}
+          </p>
         </>
       )}
     </Section>
@@ -388,7 +390,7 @@ function DataSection() {
           </div>
         </div>
       )}
-      <p className="text-sm text-ink-2">{t.settings.storageNote}</p>
+      <p className="text-[0.9375rem] text-ink-2">{t.settings.storageNote}</p>
     </Section>
   )
 }

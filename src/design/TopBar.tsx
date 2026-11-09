@@ -16,7 +16,7 @@ export function TopBar({
   return (
     <header
       className={cx(
-        'sticky top-0 z-30 bg-bg/80 pt-safe backdrop-blur-xl backdrop-saturate-150 supports-[not(backdrop-filter:blur(1px))]:bg-bg',
+        'sticky top-0 z-30 bg-bg/80 px-safe pt-safe backdrop-blur-xl backdrop-saturate-150 supports-[not(backdrop-filter:blur(1px))]:bg-bg',
         className,
       )}
     >
