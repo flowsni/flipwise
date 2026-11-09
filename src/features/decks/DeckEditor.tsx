@@ -134,6 +134,8 @@ function EditorForm({ deck }: { deck?: Deck }) {
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Saving before the cards are loaded would wipe them (rows is still empty).
+    if (!loaded || saving) return
     if (!title.trim()) {
       setTitleError(true)
       titleRef.current?.focus()
@@ -180,7 +182,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
           </p>
         }
         right={
-          <Button type="submit" variant="primary" size="sm" disabled={saving}>
+          <Button type="submit" variant="primary" size="sm" disabled={saving || !loaded}>
             {deck ? t.editor.save : t.editor.create}
           </Button>
         }

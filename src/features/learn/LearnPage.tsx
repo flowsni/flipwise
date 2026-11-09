@@ -68,8 +68,10 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
       if (saved?.version === 1 && saved.order?.length) {
         if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
         // A session saved while feedback was showing already counted that answer: move on.
-        const pending = saved.current && saved.round.queue[0] === saved.current.cardId
-        setState(pending || saved.roundOver ? saved : nextQuestion(saved, cards))
+        // Also re-ask when the pending card was deleted while the session was paused.
+        const pendingOk =
+          saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
+        setState(pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards))
       } else {
         const s = createLearnState(cards, answerWith)
         setState(s)
@@ -142,6 +144,7 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
                     label: t.study.withDefinition,
                     checked: answerWith === 'definition',
                     onSelect: () => {
+                      if (answerWith === 'definition') return
                       setAnswerWith('definition')
                       restart('definition')
                     },
@@ -150,6 +153,7 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
                     label: t.study.withTerm,
                     checked: answerWith === 'term',
                     onSelect: () => {
+                      if (answerWith === 'term') return
                       setAnswerWith('term')
                       restart('term')
                     },

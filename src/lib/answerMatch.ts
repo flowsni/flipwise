@@ -105,7 +105,13 @@ export function damerauLevenshtein(a: string, b: string): number {
 
 export function matchAnswer(input: string, expected: string, lang?: string): MatchResult {
   const given = normalize(input, lang)
-  if (!given) return { verdict: 'wrong' }
+  if (!given) {
+    // Answers made only of punctuation or symbols ("?", "+") normalize to nothing: compare raw.
+    const raw = input.trim()
+    return raw && !normalize(expected, lang) && raw === expected.trim()
+      ? { verdict: 'correct', matched: expected }
+      : { verdict: 'wrong' }
+  }
   const variants = answerVariants(expected)
   for (const v of variants) {
     if (normalize(v, lang) === given) return { verdict: 'correct', matched: v }

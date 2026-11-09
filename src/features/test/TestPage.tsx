@@ -53,6 +53,7 @@ function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: run once per deck
   useEffect(() => {
+    let cancelled = false
     ;(async () => {
       const fresh = params.get('fresh') === '1'
       if (fresh) {
@@ -60,10 +61,14 @@ function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
         await clearSession(deck.id, 'test')
       }
       const saved = fresh ? undefined : await loadSession<TestState>(deck.id, 'test')
+      if (cancelled) return
       if (saved?.version === 1 && saved.phase === 'taking' && saved.questions?.length)
         setState(saved)
       setReady(true)
     })()
+    return () => {
+      cancelled = true
+    }
   }, [deck.id])
 
   const update = (s: TestState | null) => {
@@ -72,8 +77,8 @@ function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
     else clearSession(deck.id, 'test')
   }
 
-  const start = (config: TestConfig, pool: Card[] = cards) => {
-    const questions = generateTest(pool, config)
+  const start = (config: TestConfig, onlyCardIds?: string[]) => {
+    const questions = generateTest(cards, config, Math.random, onlyCardIds)
     update({ version: 1, phase: 'taking', config, questions, answers: {}, overrides: {} })
     window.scrollTo({ top: 0 })
   }
@@ -127,8 +132,7 @@ function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
               setState({ ...state, overrides: { ...state.overrides, [id]: true } })
             }
             onRetakeMistakes={(cardIds) => {
-              const pool = cards.filter((c) => cardIds.includes(c.id))
-              start({ ...state.config, count: pool.length }, pool)
+              start({ ...state.config, count: cardIds.length }, cardIds)
             }}
             onNew={() => update(null)}
             onDeck={() => navigate(`/deck/${deck.id}`)}
@@ -315,6 +319,21 @@ function TestForm({
               autoCapitalize="off"
               autoCorrect="off"
               spellCheck={false}
+              onKeyDown={(e) => {
+                // Enter moves on instead of submitting the whole test.
+                if (e.key !== 'Enter') return
+                e.preventDefault()
+                const current = e.currentTarget
+                const fields = [
+                  ...(current.form?.querySelectorAll<HTMLInputElement>('input') ?? []),
+                ]
+                // First field after this one in document order.
+                fields
+                  .find(
+                    (el) => current.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING,
+                  )
+                  ?.focus()
+              }}
               className="h-12"
             />
           )}

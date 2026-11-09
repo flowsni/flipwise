@@ -107,7 +107,12 @@ export function parseBackup(text: string): Backup {
   const deckIds = new Set(data.decks.map((d) => d.id))
   const cards = data.cards.filter((c) => deckIds.has(c.deckId))
   const cardIds = new Set(cards.map((c) => c.id))
-  return { ...data, cards, progress: data.progress.filter((p) => cardIds.has(p.cardId)) }
+  // Progress always follows its card's deck, whatever deckId the file claims.
+  const deckOfCard = new Map(cards.map((c) => [c.id, c.deckId]))
+  const progress = data.progress
+    .filter((p) => cardIds.has(p.cardId))
+    .map((p) => ({ ...p, deckId: deckOfCard.get(p.cardId)! }))
+  return { ...data, cards, progress }
 }
 
 export type ImportMode = 'replace' | 'merge'

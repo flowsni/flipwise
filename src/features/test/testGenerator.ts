@@ -51,12 +51,18 @@ export function generateTest(
   cards: readonly LearnCard[],
   config: TestConfig,
   rng: Rng = Math.random,
+  /** Ask only about these cards (e.g. retaking mistakes); distractors still come from the whole deck. */
+  onlyCardIds?: readonly string[],
 ): TestQuestion[] {
   const types = config.types.length ? config.types : ['choice' as const]
   const side = config.answerWith
   const answerOf = (c: LearnCard) => (side === 'term' ? c.term : c.definition)
   const promptOf = (c: LearnCard) => (side === 'term' ? c.definition : c.term)
-  const picked = shuffle(cards, rng).slice(0, Math.max(1, Math.min(config.count, cards.length)))
+  const candidates = onlyCardIds ? cards.filter((c) => onlyCardIds.includes(c.id)) : cards
+  const picked = shuffle(candidates, rng).slice(
+    0,
+    Math.max(1, Math.min(config.count, candidates.length)),
+  )
   // Spread types evenly, then shuffle the assignment so they are mixed.
   const typePlan = shuffle(
     picked.map((_, i) => types[i % types.length]!),

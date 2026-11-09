@@ -101,3 +101,14 @@ describe('backup', () => {
     expect(await db.progress.count()).toBe(1)
   })
 })
+
+describe('parseBackup progress', () => {
+  it('takes the deck of a progress row from its card', async () => {
+    const backup = await exportAll(db)
+    const tampered = {
+      ...backup,
+      progress: backup.progress.map((p) => ({ ...p, deckId: 'ghost' })),
+    }
+    expect(parseBackup(JSON.stringify(tampered)).progress[0]!.deckId).toBe('d1')
+  })
+})

@@ -120,3 +120,13 @@ describe('learn engine', () => {
     expect(remaining.some((c) => c.id === next.current?.cardId)).toBe(true)
   })
 })
+
+describe('answered flag', () => {
+  it('marks a question as answered until the next one is prepared', () => {
+    const s = createLearnState(cards, 'definition', seededRng(12))
+    expect(s.answered).toBe(false)
+    const after = submitAnswer(s, 'nope').state
+    expect(after.answered).toBe(true)
+    expect(nextQuestion(after, cards, seededRng(13)).answered).toBe(false)
+  })
+})

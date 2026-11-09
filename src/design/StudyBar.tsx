@@ -41,5 +41,7 @@ export function shortcutsBlocked(e: KeyboardEvent): boolean {
   const el = e.target as HTMLElement | null
   if (e.defaultPrevented) return true
   if (el?.closest('input, textarea, select, [contenteditable="true"], [role="menu"]')) return true
+  // Space/Enter on a focused button or link must activate it, not trigger a shortcut.
+  if ((e.key === ' ' || e.key === 'Enter') && el?.closest('button, a, [role="button"]')) return true
   return !!document.querySelector('[role="dialog"]')
 }

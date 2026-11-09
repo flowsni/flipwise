@@ -10,7 +10,9 @@ export async function updateProgress(
   deckId: string,
   patch: (p: Progress) => Partial<Progress>,
 ): Promise<Progress> {
-  return db.transaction('rw', db.progress, async () => {
+  return db.transaction('rw', db.progress, db.cards, async () => {
+    // Never resurrect progress for a card deleted meanwhile (another tab, undo after delete).
+    if (!(await db.cards.get(cardId))) return blank(cardId, deckId)
     const current = (await db.progress.get(cardId)) ?? blank(cardId, deckId)
     const next = { ...current, ...patch(current), lastSeenAt: Date.now() }
     await db.progress.put(next)

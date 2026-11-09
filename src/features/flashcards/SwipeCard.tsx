@@ -112,7 +112,10 @@ export const SwipeCard = forwardRef<
           if (!dragged.current) setFlipped((f) => !f)
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') setFlipped((f) => !f)
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setFlipped((f) => !f)
+          }
         }}
         className="relative size-full cursor-grab rounded-[2rem] preserve-3d outline-offset-4 active:cursor-grabbing"
         initial={false}

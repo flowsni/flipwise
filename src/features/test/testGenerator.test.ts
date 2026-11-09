@@ -83,3 +83,17 @@ describe('gradeTest', () => {
     expect(gradeTest(qs, {}, undefined, { [qs[0]!.id]: true }).correct).toBe(1)
   })
 })
+
+describe('retaking mistakes', () => {
+  it('asks only the given cards but keeps distractors from the whole deck', () => {
+    const qs = generateTest(
+      cards,
+      { count: 1, types: ['choice'], answerWith: 'definition' },
+      seededRng(5),
+      ['c3'],
+    )
+    expect(qs).toHaveLength(1)
+    expect(qs[0]!.cardId).toBe('c3')
+    expect(qs[0]!.options).toHaveLength(4)
+  })
+})

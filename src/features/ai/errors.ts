@@ -29,5 +29,8 @@ export function codeForStatus(status: number | undefined): AiErrorCode {
 
 /** fetch() failures (offline, CORS) surface as TypeError in browsers. */
 export function isNetworkError(e: unknown): boolean {
-  return e instanceof TypeError || (e instanceof Error && /network|fetch|connection/i.test(e.name))
+  if (!(e instanceof Error)) return false
+  // Browsers report offline/CORS as TypeError("Failed to fetch" / "Load failed" / "NetworkError…").
+  if (e instanceof TypeError) return /fetch|network|load failed/i.test(e.message)
+  return /network|connection/i.test(e.name)
 }

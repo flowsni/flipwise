@@ -19,6 +19,8 @@ import { SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
 
 interface HistoryEntry {
   cardId: string
+  /** Queue position the card was shown at, so undo returns exactly there. */
+  index: number
   dir: SwipeDir
   prev: FlashStatus
 }
@@ -64,29 +66,44 @@ function Flashcards({
     if (!done && currentId && !cardsById.has(currentId)) setIndex((i) => i + 1)
   }, [done, currentId, cardsById])
 
+  const historyRef = useRef(history)
+  historyRef.current = history
+
+  // Swipe and undo share one lock so a fast Backspace can't interleave with a pending write.
   const onSwiped = useCallback(
     async (dir: SwipeDir) => {
       if (!currentId || busy.current) return
       busy.current = true
-      const prev = (await db.progress.get(currentId))?.flash ?? 'new'
-      await setFlash(currentId, deckId, dir === 1 ? 'known' : 'learning')
-      setHistory((h) => [...h, { cardId: currentId, dir, prev }])
-      setAnnounce(dir === 1 ? t.flash.announceKnow : t.flash.announceLearning)
-      setEnterFrom(undefined)
-      setIndex((i) => i + 1)
-      busy.current = false
+      try {
+        const prev = (await db.progress.get(currentId))?.flash ?? 'new'
+        await setFlash(currentId, deckId, dir === 1 ? 'known' : 'learning')
+        const entry = { cardId: currentId, index, dir, prev }
+        historyRef.current = [...historyRef.current, entry]
+        setHistory(historyRef.current)
+        setAnnounce(dir === 1 ? t.flash.announceKnow : t.flash.announceLearning)
+        setEnterFrom(undefined)
+        setIndex(index + 1)
+      } finally {
+        busy.current = false
+      }
     },
-    [currentId, deckId],
+    [currentId, deckId, index],
   )
 
   const undo = useCallback(async () => {
-    const last = history[history.length - 1]
-    if (!last) return
-    await updateProgress(last.cardId, deckId, () => ({ flash: last.prev }))
-    setHistory((h) => h.slice(0, -1))
-    setEnterFrom(last.dir)
-    setIndex((i) => Math.max(0, i - 1))
-  }, [history, deckId])
+    const last = historyRef.current.at(-1)
+    if (!last || busy.current) return
+    busy.current = true
+    try {
+      historyRef.current = historyRef.current.slice(0, -1)
+      setHistory(historyRef.current)
+      await updateProgress(last.cardId, deckId, () => ({ flash: last.prev }))
+      setEnterFrom(last.dir)
+      setIndex(last.index)
+    } finally {
+      busy.current = false
+    }
+  }, [deckId])
 
   const restart = (ids: string[]) => {
     setQueue(order(ids))

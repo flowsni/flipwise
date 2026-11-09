@@ -81,3 +81,10 @@ describe('typoSegments', () => {
     expect(typoSegments('яблко', 'яблоко').some((s) => s.typo)).toBe(true)
   })
 })
+
+describe('symbol-only answers', () => {
+  it('accepts an exact punctuation answer', () => {
+    expect(matchAnswer('?', '?').verdict).toBe('correct')
+    expect(matchAnswer('!', '?').verdict).toBe('wrong')
+  })
+})

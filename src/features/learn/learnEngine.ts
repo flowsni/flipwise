@@ -52,6 +52,8 @@ export interface LearnState {
   current: LearnQuestion | null
   /** Round is over and the summary screen should be shown. */
   roundOver: boolean
+  /** The current question was answered; feedback is showing and `nextQuestion` must run next. */
+  answered?: boolean
 }
 
 export interface AnswerOutcome {
@@ -184,7 +186,7 @@ function withQuestion(state: LearnState, cards: readonly LearnCard[], rng: Rng):
     const pool = cards.filter((c) => c.id !== cardId).map((c) => answerOf(c, side))
     question.options = shuffle([answer, ...pickDistractors(answer, pool, CHOICES - 1, rng)], rng)
   }
-  return { ...state, current: question }
+  return { ...state, current: question, answered: false }
 }
 
 /**
@@ -226,6 +228,7 @@ export function applyResult(state: LearnState, correct: boolean): LearnState {
     ...state,
     stage,
     round: { ...state.round, queue, learned, answered: state.round.answered + 1 },
+    answered: true,
     // The next question is prepared by `nextQuestion` after feedback is shown.
   }
 }
