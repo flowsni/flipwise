@@ -11,6 +11,7 @@ import type { Card, Deck } from '../../db/types'
 import { cx } from '../../design/cx'
 import { IconSparkles } from '../../design/icons'
 import { t } from '../../i18n/ru'
+import { fitClass } from '../../lib/textFit'
 import { SpeakButton } from '../tts/SpeakButton'
 
 export type SwipeDir = 1 | -1 // 1 = know (right), -1 = still learning (left)
@@ -22,16 +23,6 @@ export interface SwipeCardHandle {
 
 const THRESHOLD = 110
 const VELOCITY = 550
-
-/** Font size that keeps long terms readable inside the card. */
-export function fitClass(text: string): string {
-  const n = text.length
-  if (n <= 14) return 'text-[2.6rem] sm:text-5xl'
-  if (n <= 32) return 'text-[2rem] sm:text-4xl'
-  if (n <= 70) return 'text-2xl sm:text-3xl'
-  if (n <= 140) return 'text-xl sm:text-2xl'
-  return 'text-lg'
-}
 
 export const SwipeCard = forwardRef<
   SwipeCardHandle,

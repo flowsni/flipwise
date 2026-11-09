@@ -1,34 +1,20 @@
+import { t } from '../i18n/ru'
+
 export interface Language {
   code: string
   name: string
 }
 
-/** Languages offered for decks, with Russian names. */
-export const LANGUAGES: Language[] = [
-  { code: 'en', name: 'Английский' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'de', name: 'Немецкий' },
-  { code: 'fr', name: 'Французский' },
-  { code: 'es', name: 'Испанский' },
-  { code: 'it', name: 'Итальянский' },
-  { code: 'pt', name: 'Португальский' },
-  { code: 'nl', name: 'Нидерландский' },
-  { code: 'pl', name: 'Польский' },
-  { code: 'uk', name: 'Украинский' },
-  { code: 'tr', name: 'Турецкий' },
-  { code: 'sr', name: 'Сербский' },
-  { code: 'cs', name: 'Чешский' },
-  { code: 'el', name: 'Греческий' },
-  { code: 'ka', name: 'Грузинский' },
-  { code: 'he', name: 'Иврит' },
-  { code: 'ar', name: 'Арабский' },
-  { code: 'zh', name: 'Китайский' },
-  { code: 'ja', name: 'Японский' },
-  { code: 'ko', name: 'Корейский' },
-]
+/** Languages offered for decks; display names live in i18n. */
+export const LANGUAGES: Language[] = (Object.keys(t.languages) as (keyof typeof t.languages)[]).map(
+  (code) => ({
+    code,
+    name: t.languages[code],
+  }),
+)
 
 export function languageName(code: string): string {
-  return LANGUAGES.find((l) => l.code === code)?.name ?? code
+  return t.languages[code as keyof typeof t.languages] ?? code
 }
 
 /** English names are used inside AI prompts. */
@@ -57,4 +43,18 @@ const ENGLISH: Record<string, string> = {
 
 export function englishLanguageName(code: string): string {
   return ENGLISH[code] ?? code
+}
+
+/** Short phrases in each language to preview a speech voice. */
+const SPEECH_SAMPLES: Record<string, string> = {
+  en: 'Hello! Nice to meet you.',
+  ru: 'Привет! Рад знакомству.',
+  de: 'Hallo! Schön, dich kennenzulernen.',
+  fr: 'Bonjour ! Enchanté.',
+  es: '¡Hola! Encantado de conocerte.',
+  it: 'Ciao! Piacere di conoscerti.',
+}
+
+export function speechSample(code: string): string {
+  return SPEECH_SAMPLES[code] ?? 'Flipwise'
 }

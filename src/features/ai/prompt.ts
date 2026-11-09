@@ -11,7 +11,7 @@ export interface ExamplesInput {
   level: Level
 }
 
-export const EXAMPLE_COUNT = 3
+const EXAMPLE_COUNT = 3
 
 /** JSON schema shared by every provider's structured-output mode. */
 export const examplesJsonSchema = {

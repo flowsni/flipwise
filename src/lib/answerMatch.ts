@@ -125,10 +125,6 @@ export function matchAnswer(input: string, expected: string, lang?: string): Mat
   return { verdict: 'wrong' }
 }
 
-export function isAccepted(result: MatchResult): boolean {
-  return result.verdict !== 'wrong'
-}
-
 /**
  * Splits the user's input into segments so the UI can highlight the typo.
  * Compares case-insensitively; returns the input split around the first differing span.

@@ -24,7 +24,7 @@ import {
   parseBackup,
 } from '../../lib/backup'
 import { downloadFile, pickFile } from '../../lib/files'
-import { languageName } from '../../lib/languages'
+import { languageName, speechSample } from '../../lib/languages'
 import { useSetting } from '../../lib/storage'
 import { PROVIDERS, type ProviderId, providerInfo } from '../ai/catalog'
 import { AiError } from '../ai/errors'
@@ -275,15 +275,6 @@ function SpeechSection() {
   )
 }
 
-const SAMPLE: Record<string, string> = {
-  en: 'Hello! Nice to meet you.',
-  ru: 'Привет! Рад знакомству.',
-  de: 'Hallo! Schön, dich kennenzulernen.',
-  fr: 'Bonjour ! Enchanté.',
-  es: '¡Hola! Encantado de conocerte.',
-  it: 'Ciao! Piacere di conoscerti.',
-}
-
 function VoiceRow({
   lang,
   value,
@@ -311,7 +302,7 @@ function VoiceRow({
         <IconButton
           label={`${t.settings.test}: ${languageName(lang)}`}
           variant="soft"
-          onClick={() => speak(SAMPLE[lang] ?? 'Flipwise', lang)}
+          onClick={() => speak(speechSample(lang), lang)}
         >
           <IconPlay size={18} />
         </IconButton>

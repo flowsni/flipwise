@@ -3,7 +3,7 @@ import type { FlipwiseDB } from '../db/db'
 import { LEVELS } from '../db/types'
 import { newId } from './ids'
 
-export const BACKUP_VERSION = 1
+const BACKUP_VERSION = 1
 
 const exampleItem = z.object({ text: z.string(), translation: z.string() })
 
@@ -47,7 +47,7 @@ const progressSchema = z.object({
   lastSeenAt: z.number(),
 })
 
-export const backupSchema = z.object({
+const backupSchema = z.object({
   app: z.literal('flipwise'),
   version: z.number().int().min(1).max(BACKUP_VERSION),
   kind: z.enum(['backup', 'deck']).default('backup'),

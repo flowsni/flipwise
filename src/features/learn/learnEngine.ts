@@ -207,7 +207,7 @@ export function submitAnswer(state: LearnState, response: string, lang?: string)
 }
 
 /** Records a verdict. Also used by «Я был прав» to flip a wrong verdict to correct. */
-export function applyResult(state: LearnState, correct: boolean): LearnState {
+function applyResult(state: LearnState, correct: boolean): LearnState {
   const q = state.current
   if (!q) throw new Error('No active question')
   const id = q.cardId
