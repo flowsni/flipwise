@@ -1,0 +1,197 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Button } from '../../design/Button'
+import { Input, inputClass, Segmented } from '../../design/Field'
+import { Sheet } from '../../design/Sheet'
+import { t } from '../../i18n/ru'
+import {
+  type CardSeparator,
+  guessOptions,
+  type ParsedCard,
+  parseImport,
+  type TermSeparator,
+} from '../../lib/importParser'
+
+type TermKind = 'tab' | 'comma' | 'custom'
+type CardKind = 'newline' | 'semicolon' | 'custom'
+
+function termKind(sep: TermSeparator): TermKind {
+  return typeof sep === 'string' ? sep : 'custom'
+}
+function cardKind(sep: CardSeparator): CardKind {
+  return typeof sep === 'string' ? sep : 'custom'
+}
+
+export function ImportSheet({
+  open,
+  onClose,
+  onImport,
+  initialText = '',
+}: {
+  open: boolean
+  onClose: () => void
+  onImport: (cards: ParsedCard[]) => void
+  initialText?: string
+}) {
+  const [text, setText] = useState(initialText)
+  const [termSep, setTermSep] = useState<TermKind>('tab')
+  const [termCustom, setTermCustom] = useState(' - ')
+  const [cardSep, setCardSep] = useState<CardKind>('newline')
+  const [cardCustom, setCardCustom] = useState('\\n\\n')
+
+  useEffect(() => {
+    if (!open) return
+    setText(initialText)
+    if (initialText) {
+      const g = guessOptions(initialText)
+      setTermSep(termKind(g.termSep))
+      if (typeof g.termSep !== 'string') setTermCustom(g.termSep.custom)
+      setCardSep(cardKind(g.cardSep))
+    }
+  }, [open, initialText])
+
+  const result = useMemo(
+    () =>
+      parseImport(text, {
+        termSep: termSep === 'custom' ? { custom: termCustom } : termSep,
+        cardSep: cardSep === 'custom' ? { custom: cardCustom } : cardSep,
+      }),
+    [text, termSep, termCustom, cardSep, cardCustom],
+  )
+
+  const onTextChange = (value: string) => {
+    if (!text && value) {
+      const g = guessOptions(value)
+      setTermSep(termKind(g.termSep))
+      if (typeof g.termSep !== 'string') setTermCustom(g.termSep.custom)
+      setCardSep(cardKind(g.cardSep))
+    }
+    setText(value)
+  }
+
+  const count = result.cards.length
+
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t.import.title}
+      wide
+      footer={
+        <Button
+          variant="primary"
+          size="lg"
+          block
+          disabled={!count}
+          onClick={() => {
+            onImport(result.cards)
+            onClose()
+          }}
+        >
+          {count ? t.import.submit(count) : t.import.nothing}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-ink-2">{t.import.hint}</p>
+        <textarea
+          data-autofocus
+          value={text}
+          onChange={(e) => onTextChange(e.target.value)}
+          placeholder={t.import.placeholder}
+          aria-label={t.import.title}
+          rows={6}
+          spellCheck={false}
+          className={`${inputClass} min-h-36 resize-y font-mono text-sm leading-relaxed`}
+          onKeyDown={(e) => {
+            // Let users type real tabs, like in a spreadsheet.
+            if (e.key === 'Tab' && !e.shiftKey && termSep === 'tab') {
+              e.preventDefault()
+              const el = e.currentTarget
+              const { selectionStart: s, selectionEnd: end } = el
+              const next = `${text.slice(0, s)}\t${text.slice(end)}`
+              setText(next)
+              requestAnimationFrame(() => el.setSelectionRange(s + 1, s + 1))
+            }
+          }}
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-ink-2">{t.import.termSep}</span>
+            <Segmented
+              label={t.import.termSep}
+              value={termSep}
+              onChange={setTermSep}
+              options={[
+                { value: 'tab', label: t.import.tab },
+                { value: 'comma', label: t.import.comma },
+                { value: 'custom', label: t.import.custom },
+              ]}
+            />
+            {termSep === 'custom' && (
+              <Input
+                aria-label={t.import.termSep}
+                value={termCustom}
+                onChange={(e) => setTermCustom(e.target.value)}
+                placeholder={t.import.customPlaceholder}
+              />
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-ink-2">{t.import.cardSep}</span>
+            <Segmented
+              label={t.import.cardSep}
+              value={cardSep}
+              onChange={setCardSep}
+              options={[
+                { value: 'newline', label: t.import.newline },
+                { value: 'semicolon', label: ';' },
+                { value: 'custom', label: t.import.custom },
+              ]}
+            />
+            {cardSep === 'custom' && (
+              <Input
+                aria-label={t.import.cardSep}
+                value={cardCustom}
+                onChange={(e) => setCardCustom(e.target.value)}
+              />
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-baseline gap-2" aria-live="polite">
+            <span className="font-semibold">{t.import.found(count)}</span>
+            {result.skipped.length > 0 && (
+              <span className="text-sm text-ink-3">
+                · {t.import.skipped(result.skipped.length)}
+              </span>
+            )}
+          </div>
+          {count > 0 && (
+            <div className="max-h-64 overflow-auto rounded-xl border border-line">
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-surface-2 text-ink-2">
+                  <tr>
+                    <th className="w-10 px-3 py-2 font-medium">#</th>
+                    <th className="px-3 py-2 font-medium">{t.editor.term}</th>
+                    <th className="px-3 py-2 font-medium">{t.editor.definition}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.cards.slice(0, 200).map((c, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: preview rows have no identity
+                    <tr key={i} className="border-t border-line align-top">
+                      <td className="px-3 py-2 text-ink-3 tabular-nums">{i + 1}</td>
+                      <td className="px-3 py-2 break-words">{c.term}</td>
+                      <td className="px-3 py-2 break-words text-ink-2">{c.definition}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </Sheet>
+  )
+}

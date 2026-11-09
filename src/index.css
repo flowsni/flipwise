@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Design tokens. Raw palette values live on :root and are switched for the dark theme;
+ * Tailwind utilities (bg-surface, text-ink, …) read them through @theme inline.
+ */
+:root {
+  --fw-bg: #fbf6f1;
+  --fw-surface: #ffffff;
+  --fw-surface-2: #f4ece4;
+  --fw-surface-3: #ebe0d6;
+  --fw-ink: #2a1b33;
+  --fw-ink-2: #6a5b74;
+  --fw-ink-3: #8f8098;
+  --fw-line: #e6dbd1;
+  --fw-primary: #e44c39;
+  --fw-primary-hi: #ff7262;
+  --fw-primary-ink: #ffffff;
+  --fw-coral: #ff6b5a;
+  --fw-plum: #5b2a86;
+  --fw-plum-soft: #efe6f6;
+  --fw-sun: #ffc94d;
+  --fw-sun-soft: #fff3d1;
+  --fw-good: #17845a;
+  --fw-good-soft: #e1f5ec;
+  --fw-bad: #d43c41;
+  --fw-bad-soft: #fde6e5;
+  --fw-mark: #ffe08a;
+  --fw-backdrop: rgb(42 27 51 / 0.35);
+
+  --fw-shadow-raised:
+    inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 1px rgb(42 27 51 / 0.05),
+    0 2px 4px rgb(42 27 51 / 0.05), 0 8px 16px -4px rgb(42 27 51 / 0.08),
+    0 18px 32px -12px rgb(42 27 51 / 0.14);
+  --fw-shadow-pressed:
+    inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 1px rgb(42 27 51 / 0.06),
+    0 3px 8px -4px rgb(42 27 51 / 0.12);
+  --fw-shadow-float: 0 2px 6px rgb(42 27 51 / 0.06), 0 24px 48px -12px rgb(42 27 51 / 0.28);
+  --fw-shadow-primary:
+    inset 0 1px 0 rgb(255 255 255 / 0.35), 0 1px 2px rgb(160 40 25 / 0.25),
+    0 8px 18px -6px rgb(228 76 57 / 0.55);
+  --fw-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.65), rgb(255 255 255 / 0) 60%);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --fw-bg: #1a1124;
+  --fw-surface: #251832;
+  --fw-surface-2: #2f2140;
+  --fw-surface-3: #3a2a4d;
+  --fw-ink: #f7eef9;
+  --fw-ink-2: #bcadc8;
+  --fw-ink-3: #9584a4;
+  --fw-line: #3b2b4e;
+  --fw-primary: #e44c39;
+  --fw-primary-hi: #ff7a6b;
+  --fw-primary-ink: #ffffff;
+  --fw-plum-soft: #352049;
+  --fw-sun-soft: #3d3020;
+  --fw-good: #45cf95;
+  --fw-good-soft: #173a30;
+  --fw-bad: #ff7378;
+  --fw-bad-soft: #43202a;
+  --fw-mark: #6b4f12;
+  --fw-backdrop: rgb(8 4 14 / 0.6);
+
+  --fw-shadow-raised:
+    inset 0 1px 0 rgb(255 255 255 / 0.07), 0 1px 2px rgb(0 0 0 / 0.35),
+    0 8px 18px -6px rgb(0 0 0 / 0.45), 0 22px 40px -16px rgb(0 0 0 / 0.55);
+  --fw-shadow-pressed: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 2px 6px -2px rgb(0 0 0 / 0.5);
+  --fw-shadow-float: 0 2px 6px rgb(0 0 0 / 0.4), 0 28px 56px -12px rgb(0 0 0 / 0.7);
+  --fw-shadow-primary:
+    inset 0 1px 0 rgb(255 255 255 / 0.3), 0 1px 2px rgb(0 0 0 / 0.4),
+    0 10px 22px -8px rgb(228 76 57 / 0.6);
+  --fw-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 55%);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Onest Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-bg: var(--fw-bg);
+  --color-surface: var(--fw-surface);
+  --color-surface-2: var(--fw-surface-2);
+  --color-surface-3: var(--fw-surface-3);
+  --color-ink: var(--fw-ink);
+  --color-ink-2: var(--fw-ink-2);
+  --color-ink-3: var(--fw-ink-3);
+  --color-line: var(--fw-line);
+  --color-primary: var(--fw-primary);
+  --color-primary-hi: var(--fw-primary-hi);
+  --color-primary-ink: var(--fw-primary-ink);
+  --color-coral: var(--fw-coral);
+  --color-plum: var(--fw-plum);
+  --color-plum-soft: var(--fw-plum-soft);
+  --color-sun: var(--fw-sun);
+  --color-sun-soft: var(--fw-sun-soft);
+  --color-good: var(--fw-good);
+  --color-good-soft: var(--fw-good-soft);
+  --color-bad: var(--fw-bad);
+  --color-bad-soft: var(--fw-bad-soft);
+  --color-mark: var(--fw-mark);
+  --color-backdrop: var(--fw-backdrop);
+
+  --shadow-raised: var(--fw-shadow-raised);
+  --shadow-pressed: var(--fw-shadow-pressed);
+  --shadow-float: var(--fw-shadow-float);
+  --shadow-primary: var(--fw-shadow-primary);
+
+  --radius-card: 1.5rem;
+}
+
+/* "Raised, not flat": soft layered shadow, top sheen and a barely visible gradient. */
+@utility raised {
+  background-color: var(--fw-surface);
+  background-image: var(--fw-sheen);
+  box-shadow: var(--fw-shadow-raised);
+}
+
+@utility primary-fill {
+  color: var(--fw-primary-ink);
+  background-color: var(--fw-primary);
+  background-image: linear-gradient(180deg, var(--fw-primary-hi) -40%, var(--fw-primary) 70%);
+  box-shadow: var(--fw-shadow-primary);
+}
+
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0.75rem);
+}
+
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--fw-bg);
+    color: var(--fw-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01";
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  :focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--fw-plum) 70%, var(--fw-coral));
+    outline-offset: 2px;
+  }
+
+  [data-theme="dark"] :focus-visible {
+    outline-color: var(--fw-sun);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
+  mark {
+    background: var(--fw-mark);
+    color: inherit;
+    border-radius: 0.3em;
+    padding: 0 0.15em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--fw-coral) 35%, transparent);
+  }
+}
+
+@keyframes fw-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  border-radius: 0.6rem;
+  background: linear-gradient(
+    90deg,
+    var(--fw-surface-2) 25%,
+    var(--fw-surface-3) 50%,
+    var(--fw-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: fw-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

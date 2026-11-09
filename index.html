@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Flipwise — флеш-карточки с красивыми анимациями и ИИ-примерами предложений" />
+    <meta name="theme-color" content="#FBF6F1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1A1124" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Flipwise" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Flipwise</title>
+    <script>
+      document.documentElement.dataset.theme = (() => {
+        try {
+          const t = JSON.parse(localStorage.getItem('flipwise.theme') || '"system"')
+          const dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+          return dark ? 'dark' : 'light'
+        } catch {
+          return 'light'
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
