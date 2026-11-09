@@ -21,7 +21,14 @@ export function UpdatePrompt() {
     toast.show({
       message: t.pwa.update,
       duration: 0,
-      action: { label: t.pwa.updateAction, onClick: () => updateServiceWorker(true) },
+      action: {
+        label: t.pwa.updateAction,
+        onClick: () => {
+          updateServiceWorker(true)
+          // Fallback if the `controlling` event never arrives (e.g. the worker was already active).
+          setTimeout(() => window.location.reload(), 3000)
+        },
+      },
     })
   }, [needRefresh, toast, updateServiceWorker])
 

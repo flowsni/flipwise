@@ -32,6 +32,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: `${base}index.html`,
         cleanupOutdatedCaches: true,
+        // After «Обновить» sends SKIP_WAITING, the new worker must take over open tabs so the
+        // client sees `controlling` and reloads into the new version.
+        clientsClaim: true,
       },
       devOptions: { enabled: false },
     }),
