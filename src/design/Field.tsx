@@ -84,7 +84,7 @@ export function Segmented<T extends string>({
           <label
             key={o.value}
             className={cx(
-              'relative flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-2 py-2 text-center text-[0.9375rem] font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
+              'relative flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-1.5 py-2 text-center text-sm whitespace-nowrap font-medium sm:text-[0.9375rem] transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
               active ? 'raised text-ink' : 'text-ink-2 hover:text-ink',
             )}
           >

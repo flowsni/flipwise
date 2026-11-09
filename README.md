@@ -9,8 +9,6 @@ Local-first, installable, no account needed.</p>
 
 ---
 
-> 🚧 Work in progress — the study modes and AI examples are being built.
-
 ## Features
 
 - **Decks** with a language pair and CEFR level, drag-to-reorder editor, paste-to-import from Quizlet
@@ -40,12 +38,29 @@ Requires Node 22+.
 | `npm run typecheck` | Type-check with TypeScript    |
 | `npm test`          | Run unit tests (Vitest)       |
 
+## AI example sentences: getting a key
+
+Open **Settings → ИИ-примеры**, pick a provider, paste your key and press **Проверить ключ**.
+
+| Provider                       | Get a key                                                        | Default model                          |
+| ------------------------------ | ---------------------------------------------------------------- | -------------------------------------- |
+| Anthropic                      | [platform.claude.com](https://platform.claude.com/settings/keys) | `claude-haiku-5-5` (Opus 5.5 optional) |
+| OpenAI                         | [platform.openai.com](https://platform.openai.com/api-keys)      | `gpt-6-luna`                           |
+| Google Gemini                  | [aistudio.google.com](https://aistudio.google.com/app/apikey)    | `gemini-3.5-flash-lite`                |
+| DeepSeek                       | [platform.deepseek.com](https://platform.deepseek.com/api_keys)  | `deepseek-flash`                       |
+| OpenRouter (Mistral, Llama, …) | [openrouter.ai](https://openrouter.ai/keys)                      | `openai/gpt-6-luna`                    |
+
+Every provider also accepts any model id via **Своя модель…**, so new models work without an app update.
+
 ## Privacy
 
 All decks and progress live in your browser's IndexedDB. Nothing is sent anywhere — except the
 card you ask AI examples for, which goes **directly from your browser** to the AI provider you chose,
 using your own API key. The key is stored only in this browser's localStorage. Create a separate key
 with a spending limit.
+
+Note: GitHub Pages serves all of an account's project sites from one origin, so other pages on
+`<user>.github.io` could read this origin's localStorage. Only deploy pages you trust there.
 
 ## Deployment
 
