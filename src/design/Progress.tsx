@@ -1,6 +1,6 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { useEffect, useState } from 'react'
-import { softSpring } from './motion'
+import { ringSpring, softSpring } from './motion'
 
 export function ProgressBar({ value, label }: { value: number; label: string }) {
   const pct = Math.max(0, Math.min(1, value))
@@ -59,12 +59,7 @@ export function Ring({
           strokeDasharray={c}
           initial={{ strokeDashoffset: animateFromZero ? c : c * (1 - pct) }}
           animate={{ strokeDashoffset: c * (1 - pct) }}
-          transition={{
-            type: 'spring',
-            stiffness: 60,
-            damping: 18,
-            delay: animateFromZero ? 0.15 : 0,
-          }}
+          transition={{ ...ringSpring, delay: animateFromZero ? 0.15 : 0 }}
         />
       </svg>
       {children && <div className="absolute inset-0 grid place-items-center">{children}</div>}

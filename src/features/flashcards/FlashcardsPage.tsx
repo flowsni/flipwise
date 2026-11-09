@@ -8,6 +8,7 @@ import type { Card, Deck, FlashStatus } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { IconRefresh, IconShuffle, IconUndo } from '../../design/icons'
 import { Menu } from '../../design/Menu'
+import { enterSpring, softSpring } from '../../design/motion'
 import { CountUp, Ring } from '../../design/Progress'
 import { StudyBar, shortcutsBlocked } from '../../design/StudyBar'
 import { t } from '../../i18n/ru'
@@ -237,7 +238,7 @@ function Flashcards({
                     initial={enterFrom ? false : { scale: 0.94, y: 16 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ opacity: 0, transition: { duration: 0.05 } }}
-                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                    transition={enterSpring}
                   >
                     <SwipeCard
                       ref={cardRef}
@@ -318,7 +319,7 @@ function Summary({
     <motion.main
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      transition={softSpring}
       className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 px-6 pb-safe text-center"
     >
       <Ring

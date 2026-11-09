@@ -6,6 +6,7 @@ import type { Card, Deck, ExampleItem } from '../../db/types'
 import { Button } from '../../design/Button'
 import { cx } from '../../design/cx'
 import { IconRefresh, IconSparkles, IconTrash } from '../../design/icons'
+import { enterSpring } from '../../design/motion'
 import { Sheet } from '../../design/Sheet'
 import { useToast } from '../../design/Toast'
 import { t } from '../../i18n/ru'
@@ -196,7 +197,7 @@ function ExampleRow({ item, index, deck }: { item: ExampleItem; index: number; d
       animate={{
         opacity: 1,
         y: 0,
-        transition: { delay: index * 0.07, type: 'spring', stiffness: 380, damping: 30 },
+        transition: { ...enterSpring, delay: index * 0.07 },
       }}
       className="flex items-start gap-1 rounded-2xl border border-line bg-surface-2/50 py-1 pr-1 pl-1"
     >

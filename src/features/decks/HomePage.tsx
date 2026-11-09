@@ -5,7 +5,7 @@ import { type DeckSummary, useDeckSummaries } from '../../db/hooks'
 import { Button, IconButton } from '../../design/Button'
 import { IconPlus, IconSettings, IconUpload } from '../../design/icons'
 import { Logo, LogoMark } from '../../design/Logo'
-import { pressSpring } from '../../design/motion'
+import { enterSpring, pressSpring } from '../../design/motion'
 import { Ring } from '../../design/Progress'
 import { TopBar } from '../../design/TopBar'
 import { t } from '../../i18n/ru'
@@ -58,9 +58,7 @@ export function HomePage() {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  type: 'spring',
-                  stiffness: 320,
-                  damping: 30,
+                  ...enterSpring,
                   delay: Math.min(i, 8) * 0.04,
                 }}
               >

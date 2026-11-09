@@ -11,6 +11,7 @@ import { cx } from '../../design/cx'
 import { Input } from '../../design/Field'
 import { IconCheck, IconRefresh } from '../../design/icons'
 import { Menu } from '../../design/Menu'
+import { bouncySpring, enterSpring, softSpring } from '../../design/motion'
 import { StudyBar, shortcutsBlocked } from '../../design/StudyBar'
 import { t } from '../../i18n/ru'
 import type { MatchResult } from '../../lib/answerMatch'
@@ -269,7 +270,7 @@ function QuestionView({
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12, transition: { duration: 0.14 } }}
-      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+      transition={enterSpring}
       className="flex flex-1 flex-col gap-6"
     >
       <div className="raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7">
@@ -488,14 +489,14 @@ function Finished({
     <motion.section
       initial={{ opacity: 0, scale: 0.94 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      transition={softSpring}
       className="flex flex-1 flex-col items-center justify-center gap-5 text-center"
     >
       <Confetti />
       <motion.div
         initial={{ rotate: -20, scale: 0.6 }}
         animate={{ rotate: 0, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 220, damping: 12, delay: 0.1 }}
+        transition={{ ...bouncySpring, delay: 0.1 }}
         className="grid size-28 place-items-center rounded-full bg-sun-soft text-6xl"
         aria-hidden="true"
       >

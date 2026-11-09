@@ -6,10 +6,12 @@ import {
   useReducedMotion,
   useTransform,
 } from 'motion/react'
+
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Card, Deck } from '../../db/types'
 import { cx } from '../../design/cx'
 import { IconSparkles } from '../../design/icons'
+import { enterSpring, flipSpring, snappySpring } from '../../design/motion'
 import { t } from '../../i18n/ru'
 import { fitClass } from '../../lib/textFit'
 import { SpeakButton } from '../tts/SpeakButton'
@@ -46,7 +48,7 @@ export const SwipeCard = forwardRef<
   const leaving = useRef(false)
 
   useEffect(() => {
-    if (enterFrom) animate(x, 0, { type: 'spring', stiffness: 380, damping: 32 })
+    if (enterFrom) animate(x, 0, enterSpring)
   }, [enterFrom, x])
 
   const fly = (dir: SwipeDir, velocity = 0) => {
@@ -91,7 +93,7 @@ export const SwipeCard = forwardRef<
         if (Math.abs(info.offset.x) > THRESHOLD || Math.abs(info.velocity.x) > VELOCITY) {
           fly(info.offset.x > 0 ? 1 : -1, info.velocity.x)
         } else {
-          animate(x, 0, { type: 'spring', stiffness: 500, damping: 30 })
+          animate(x, 0, snappySpring)
         }
       }}
     >
@@ -111,7 +113,7 @@ export const SwipeCard = forwardRef<
         className="relative size-full cursor-grab rounded-[2rem] preserve-3d outline-offset-4 active:cursor-grabbing"
         initial={false}
         animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 240, damping: 24 }}
+        transition={reduce ? { duration: 0 } : flipSpring}
       >
         <Face
           text={frontText}

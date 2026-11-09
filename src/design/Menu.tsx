@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { IconButton } from './Button'
 import { cx } from './cx'
 import { IconMore } from './icons'
+import { snappySpring } from './motion'
 
 export interface MenuItem {
   label: string
@@ -98,7 +99,7 @@ export function Menu({
             initial={{ opacity: 0, scale: 0.92, y: -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ type: 'spring', stiffness: 600, damping: 36 }}
+            transition={snappySpring}
             className={cx(
               'absolute top-12 z-40 min-w-60 overflow-hidden rounded-2xl border border-line bg-surface p-1.5 shadow-float',
               align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',
