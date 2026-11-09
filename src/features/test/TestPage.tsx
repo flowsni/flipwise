@@ -1,9 +1,8 @@
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { recordAnswer } from '../../db/progress'
-import { clearSession, loadSession, saveSession } from '../../db/sessions'
 import type { AnswerSide, Card, Deck } from '../../db/types'
 import { Button } from '../../design/Button'
 import { cx } from '../../design/cx'
@@ -15,6 +14,7 @@ import { t } from '../../i18n/ru'
 import { useSetting } from '../../lib/storage'
 import { MIN_CARDS } from '../learn/learnEngine'
 import { AnswerFeedback } from '../study/AnswerFeedback'
+import { persistSession, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { SpeakButton } from '../tts/SpeakButton'
 import {
@@ -47,34 +47,24 @@ export function TestPage() {
 
 function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
   const [state, setState] = useState<TestState | null>(null)
-  const [ready, setReady] = useState(false)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: run once per deck
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const fresh = params.get('fresh') === '1'
-      if (fresh) {
-        setParams({}, { replace: true })
-        await clearSession(deck.id, 'test')
-      }
-      const saved = fresh ? undefined : await loadSession<TestState>(deck.id, 'test')
-      if (cancelled) return
-      if (saved?.version === 1 && saved.phase === 'taking' && saved.questions?.length)
-        setState(saved)
-      setReady(true)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [deck.id])
+  const session = useSavedSession<TestState>(
+    deck.id,
+    'test',
+    (s) => s.version === 1 && s.phase === 'taking' && !!s.questions?.length,
+  )
+  const [restored, setRestored] = useState(false)
+  // Show a saved unfinished test once it has been loaded.
+  if (session.ready && !restored) {
+    setRestored(true)
+    if (session.saved) setState(session.saved)
+  }
+  const ready = session.ready && restored
 
   const update = (s: TestState | null) => {
     setState(s)
-    if (s?.phase === 'taking') saveSession(deck.id, 'test', s)
-    else clearSession(deck.id, 'test')
+    persistSession(deck.id, 'test', s, s?.phase === 'taking')
   }
 
   const start = (config: TestConfig, onlyCardIds?: string[]) => {

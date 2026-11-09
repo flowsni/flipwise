@@ -1,9 +1,8 @@
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { recordAnswer } from '../../db/progress'
-import { clearSession, loadSession, saveSession } from '../../db/sessions'
 import type { AnswerSide, Card, Deck } from '../../db/types'
 import { Button } from '../../design/Button'
 import { Confetti } from '../../design/Confetti'
@@ -18,6 +17,7 @@ import type { MatchResult } from '../../lib/answerMatch'
 import { useSetting } from '../../lib/storage'
 import { fitClass } from '../../lib/textFit'
 import { AnswerFeedback } from '../study/AnswerFeedback'
+import { persistSession, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { SpeakButton } from '../tts/SpeakButton'
 import {
@@ -50,45 +50,41 @@ export function LearnPage() {
 
 function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
   const [answerWith, setAnswerWith] = useSetting<AnswerSide>('learn.answerWith', 'definition')
   const [state, setState] = useState<LearnState | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const answerLang = answerWith === 'term' ? deck.termLang : deck.defLang
   const promptLang = answerWith === 'term' ? deck.defLang : deck.termLang
 
-  // Resume a saved session unless "?fresh=1" asks for a new one.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: run once per deck
+  const session = useSavedSession<LearnState>(
+    deck.id,
+    'learn',
+    (s) => s.version === 1 && !!s.order?.length,
+  )
+
+  // Resume the saved session once it is loaded, or start a new one.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once when loading finishes
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const fresh = params.get('fresh') === '1'
-      const saved = fresh ? undefined : await loadSession<LearnState>(deck.id, 'learn')
-      if (cancelled) return
-      if (fresh) setParams({}, { replace: true })
-      if (saved?.version === 1 && saved.order?.length) {
-        if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
-        // A session saved while feedback was showing already counted that answer: move on.
-        // Also re-ask when the pending card was deleted while the session was paused.
-        const pendingOk =
-          saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
-        setState(pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards))
-      } else {
-        const s = createLearnState(cards, answerWith)
-        setState(s)
-        saveSession(deck.id, 'learn', s)
-      }
-    })()
-    return () => {
-      cancelled = true
+    if (!session.ready || state) return
+    const saved = session.saved
+    if (saved) {
+      if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
+      // A session saved while feedback was showing already counted that answer: move on.
+      // Also re-ask when the pending card was deleted while the session was paused.
+      const pendingOk =
+        saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
+      setState(pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards))
+    } else {
+      const s = createLearnState(cards, answerWith)
+      setState(s)
+      persistSession(deck.id, 'learn', s, true)
     }
-  }, [deck.id])
+  }, [session.ready])
 
   const persist = useCallback(
     (s: LearnState) => {
       setState(s)
-      if (isFinished(s)) clearSession(deck.id, 'learn')
-      else saveSession(deck.id, 'learn', s)
+      persistSession(deck.id, 'learn', s, !isFinished(s))
     },
     [deck.id],
   )
