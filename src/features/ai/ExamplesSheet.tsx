@@ -1,6 +1,8 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSettingsSheet } from '../../app/SettingsContext'
+import { db } from '../../db/db'
 import { updateCardExamples } from '../../db/decks'
 import type { Card, Deck, ExampleItem } from '../../db/types'
 import { Button } from '../../design/Button'
@@ -33,7 +35,17 @@ export function ExamplesSheet({
   )
 }
 
-function ExamplesBody({ card, deck, onClose }: { card: Card; deck: Deck; onClose: () => void }) {
+function ExamplesBody({
+  card: initialCard,
+  deck,
+  onClose,
+}: {
+  card: Card
+  deck: Deck
+  onClose: () => void
+}) {
+  // Read the card live: generated, regenerated or deleted examples must show up immediately.
+  const card = useLiveQuery(() => db.cards.get(initialCard.id), [initialCard.id]) ?? initialCard
   const ai = useAiSettings()
   const settings = useSettingsSheet()
   const toast = useToast()

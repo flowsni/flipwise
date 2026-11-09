@@ -162,3 +162,23 @@ it('requires a key', async () => {
     generateExamples(input, { provider: 'openai', apiKey: '', model: 'm' }),
   ).rejects.toMatchObject({ code: 'no-key' })
 })
+
+describe('overloaded providers', () => {
+  it('retries Gemini once on 503 and then succeeds', async () => {
+    const { ApiError } = await import('@google/genai')
+    geminiGenerate
+      .mockRejectedValueOnce(new ApiError({ message: 'high demand', status: 503 }))
+      .mockResolvedValueOnce({ text: json })
+    const r = await generateExamples(input, { provider: 'gemini', apiKey: 'k', model: 'm' })
+    expect(r.items).toHaveLength(1)
+    expect(geminiGenerate).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports a persistent overload as busy', async () => {
+    const { ApiError } = await import('@google/genai')
+    geminiGenerate.mockRejectedValue(new ApiError({ message: 'high demand', status: 503 }))
+    await expect(
+      generateExamples(input, { provider: 'gemini', apiKey: 'k', model: 'm' }),
+    ).rejects.toMatchObject({ code: 'busy' })
+  })
+})

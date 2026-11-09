@@ -7,6 +7,7 @@ export type AiErrorCode =
   | 'refusal'
   | 'model'
   | 'aborted'
+  | 'busy'
   | 'unknown'
 
 export class AiError extends Error {
@@ -24,6 +25,7 @@ export function codeForStatus(status: number | undefined): AiErrorCode {
   if (status === 401 || status === 403) return 'auth'
   if (status === 429 || status === 402) return 'rate'
   if (status === 404) return 'model'
+  if (status !== undefined && (status >= 500 || status === 529)) return 'busy'
   return 'unknown'
 }
 

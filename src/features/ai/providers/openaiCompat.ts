@@ -1,4 +1,4 @@
-import { AiError, isNetworkError } from '../errors'
+import { AiError, codeForStatus, isNetworkError } from '../errors'
 import type { GenerateRequest } from './types'
 
 export type CompatFlavor = 'openai' | 'deepseek' | 'openrouter'
@@ -65,8 +65,7 @@ export async function generateOpenAICompat(
     if (e instanceof OpenAI.RateLimitError) throw new AiError('rate')
     if (e instanceof OpenAI.NotFoundError) throw new AiError('model')
     if (e instanceof OpenAI.APIConnectionError || isNetworkError(e)) throw new AiError('network')
-    if (e instanceof OpenAI.APIError)
-      throw new AiError(e.status === 402 ? 'rate' : 'unknown', e.message)
+    if (e instanceof OpenAI.APIError) throw new AiError(codeForStatus(e.status), e.message)
     throw e
   }
 }

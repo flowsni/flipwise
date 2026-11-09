@@ -76,7 +76,7 @@ function SheetPanel({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         // An open "…" menu inside the sheet closes first.
-        if ((e.target as HTMLElement | null)?.closest('[role="menu"]')) return
+        if (e.target instanceof Element && e.target.closest('[role="menu"]')) return
         e.stopPropagation()
         onCloseRef.current()
         return

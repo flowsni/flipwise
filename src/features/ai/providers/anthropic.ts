@@ -1,4 +1,4 @@
-import { AiError, isNetworkError } from '../errors'
+import { AiError, codeForStatus, isNetworkError } from '../errors'
 import type { GenerateRequest } from './types'
 
 /** Models that support server-side refusal fallbacks (`fallbacks: "default"`). */
@@ -45,7 +45,7 @@ export async function generateAnthropic(req: GenerateRequest): Promise<string> {
     if (e instanceof Anthropic.RateLimitError) throw new AiError('rate')
     if (e instanceof Anthropic.NotFoundError) throw new AiError('model')
     if (e instanceof Anthropic.APIConnectionError || isNetworkError(e)) throw new AiError('network')
-    if (e instanceof Anthropic.APIError) throw new AiError('unknown', e.message)
+    if (e instanceof Anthropic.APIError) throw new AiError(codeForStatus(e.status), e.message)
     throw e
   }
 }

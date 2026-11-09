@@ -4,8 +4,8 @@ import type { GenerateRequest } from './types'
 export async function generateGemini(req: GenerateRequest): Promise<string> {
   const { GoogleGenAI, ApiError } = await import('@google/genai')
   const ai = new GoogleGenAI({ apiKey: req.apiKey })
-  try {
-    const response = await ai.models.generateContent({
+  const call = () =>
+    ai.models.generateContent({
       model: req.model,
       contents: req.user,
       config: {
@@ -15,6 +15,16 @@ export async function generateGemini(req: GenerateRequest): Promise<string> {
         abortSignal: req.signal,
       },
     })
+  try {
+    let response: Awaited<ReturnType<typeof call>>
+    try {
+      response = await call()
+    } catch (e) {
+      // Unlike the Anthropic and OpenAI SDKs, @google/genai does not retry; overloads (503) are common.
+      if (!(e instanceof ApiError) || e.status < 500 || req.signal?.aborted) throw e
+      await new Promise((r) => setTimeout(r, 1500))
+      response = await call()
+    }
     if (response.promptFeedback?.blockReason) throw new AiError('refusal')
     return response.text ?? ''
   } catch (e) {
