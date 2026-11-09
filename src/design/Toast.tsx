@@ -90,7 +90,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     item.action?.onClick()
                     dismiss(item.id)
                   }}
-                  className="rounded-xl px-3 py-1.5 font-semibold text-sun hover:bg-white/10 dark:text-plum dark:hover:bg-black/5"
+                  className="min-h-11 rounded-xl px-4 font-semibold text-sun hover:bg-white/10 dark:text-plum dark:hover:bg-black/5"
                 >
                   {item.action.label}
                 </button>

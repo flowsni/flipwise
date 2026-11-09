@@ -241,7 +241,7 @@ function Flashcards({
             <Button
               variant="raised"
               size="lg"
-              className="min-w-32 !text-bad"
+              className="max-w-48 flex-1 !text-bad"
               onClick={() => cardRef.current?.swipe(-1)}
             >
               {t.flash.learning}
@@ -258,7 +258,7 @@ function Flashcards({
             <Button
               variant="raised"
               size="lg"
-              className="min-w-32 !text-good"
+              className="max-w-48 flex-1 !text-good"
               onClick={() => cardRef.current?.swipe(1)}
             >
               {t.flash.know}

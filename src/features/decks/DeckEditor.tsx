@@ -361,7 +361,7 @@ function EditorRow({
       <button
         type="button"
         aria-label={`${t.editor.dragRow} ${index + 1}`}
-        className="flex w-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2 active:cursor-grabbing"
+        className="flex w-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2 active:cursor-grabbing"
         onPointerDown={(e) => controls.start(e)}
       >
         <IconGrip size={18} />

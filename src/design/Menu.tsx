@@ -121,7 +121,7 @@ export function Menu({
                       item.onSelect()
                     }}
                     className={cx(
-                      'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.95rem] outline-none hover:bg-surface-2 focus-visible:bg-surface-2',
+                      'flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[1.0625rem] outline-none hover:bg-surface-2 focus-visible:bg-surface-2',
                       item.danger ? 'text-bad' : 'text-ink',
                     )}
                   >

@@ -1,14 +1,8 @@
-import {
-  forwardRef,
-  type InputHTMLAttributes,
-  type ReactNode,
-  type SelectHTMLAttributes,
-  useId,
-} from 'react'
+import { forwardRef, type InputHTMLAttributes, type ReactNode, useId } from 'react'
 import { cx } from './cx'
 
 export const inputClass =
-  'w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[1rem] text-ink placeholder:text-ink-3 transition-[border-color,box-shadow] focus:border-plum focus:outline-none focus:ring-4 focus:ring-plum/15 dark:focus:border-sun dark:focus:ring-sun/15'
+  'w-full min-h-12 rounded-xl border border-line bg-surface px-4 py-3 text-[1.0625rem] text-ink placeholder:text-ink-3 transition-[border-color,box-shadow] focus:border-plum focus:outline-none focus:ring-4 focus:ring-plum/15 dark:focus:border-sun dark:focus:ring-sun/15'
 
 export function Field({
   label,
@@ -27,7 +21,7 @@ export function Field({
         {label}
       </label>
       {children}
-      {hint && <div className="text-xs text-ink-3">{hint}</div>}
+      {hint && <div className="text-sm text-ink-3">{hint}</div>}
     </div>
   )
 }
@@ -38,7 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   },
 )
 
-export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({ className, children, ...props }: React.ComponentProps<'select'>) {
   return (
     <div className="relative">
       <select className={cx(inputClass, 'appearance-none pr-9', className)} {...props}>
@@ -83,14 +77,14 @@ export function Segmented<T extends string>({
 }) {
   const name = useId()
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-xl bg-surface-2 p-1">
+    <div role="radiogroup" aria-label={label} className="flex min-h-12 rounded-xl bg-surface-2 p-1">
       {options.map((o) => {
         const active = o.value === value
         return (
           <label
             key={o.value}
             className={cx(
-              'relative flex-1 cursor-pointer rounded-[0.6rem] px-2 py-1.5 text-center text-sm font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
+              'relative flex min-h-10 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-2 py-2 text-center text-[0.9375rem] font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
               active ? 'raised text-ink' : 'text-ink-2 hover:text-ink',
             )}
           >
@@ -120,14 +114,14 @@ export function Checkbox({
   children: ReactNode
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-xl px-1 py-2">
+    <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 py-2">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="size-5 accent-[var(--fw-primary)]"
+        className="size-6 accent-[var(--fw-primary)]"
       />
-      <span className="text-[0.95rem]">{children}</span>
+      <span className="text-[1.0625rem]">{children}</span>
     </label>
   )
 }

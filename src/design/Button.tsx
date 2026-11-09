@@ -21,9 +21,10 @@ const variants: Record<Variant, string> = {
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm rounded-xl gap-1.5',
-  md: 'h-11 px-5 text-[0.95rem] rounded-2xl gap-2',
-  lg: 'h-14 px-6 text-[1.05rem] rounded-[1.1rem] gap-2.5',
+  // Apple HIG: hit targets are never smaller than 44×44 pt; body-size (17pt) labels.
+  sm: 'min-h-11 px-4 text-[0.9375rem] rounded-xl gap-1.5',
+  md: 'min-h-12 px-5 text-[1.0625rem] rounded-2xl gap-2',
+  lg: 'min-h-[3.5rem] px-6 text-[1.0625rem] rounded-[1.1rem] gap-2.5',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -75,8 +76,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       transition={pressSpring}
       className={cx(
         'inline-flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40',
-        size === 'sm' && 'size-9',
-        size === 'md' && 'size-11',
+        size === 'sm' && 'size-11',
+        size === 'md' && 'size-12',
         size === 'lg' && 'size-14',
         variant === 'ghost' && 'text-ink-2 hover:bg-surface-2 hover:text-ink',
         variant === 'soft' && 'bg-surface-2 text-ink hover:bg-surface-3',

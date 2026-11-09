@@ -346,7 +346,7 @@ function OptionRadio({
     <label
       lang={lang}
       className={cx(
-        'flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-2.5 transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-plum',
+        'flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-2.5 transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-plum',
         checked ? 'border-plum bg-plum-soft dark:border-sun' : 'border-line hover:bg-surface-2',
       )}
     >

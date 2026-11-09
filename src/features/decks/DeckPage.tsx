@@ -209,7 +209,7 @@ export function DeckPage() {
                     <SpeakButton text={card.term} lang={deck.termLang} />
                     <IconButton
                       size="sm"
-                      label={t.examples.title}
+                      label={`${t.examples.title}: ${card.term}`}
                       onClick={() => setExamplesFor(card)}
                       className={cx(card.examples && 'text-primary')}
                     >
@@ -217,7 +217,7 @@ export function DeckPage() {
                     </IconButton>
                     <IconButton
                       size="sm"
-                      label={t.deck.deleteCard}
+                      label={`${t.deck.deleteCard}: ${card.term}`}
                       onClick={() => onDeleteCard(card)}
                       className="sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
                     >
@@ -302,7 +302,7 @@ function ModeTile({
     )
   }
   return (
-    <div className="relative">
+    <div className="flex flex-col">
       <MotionLink
         to={`/deck/${deckId}/${to}`}
         whileHover={{ y: -3 }}
@@ -315,7 +315,7 @@ function ModeTile({
       {resumable && (
         <Link
           to={`/deck/${deckId}/${to}?fresh=1`}
-          className="absolute right-3 bottom-2 rounded-lg px-2 py-1 text-xs font-medium text-ink-2 underline-offset-2 hover:underline sm:top-4 sm:bottom-auto"
+          className="mt-1 inline-flex min-h-11 items-center justify-center self-end rounded-xl px-3 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
         >
           {t.deck.restart}
         </Link>
