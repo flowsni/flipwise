@@ -1,5 +1,4 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AnimatePresence } from 'motion/react'
 import { useDeferredValue, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { db } from '../../db/db'
@@ -81,16 +80,14 @@ export function SearchPage() {
               {deck.title}
             </h2>
             <ul className="flex flex-col gap-2">
-              <AnimatePresence initial={false}>
-                {hits.slice(0, 50).map(({ card }) => (
-                  <CardRow
-                    key={card.id}
-                    card={card}
-                    deck={deck}
-                    to={`/deck/${deck.id}?card=${encodeURIComponent(card.id)}`}
-                  />
-                ))}
-              </AnimatePresence>
+              {hits.map(({ card }) => (
+                <CardRow
+                  key={card.id}
+                  card={card}
+                  deck={deck}
+                  to={`/deck/${deck.id}?card=${encodeURIComponent(card.id)}`}
+                />
+              ))}
             </ul>
           </section>
         ))}

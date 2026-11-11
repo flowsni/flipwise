@@ -13,9 +13,6 @@ export interface SearchGroup {
   hits: SearchHit[]
 }
 
-// No language: the same normalization for query and text, so articles are not stripped on one side only.
-const norm = (s: string) => normalize(s)
-
 function rankOf(q: string, term: string, definition: string): number {
   if (term === q || definition === q) return 0
   if (term.startsWith(q)) return 1
@@ -34,7 +31,8 @@ export function searchCards(
   decks: readonly Deck[],
   query: string,
 ): SearchHit[] {
-  const q = norm(query)
+  // No language: query and text are normalized alike, so articles aren't stripped on one side only.
+  const q = normalize(query)
   if (!q) return []
   const deckById = new Map(decks.map((d) => [d.id, d]))
   const deckOrder = new Map(decks.map((d, i) => [d.id, i]))
@@ -42,7 +40,7 @@ export function searchCards(
   for (const card of cards) {
     const deck = deckById.get(card.deckId)
     if (!deck) continue
-    const rank = rankOf(q, norm(card.term), norm(card.definition))
+    const rank = rankOf(q, normalize(card.term), normalize(card.definition))
     if (rank >= 0) hits.push({ card, deck, rank })
   }
   return hits.sort(

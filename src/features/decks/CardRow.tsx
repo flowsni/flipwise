@@ -2,10 +2,7 @@ import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { Card, Deck } from '../../db/types'
-import { IconButton } from '../../design/Button'
 import { cx } from '../../design/cx'
-import { IconStar } from '../../design/icons'
-import { t } from '../../i18n/ru'
 
 /**
  * One card in a list: term and definition, plus whatever actions the screen needs
@@ -67,27 +64,5 @@ export function CardRow({
       )}
       {children}
     </motion.li>
-  )
-}
-
-export function StarButton({
-  term,
-  starred,
-  onToggle,
-}: {
-  term: string
-  starred: boolean
-  onToggle: () => void
-}) {
-  return (
-    <IconButton
-      size="sm"
-      label={starred ? t.deck.unstar(term) : t.deck.star(term)}
-      aria-pressed={starred}
-      onClick={onToggle}
-      className={cx(starred && 'text-sun-ink hover:text-sun-ink')}
-    >
-      <IconStar size={18} filled={starred} />
-    </IconButton>
   )
 }

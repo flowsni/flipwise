@@ -32,7 +32,7 @@ import { shareOrDownloadJson } from '../../lib/files'
 import { languageName } from '../../lib/languages'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { SpeakButton } from '../tts/SpeakButton'
-import { CardRow, StarButton } from './CardRow'
+import { CardRow } from './CardRow'
 import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'
 
@@ -64,9 +64,14 @@ export function DeckPage() {
         .querySelector(`[data-card="${CSS.escape(target)}"]`)
         ?.scrollIntoView({ block: 'center' }),
     )
+  }, [target, cards, setParams])
+
+  // Its own effect: dropping the parameter above re-runs that one and would cancel the timer.
+  useEffect(() => {
+    if (!highlight) return
     const timer = setTimeout(() => setHighlight(null), 2200)
     return () => clearTimeout(timer)
-  }, [target, cards, setParams])
+  }, [highlight])
 
   if (deck === null) return <NotFound />
   if (!deck || !cards) return null
