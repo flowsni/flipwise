@@ -57,6 +57,14 @@ export const ru = {
     star: (term: string) => `В избранное: ${term}`,
     unstar: (term: string) => `Убрать из избранного: ${term}`,
   },
+  hard: {
+    title: 'Трудные слова',
+    hint: 'Слова, в которых вы чаще всего ошибаетесь в заучивании и тестах.',
+    mistakes: (wrong: number, total: number) => `Ошибок: ${wrong} из ${total}`,
+    empty: 'Трудных слов пока нет — так держать!',
+    showAll: (n: number) => `Все трудные слова (${n})`,
+    open: (n: number) => `Трудные слова · ${n}`,
+  },
   search: {
     open: 'Поиск по наборам',
     label: 'Поиск',

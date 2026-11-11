@@ -1,9 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { hardestCards } from '../lib/hardWords'
 import { db } from './db'
 import { getDeckCards } from './decks'
 import { isMastered } from './progress'
 import { sessionId } from './sessions'
-import type { Deck, Progress, StudyMode } from './types'
+import type { Card, Deck, Progress, StudyMode } from './types'
 
 export interface DeckSummary {
   deck: Deck
@@ -66,4 +67,30 @@ export function useDeckLanguages(): string[] {
       return [...new Set(decks.flatMap((d) => [d.termLang, d.defLang]))]
     }, []) ?? []
   )
+}
+
+export interface HardCard {
+  card: Card
+  deck: Deck
+  progress: Progress
+}
+
+/** «Трудные слова» of one deck, or of all decks when `deckId` is omitted. */
+export function useHardCards(deckId?: string): HardCard[] | undefined {
+  return useLiveQuery(async () => {
+    const rows = deckId
+      ? await db.progress.where('deckId').equals(deckId).toArray()
+      : await db.progress.toArray()
+    const hard = hardestCards(rows)
+    const [cards, decks] = await Promise.all([
+      db.cards.bulkGet(hard.map((p) => p.cardId)),
+      db.decks.bulkGet([...new Set(hard.map((p) => p.deckId))]),
+    ])
+    const deckById = new Map(decks.filter((d): d is Deck => !!d).map((d) => [d.id, d]))
+    return hard.flatMap((progress, i) => {
+      const card = cards[i]
+      const deck = deckById.get(progress.deckId)
+      return card && deck ? [{ card, deck, progress }] : []
+    })
+  }, [deckId])
 }

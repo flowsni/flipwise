@@ -1,9 +1,16 @@
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
 import { useSettingsSheet } from '../../app/SettingsContext'
-import { type DeckSummary, useDeckSummaries } from '../../db/hooks'
+import { type DeckSummary, useDeckSummaries, useHardCards } from '../../db/hooks'
 import { Button, IconButton } from '../../design/Button'
-import { IconPlus, IconSearch, IconSettings, IconUpload } from '../../design/icons'
+import {
+  IconChevronRight,
+  IconFlame,
+  IconPlus,
+  IconSearch,
+  IconSettings,
+  IconUpload,
+} from '../../design/icons'
 import { Logo, LogoMark } from '../../design/Logo'
 import { enterSpring, pressSpring } from '../../design/motion'
 import { Ring } from '../../design/Progress'
@@ -15,6 +22,7 @@ const MotionLink = motion.create(Link)
 
 export function HomePage() {
   const decks = useDeckSummaries()
+  const hard = useHardCards()
   const navigate = useNavigate()
   const settings = useSettingsSheet()
 
@@ -52,6 +60,17 @@ export function HomePage() {
         </div>
 
         <InstallHint />
+
+        {!!hard?.length && (
+          <Link
+            to="/hard"
+            className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-bad-soft px-4 text-[0.9375rem] font-semibold text-bad transition-opacity hover:opacity-85"
+          >
+            <IconFlame size={18} />
+            {t.hard.open(hard.length)}
+            <IconChevronRight size={16} />
+          </Link>
+        )}
 
         {decks && decks.length === 0 && (
           <EmptyState onCreate={() => navigate('/new')} onImport={() => settings.open()} />
