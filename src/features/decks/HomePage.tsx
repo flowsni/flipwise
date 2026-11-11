@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { useSettingsSheet } from '../../app/SettingsContext'
 import { type DeckSummary, useDeckSummaries } from '../../db/hooks'
 import { Button, IconButton } from '../../design/Button'
-import { IconPlus, IconSettings, IconUpload } from '../../design/icons'
+import { IconPlus, IconSearch, IconSettings, IconUpload } from '../../design/icons'
 import { Logo, LogoMark } from '../../design/Logo'
 import { enterSpring, pressSpring } from '../../design/motion'
 import { Ring } from '../../design/Progress'
@@ -23,9 +23,16 @@ export function HomePage() {
       <TopBar
         left={<Logo />}
         right={
-          <IconButton label={t.app.settings} onClick={() => settings.open()}>
-            <IconSettings />
-          </IconButton>
+          <>
+            {!!decks?.length && (
+              <IconButton label={t.search.open} onClick={() => navigate('/search')}>
+                <IconSearch />
+              </IconButton>
+            )}
+            <IconButton label={t.app.settings} onClick={() => settings.open()}>
+              <IconSettings />
+            </IconButton>
+          </>
         }
       />
       <main className="mx-auto max-w-5xl px-4 pt-4 pb-28 sm:px-6">

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { type ReactNode, useEffect, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
@@ -32,6 +32,7 @@ import { shareOrDownloadJson } from '../../lib/files'
 import { languageName } from '../../lib/languages'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { SpeakButton } from '../tts/SpeakButton'
+import { CardRow, StarButton } from './CardRow'
 import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'
 
@@ -48,6 +49,24 @@ export function DeckPage() {
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const hasLearn = useHasSession(deckId, 'learn')
   const hasTest = useHasSession(deckId, 'test')
+  const [params, setParams] = useSearchParams()
+  const [highlight, setHighlight] = useState<string | null>(null)
+  const target = params.get('card')
+
+  // Arriving from search (?card=<id>): scroll to the card, flash it, and drop the parameter.
+  useEffect(() => {
+    if (!target || !cards) return
+    setParams({}, { replace: true })
+    if (!cards.some((c) => c.id === target)) return
+    setHighlight(target)
+    requestAnimationFrame(() =>
+      document
+        .querySelector(`[data-card="${CSS.escape(target)}"]`)
+        ?.scrollIntoView({ block: 'center' }),
+    )
+    const timer = setTimeout(() => setHighlight(null), 2200)
+    return () => clearTimeout(timer)
+  }, [target, cards, setParams])
 
   if (deck === null) return <NotFound />
   if (!deck || !cards) return null
@@ -191,22 +210,12 @@ export function DeckPage() {
             <ul className="flex flex-col gap-2">
               <AnimatePresence initial={false}>
                 {cards.map((card) => (
-                  <motion.li
+                  <CardRow
                     key={card.id}
-                    layout
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -24, transition: { duration: 0.18 } }}
-                    className="group flex items-center gap-2 rounded-2xl border border-line bg-surface py-2 pr-2 pl-4"
+                    card={card}
+                    deck={deck}
+                    highlighted={highlight === card.id}
                   >
-                    <div className="grid min-w-0 flex-1 gap-0.5 py-1 sm:grid-cols-[2fr_3fr] sm:gap-4">
-                      <span className="font-semibold break-words" lang={deck.termLang}>
-                        {card.term}
-                      </span>
-                      <span className="break-words text-ink-2" lang={deck.defLang}>
-                        {card.definition}
-                      </span>
-                    </div>
                     <StarButton
                       term={card.term}
                       starred={!!progress?.get(card.id)?.starred}
@@ -229,7 +238,7 @@ export function DeckPage() {
                     >
                       <IconTrash size={18} />
                     </IconButton>
-                  </motion.li>
+                  </CardRow>
                 ))}
               </AnimatePresence>
             </ul>

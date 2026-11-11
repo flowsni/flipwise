@@ -57,6 +57,15 @@ export const ru = {
     star: (term: string) => `В избранное: ${term}`,
     unstar: (term: string) => `Убрать из избранного: ${term}`,
   },
+  search: {
+    open: 'Поиск по наборам',
+    label: 'Поиск',
+    placeholder: 'Слово или перевод',
+    hint: 'Ищите по всем наборам — по термину или определению.',
+    empty: (q: string) => `По запросу «${q}» ничего не нашлось`,
+    found: (n: number) => `Найдено: ${ru.plural.cards(n)}`,
+    clear: 'Очистить',
+  },
   editor: {
     newTitle: 'Новый набор',
     editTitle: 'Редактирование',
