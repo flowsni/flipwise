@@ -6,8 +6,8 @@ export interface GenerateRequest {
   model: string
   /**
    * Output budget a batch of several cards needs. Only adapters whose API caps output below it
-   * by default apply it; OpenAI and Gemini default to the model's maximum, and a cap there would
-   * also have to cover reasoning tokens.
+   * by default apply it (Anthropic, DeepSeek chat); elsewhere the default is the model's maximum,
+   * and a cap would also have to cover reasoning tokens.
    */
   maxTokens?: number
   signal?: AbortSignal

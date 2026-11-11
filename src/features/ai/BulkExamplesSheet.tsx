@@ -18,6 +18,8 @@ import { useAiSettings } from './settings'
 
 type Which = 'missing' | 'all'
 
+const STOP_GUARD_MS = 600
+
 /** «Примеры для всей колоды»: generates examples for many cards at once. */
 export function BulkExamplesSheet({
   open,
@@ -58,7 +60,9 @@ function BulkBody({
   const ai = useAiSettings()
   const toast = useToast()
   const missingCount = cards.filter((c) => !hasExamples(c)).length
-  const [which, setWhich] = useState<Which>(missingCount ? 'missing' : 'all')
+  const [picked, setWhich] = useState<Which>('missing')
+  // «Без примеров» stops making sense once every card has examples (e.g. after a run).
+  const which: Which = picked === 'missing' && !missingCount ? 'all' : picked
   const [level, setLevel] = useState<Level>(deck.level)
   const [run, setRun] = useState<BulkProgress | null>(null)
   const [error, setError] = useState<{ code: AiErrorCode; saved: number } | null>(null)
@@ -66,6 +70,8 @@ function BulkBody({
   // body unmounts after the sheet's exit animation, when a reopened sheet may have a new run.
   const ownRun = useRef<AbortController | null>(null)
   useEffect(() => () => ownRun.current?.abort(), [])
+  // «Остановить» appears where «Сгенерировать» was: a double tap must not stop the run at once.
+  const startedAt = useRef(0)
 
   if (!ai.ready || !ai.provider) return <NoKey onClose={onClose} />
   const provider = ai.provider
@@ -85,6 +91,7 @@ function BulkBody({
     const controller = new AbortController()
     abortRef.current = controller
     ownRun.current = controller
+    startedAt.current = Date.now()
     setError(null)
     setRun({ saved: 0, done: 0, total: targets.length })
     const result = await generateDeckExamples(
@@ -106,7 +113,8 @@ function BulkBody({
         ? {
             label: t.app.undo,
             onClick: () => {
-              setExamplesIfUnchanged(snapshot).catch((e) =>
+              // Only cards still holding this run's examples: newer ones made since stay.
+              setExamplesIfUnchanged(snapshot, { replacing: result.createdAt }).catch((e) =>
                 console.warn('Restoring examples failed', e),
               )
             },
@@ -140,7 +148,14 @@ function BulkBody({
           label={t.bulk.progress(run.done, run.total)}
         />
         <p className="text-[0.9375rem] text-ink-3">{t.bulk.closeHint}</p>
-        <Button variant="raised" size="lg" block onClick={() => abortRef.current?.abort()}>
+        <Button
+          variant="raised"
+          size="lg"
+          block
+          onClick={() => {
+            if (Date.now() - startedAt.current > STOP_GUARD_MS) abortRef.current?.abort()
+          }}
+        >
           {t.bulk.stop}
         </Button>
       </div>

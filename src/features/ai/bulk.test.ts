@@ -81,7 +81,7 @@ describe('generateDeckExamples', () => {
       onProgress: (p) => progress.push(p.done),
     })
 
-    expect(result).toEqual({ saved: 23, skipped: 0, failed: 0 })
+    expect(result).toMatchObject({ saved: 23, skipped: 0, failed: 0 })
     expect(request).toHaveBeenCalledTimes(3)
     expect(request.mock.calls.map(([, req]) => itemsOf(req.user).length)).toEqual([10, 10, 3])
     expect(request.mock.calls[0]![1]).toMatchObject({ maxTokens: BATCH_MAX_TOKENS })
@@ -89,6 +89,9 @@ describe('generateDeckExamples', () => {
     const stored = await db.cards.get(cards[22]!.id)
     expect(stored?.examples).toMatchObject({ level: 'A2', model: 'claude-haiku-5-5' })
     expect(stored?.examples?.items[0]?.text).toBe('A [[w22]].')
+    // One createdAt for the whole run, so undo can tell this run's examples apart.
+    const all = await db.cards.bulkGet(cards.map((c) => c.id))
+    expect(new Set(all.map((c) => c?.examples?.createdAt))).toEqual(new Set([result.createdAt]))
   })
 
   it('retries cards the model left out once, at the end', async () => {
@@ -105,7 +108,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 12, skipped: 0, failed: 0 })
+    expect(result).toMatchObject({ saved: 12, skipped: 0, failed: 0 })
     expect(itemsOf(request.mock.calls[2]![1].user).map((c) => c.term)).toEqual(['w3'])
   })
 
@@ -122,7 +125,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 10, skipped: 0, failed: 0 })
+    expect(result).toMatchObject({ saved: 10, skipped: 0, failed: 0 })
     expect(request.mock.calls.slice(1).map(([, req]) => itemsOf(req.user).length)).toEqual([5, 5])
   })
 
@@ -139,7 +142,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 2, skipped: 0, failed: 1 })
+    expect(result).toMatchObject({ saved: 2, skipped: 0, failed: 1 })
     expect(await db.cards.get(cards[1]!.id)).not.toHaveProperty('examples.items')
   })
 
@@ -157,7 +160,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 1, skipped: 2, failed: 0 })
+    expect(result).toMatchObject({ saved: 1, skipped: 2, failed: 0 })
     expect((await db.cards.get(cards[0]!.id))?.examples).toBeUndefined()
     expect(await db.cards.get(cards[1]!.id)).toBeUndefined()
     expect((await db.cards.get(cards[2]!.id))?.examples?.items).toHaveLength(1)
@@ -173,7 +176,7 @@ describe('generateDeckExamples', () => {
 
     const result = await generateDeckExamples(cards, deck, config, { level: 'B1', request, wait })
 
-    expect(result).toEqual({ saved: 2, skipped: 0, failed: 0 })
+    expect(result).toMatchObject({ saved: 2, skipped: 0, failed: 0 })
     expect(wait).toHaveBeenCalledTimes(1)
   })
 
@@ -190,7 +193,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 10, skipped: 0, failed: 15, error: 'auth' })
+    expect(result).toMatchObject({ saved: 10, skipped: 0, failed: 15, error: 'auth' })
     expect(request).toHaveBeenCalledTimes(2)
   })
 

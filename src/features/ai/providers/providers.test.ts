@@ -158,12 +158,16 @@ describe('output budget', () => {
     await generateAnthropic({ ...req, model: 'claude-haiku-5-5' })
     await generateOpenAICompat('deepseek', req)
     await generateOpenAICompat('openai', req)
+    await generateOpenAICompat('openrouter', { ...req, model: 'openai/gpt-6-luna' })
+    await generateOpenAICompat('deepseek', { ...req, model: 'deepseek-reasoner' })
     await generateGemini(req)
 
     expect(anthropicCreate.mock.calls[0]![0].max_tokens).toBe(6000)
     expect(openaiCreate.mock.calls[0]![0].max_tokens).toBe(6000)
-    expect(openaiCreate.mock.calls[1]![0]).not.toHaveProperty('max_tokens')
-    expect(openaiCreate.mock.calls[1]![0]).not.toHaveProperty('max_completion_tokens')
+    for (const call of openaiCreate.mock.calls.slice(1)) {
+      expect(call[0]).not.toHaveProperty('max_tokens')
+      expect(call[0]).not.toHaveProperty('max_completion_tokens')
+    }
     expect(geminiGenerate.mock.calls[0]![0].config).not.toHaveProperty('maxOutputTokens')
   })
 })

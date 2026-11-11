@@ -78,6 +78,17 @@ describe('batches', () => {
     expect(user).toContain('"cards"')
   })
 
+  it('keeps every card on one line', () => {
+    const { user } = buildBatchPrompt({
+      cards: [{ term: 'luggage', definition: 'багаж\n2. кладь' }],
+      termLang: 'en',
+      defLang: 'ru',
+      level: 'B1',
+    })
+    expect(user).toContain('1. luggage — багаж 2. кладь')
+    expect(user).not.toMatch(/^2\. /m)
+  })
+
   it('maps entries by n and marks the term', () => {
     const raw = JSON.stringify({
       cards: [entry(2, 'luggage'), entry(1, 'ticket'), entry(3, 'gate')],

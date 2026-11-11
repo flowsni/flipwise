@@ -161,13 +161,16 @@ export function getDeckCards(deckId: string): Promise<Card[]> {
 /**
  * Writes examples only to cards that still have the text they were made for: the editor drops
  * examples when a card changes, and a slow generation must not attach them to the new word.
- * Deleted cards are skipped. One transaction for all; returns how many cards were written.
+ * Deleted cards are skipped. With `replacing`, only cards whose current examples have that
+ * `createdAt` are written (undo of one run leaves examples made since alone).
+ * One transaction for all; returns how many cards were written.
  */
 export async function setExamplesIfUnchanged(
   entries: readonly {
     card: Pick<Card, 'id' | 'term' | 'definition'>
     examples: Card['examples']
   }[],
+  options: { replacing?: number } = {},
 ): Promise<number> {
   return db.transaction('rw', db.cards, async () => {
     const current = await db.cards.bulkGet(entries.map((e) => e.card.id))
@@ -175,6 +178,8 @@ export async function setExamplesIfUnchanged(
     for (const [i, { card: sent, examples }] of entries.entries()) {
       const card = current[i]
       if (!card || card.term !== sent.term || card.definition !== sent.definition) continue
+      if (options.replacing !== undefined && card.examples?.createdAt !== options.replacing)
+        continue
       await db.cards.update(sent.id, { examples })
       written++
     }

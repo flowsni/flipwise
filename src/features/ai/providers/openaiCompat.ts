@@ -9,6 +9,15 @@ const BASE_URL: Record<CompatFlavor, string | undefined> = {
   openrouter: 'https://openrouter.ai/api/v1',
 }
 
+/**
+ * Only DeepSeek's chat models default to a cap (4K) below a batch's needs. OpenAI and
+ * OpenRouter default to the model's maximum, and a cap there, like on DeepSeek's reasoner,
+ * would also have to cover reasoning tokens.
+ */
+function raiseCap(flavor: CompatFlavor, req: GenerateRequest): boolean {
+  return !!req.maxTokens && flavor === 'deepseek' && !/reason/i.test(req.model)
+}
+
 /** OpenAI, DeepSeek and OpenRouter share the OpenAI SDK through `baseURL`. */
 export async function generateOpenAICompat(
   flavor: CompatFlavor,
@@ -27,8 +36,7 @@ export async function generateOpenAICompat(
     const completion = await client.chat.completions.create(
       {
         model: req.model,
-        // DeepSeek and OpenRouter default to a small cap; OpenAI defaults to the model maximum.
-        ...(req.maxTokens && flavor !== 'openai' ? { max_tokens: req.maxTokens } : {}),
+        ...(raiseCap(flavor, req) ? { max_tokens: req.maxTokens } : {}),
         messages: [
           { role: 'system', content: req.system },
           { role: 'user', content: req.user },

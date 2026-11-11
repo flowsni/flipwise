@@ -49,6 +49,8 @@ export interface BulkOptions {
 }
 
 export interface BulkResult {
+  /** `createdAt` of every example this run wrote: tells them apart from older or newer ones. */
+  createdAt: number
   saved: number
   /** Edited or deleted during the run: left alone on purpose. */
   skipped: number
@@ -87,6 +89,7 @@ export async function generateDeckExamples(
   const request = options.request ?? ((c, req) => call(c.provider, req))
   const wait = options.wait ?? sleep
   const total = cards.length
+  const createdAt = Date.now()
   let saved = 0
   let skipped = 0
   let done = 0
@@ -128,7 +131,6 @@ export async function generateDeckExamples(
       if (FATAL.includes(code) || code === 'rate' || code === 'busy') throw e
       result = { results: new Map(), missing: batch.map((_, i) => i) }
     }
-    const createdAt = Date.now()
     const entries = [...result.results].map(([index, items]) => ({
       card: batch[index]!,
       examples: { items, provider: config.provider, model: config.model, createdAt, level },
@@ -146,10 +148,10 @@ export async function generateDeckExamples(
     const missing: Card[] = []
     for (const batch of chunk(cards, BATCH_SIZE)) missing.push(...(await run(batch, false)))
     for (const batch of chunk(missing, RETRY_BATCH_SIZE)) await run(batch, true)
-    return { saved, skipped, failed: total - saved - skipped }
+    return { createdAt, saved, skipped, failed: total - saved - skipped }
   } catch (e) {
     const code = e instanceof AiError ? e.code : 'unknown'
     if (code !== 'aborted') console.warn('Bulk examples stopped', e)
-    return { saved, skipped, failed: total - saved - skipped, error: code }
+    return { createdAt, saved, skipped, failed: total - saved - skipped, error: code }
   }
 }

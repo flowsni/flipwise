@@ -207,13 +207,18 @@ export const batchJsonSchema = {
   additionalProperties: false,
 } as const
 
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
 export function buildBatchPrompt(input: BatchInput): { system: string; user: string } {
   const termLanguage = englishLanguageName(input.termLang)
   const defLanguage = englishLanguageName(input.defLang)
 
   const user = [
     `Studied items (${termLanguage}) with their meaning (${defLanguage}), numbered:`,
-    ...input.cards.map((c, i) => `${i + 1}. ${c.term} — ${c.definition}`),
+    // One line per card: a line break inside a card would read as the start of another item.
+    ...input.cards.map((c, i) => `${i + 1}. ${oneLine(c.term)} — ${oneLine(c.definition)}`),
     '',
     `For every numbered item, write ${EXAMPLE_COUNT} example sentences in ${termLanguage} that use that item in the meaning given.`,
     CONTEXT_RULE,

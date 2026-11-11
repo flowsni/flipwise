@@ -101,12 +101,36 @@ describe('BulkExamplesSheet', () => {
       expect(await screen.findByText(t.bulk.requests(12, 2))).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: t.bulk.start }))
       await screen.findByText(t.bulk.done(12))
-      expect((await getDeckCards(deckId))[3]!.examples?.items[0]?.text).toBe('New [[w3]].')
+      const cards = await getDeckCards(deckId)
+      expect(cards[3]!.examples?.items[0]?.text).toBe('New [[w3]].')
+      // A card regenerated on its own after the run keeps its newer examples on undo.
+      await db.cards.update(cards[5]!.id, {
+        examples: {
+          items: [{ text: 'Newer.', translation: 'н' }],
+          provider: 'anthropic',
+          model: 'm',
+          createdAt: Date.now() + 1000,
+        },
+      })
 
       fireEvent.click(screen.getByRole('button', { name: t.app.undo }))
       await waitFor(async () => {
         expect((await getDeckCards(deckId))[3]!.examples?.items[0]?.text).toBe('Old w3.')
       })
+      expect((await getDeckCards(deckId))[5]!.examples?.items[0]?.text).toBe('Newer.')
+    })
+
+    it('ignores a stop tapped right after the start (double tap)', async () => {
+      await renderSheet(0)
+      call.mockImplementation(async (_p, req) => {
+        await new Promise((r) => setTimeout(r, 20))
+        return answer(req.user)
+      })
+
+      fireEvent.click(await screen.findByRole('button', { name: t.bulk.start }))
+      fireEvent.click(await screen.findByRole('button', { name: t.bulk.stop }))
+
+      expect(await screen.findByText(t.bulk.done(12))).toBeTruthy()
     })
 
     it('shows the error and what was saved when the key is rejected', async () => {
