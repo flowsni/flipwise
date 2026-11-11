@@ -18,7 +18,6 @@ import {
   IconEdit,
   IconShare,
   IconSparkles,
-  IconStar,
   IconTrash,
   IconUpload,
 } from '../../design/icons'
@@ -34,6 +33,7 @@ import { languageName } from '../../lib/languages'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { SpeakButton } from '../tts/SpeakButton'
 import { ImportSheet } from './ImportSheet'
+import { StarButton } from './StarButton'
 
 const MotionLink = motion.create(Link)
 
@@ -247,28 +247,6 @@ export function DeckPage() {
       />
       <ExamplesSheet card={examplesFor} deck={deck} onClose={() => setExamplesFor(null)} />
     </>
-  )
-}
-
-function StarButton({
-  term,
-  starred,
-  onToggle,
-}: {
-  term: string
-  starred: boolean
-  onToggle: () => void
-}) {
-  return (
-    <IconButton
-      size="sm"
-      label={starred ? t.deck.unstar(term) : t.deck.star(term)}
-      aria-pressed={starred}
-      onClick={onToggle}
-      className={cx(starred && 'text-sun-ink hover:text-sun-ink')}
-    >
-      <IconStar size={18} filled={starred} />
-    </IconButton>
   )
 }
 
