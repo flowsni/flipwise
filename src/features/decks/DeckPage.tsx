@@ -239,6 +239,8 @@ export function DeckPage() {
 
       <ImportSheet
         open={importOpen}
+        existingTerms={cards.map((c) => c.term)}
+        lang={deck.termLang}
         onClose={() => setImportOpen(false)}
         onImport={async (parsed) => {
           await appendCards(deck.id, parsed)
