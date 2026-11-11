@@ -13,7 +13,8 @@ export interface ProviderConfig {
   model: string
 }
 
-function call(provider: ProviderId, req: GenerateRequest): Promise<string> {
+/** Sends one request to the configured provider; returns the model's raw json text. */
+export function call(provider: ProviderId, req: GenerateRequest): Promise<string> {
   switch (provider) {
     case 'anthropic':
       return generateAnthropic(req)

@@ -158,6 +158,23 @@ export function getDeckCards(deckId: string): Promise<Card[]> {
     .toArray()
 }
 
+/**
+ * Writes examples only if the card still has the text they were made for: the editor drops
+ * examples when a card changes, and a slow generation must not attach them to the new word.
+ * Deleted cards are skipped. Returns whether the examples were written.
+ */
+export async function setExamplesIfUnchanged(
+  sent: Pick<Card, 'id' | 'term' | 'definition'>,
+  examples: Card['examples'],
+): Promise<boolean> {
+  return db.transaction('rw', db.cards, async () => {
+    const card = await db.cards.get(sent.id)
+    if (!card || card.term !== sent.term || card.definition !== sent.definition) return false
+    await db.cards.update(sent.id, { examples })
+    return true
+  })
+}
+
 export async function updateCardExamples(
   cardId: string,
   examples: Card['examples'],

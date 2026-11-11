@@ -70,6 +70,19 @@ describe('backup', () => {
     expect(shared.progress).toEqual([])
   })
 
+  it('keeps the level of generated examples', async () => {
+    const examples = {
+      items: [{ text: 'My [[ticket]].', translation: 'Мой [[билет]].' }],
+      provider: 'anthropic',
+      model: 'm',
+      createdAt: 2,
+      level: 'A2' as const,
+    }
+    await db.cards.update('c1', { examples })
+    const parsed = parseBackup(JSON.stringify(await exportDeck(db, 'd1')))
+    expect(parsed.cards.find((c) => c.term === 'ticket')?.examples).toEqual(examples)
+  })
+
   it('rejects foreign or broken files', () => {
     expect(() => parseBackup('nope')).toThrow('not-json')
     expect(() => parseBackup(JSON.stringify({ app: 'other' }))).toThrow('invalid')

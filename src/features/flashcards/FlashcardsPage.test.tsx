@@ -172,6 +172,12 @@ describe('FlashcardsPage', () => {
       await renderDeck()
 
       await screen.findByText(t.flash.noSentencesTitle)
+      fireEvent.click(screen.getByRole('button', { name: t.flash.generate }))
+      // No AI key in tests: the sheet leads to the settings.
+      expect(await screen.findByText(t.examples.noKey)).toBeTruthy()
+      fireEvent.keyDown(document.body, { key: 'Escape' })
+      await waitFor(() => expect(screen.queryByText(t.examples.noKey)).toBeNull())
+
       fireEvent.click(screen.getByRole('button', { name: t.flash.toWords }))
       await screen.findByRole('button', { name: cardLabel('one') })
     })

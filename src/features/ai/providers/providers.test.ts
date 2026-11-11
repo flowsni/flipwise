@@ -88,6 +88,8 @@ describe('anthropic adapter', () => {
     expect(r.items[0]!.text).toBe('My [[luggage]].')
     const body = anthropicCreate.mock.calls[0]![0]
     expect(body.output_config.format.type).toBe('json_schema')
+    expect(body.output_config.effort).toBe('low')
+    expect(body.max_tokens).toBe(4000)
     expect(body.fallbacks).toBeUndefined()
   })
 

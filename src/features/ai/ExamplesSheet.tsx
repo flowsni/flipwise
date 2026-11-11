@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSettingsSheet } from '../../app/SettingsContext'
 import { db } from '../../db/db'
 import { updateCardExamples } from '../../db/decks'
-import type { Card, Deck, ExampleItem } from '../../db/types'
+import type { Card, Deck, ExampleItem, Level } from '../../db/types'
 import { Button } from '../../design/Button'
 import { cx } from '../../design/cx'
-import { IconRefresh, IconSparkles, IconTrash } from '../../design/icons'
+import { IconRefresh, IconTrash } from '../../design/icons'
 import { enterSpring } from '../../design/motion'
 import { Sheet } from '../../design/Sheet'
 import { useToast } from '../../design/Toast'
@@ -15,7 +15,9 @@ import { t } from '../../i18n/ru'
 import { SpeakButton } from '../tts/SpeakButton'
 import { AiError, type AiErrorCode } from './errors'
 import { generateExamples } from './examples'
+import { LevelPicker } from './LevelPicker'
 import { Marked } from './Marked'
+import { NoKey } from './NoKey'
 import { isMonolingual, stripMarks } from './prompt'
 import { useAiSettings } from './settings'
 
@@ -54,6 +56,9 @@ function ExamplesBody({
   const [error, setError] = useState<AiErrorCode | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const examples = card.examples
+  // Changing the level does not generate on its own (a misclick would be a paid request):
+  // «Ещё варианты» applies it.
+  const [level, setLevel] = useState<Level>(initialCard.examples?.level ?? deck.level)
 
   const generate = useCallback(async () => {
     if (!ai.provider || !ai.key) return
@@ -69,7 +74,7 @@ function ExamplesBody({
           definition: card.definition,
           termLang: deck.termLang,
           defLang: deck.defLang,
-          level: deck.level,
+          level,
         },
         { provider: ai.provider, apiKey: ai.key, model: ai.model },
         controller.signal,
@@ -79,6 +84,7 @@ function ExamplesBody({
         provider: ai.provider,
         model: ai.model,
         createdAt: Date.now(),
+        level,
       })
     } catch (e) {
       const code = e instanceof AiError ? e.code : 'unknown'
@@ -89,7 +95,7 @@ function ExamplesBody({
     } finally {
       if (abortRef.current === controller) setLoading(false)
     }
-  }, [ai.provider, ai.key, ai.model, card, deck])
+  }, [ai.provider, ai.key, ai.model, card, deck, level])
 
   // First open without cached examples generates right away.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only on mount
@@ -98,32 +104,15 @@ function ExamplesBody({
     return () => abortRef.current?.abort()
   }, [])
 
-  if (!ai.ready && !examples) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-6 text-center">
-        <span className="grid size-16 place-items-center rounded-2xl bg-sun-soft text-sun-ink">
-          <IconSparkles size={30} />
-        </span>
-        <p className="max-w-xs text-ink-2">{t.examples.noKey}</p>
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={() => {
-            onClose()
-            settings.open('ai')
-          }}
-        >
-          {t.examples.openSettings}
-        </Button>
-      </div>
-    )
-  }
+  if (!ai.ready && !examples) return <NoKey onClose={onClose} />
 
   return (
     <div className="flex flex-col gap-4">
       <p className="-mt-1 text-ink-2" lang={deck.defLang}>
         {card.definition}
       </p>
+
+      <LevelPicker value={level} onChange={setLevel} />
 
       <div aria-live="polite" aria-busy={loading} className="flex flex-col gap-3">
         {loading && <Skeleton />}

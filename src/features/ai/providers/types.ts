@@ -4,6 +4,8 @@ export interface GenerateRequest {
   schema: Record<string, unknown>
   apiKey: string
   model: string
+  /** Output budget; batches of several cards need more than the adapters' default. */
+  maxTokens?: number
   signal?: AbortSignal
 }
 
