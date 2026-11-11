@@ -81,6 +81,14 @@ function Flashcards({
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const [announce, setAnnounce] = useState('')
   const cardRef = useRef<SwipeCardHandle>(null)
+  // The previous card unmounts after its exit animation, i.e. after the next card attached its
+  // handle; a plain ref would then be reset to null and buttons/arrows would do nothing.
+  const attachCard = useCallback((handle: SwipeCardHandle | null) => {
+    cardRef.current = handle
+    return () => {
+      if (cardRef.current === handle) cardRef.current = null
+    }
+  }, [])
   const busy = useRef(false)
 
   const done = index >= queue.length
@@ -297,7 +305,7 @@ function Flashcards({
                     transition={enterSpring}
                   >
                     <SwipeCard
-                      ref={cardRef}
+                      ref={attachCard}
                       card={current}
                       deck={deck}
                       front={front}
