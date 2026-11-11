@@ -15,7 +15,8 @@ import { t } from '../../i18n/ru'
 import { SpeakButton } from '../tts/SpeakButton'
 import { AiError, type AiErrorCode } from './errors'
 import { generateExamples } from './examples'
-import { isMonolingual, parseMarked, stripMarks } from './prompt'
+import { Marked } from './Marked'
+import { isMonolingual, stripMarks } from './prompt'
 import { useAiSettings } from './settings'
 
 /** Bottom sheet with AI example sentences for one card; results are cached on the card. */
@@ -249,25 +250,6 @@ function ExampleRow({ item, index, deck }: { item: ExampleItem; index: number; d
       </button>
       <SpeakButton text={stripMarks(item.text)} lang={deck.termLang} />
     </motion.div>
-  )
-}
-
-/** Renders [[marked]] words as <mark>; model output is always treated as text, never HTML. */
-function Marked({ text }: { text: string }) {
-  return (
-    <>
-      {parseMarked(text).map((seg, i) =>
-        seg.mark ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static segments
-          <mark key={i} className="font-semibold">
-            {seg.text}
-          </mark>
-        ) : (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static segments
-          <span key={i}>{seg.text}</span>
-        ),
-      )}
-    </>
   )
 }
 
