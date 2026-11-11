@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useDeckProgress } from '../../db/hooks'
 import { recordAnswer } from '../../db/progress'
-import type { Card, Deck } from '../../db/types'
+import type { Card, Deck, Progress } from '../../db/types'
 import { StudyBar } from '../../design/StudyBar'
 import { t } from '../../i18n/ru'
 import { MIN_CARDS } from '../learn/learnEngine'
@@ -17,12 +18,21 @@ import { langOf, type TestState } from './testState'
 export function TestPage() {
   const { deckId } = useParams()
   const { deck, cards, loading } = useStudyDeck(deckId)
+  const progress = useDeckProgress(deckId)
   if (!loading && (!deck || (cards?.length ?? 0) < MIN_CARDS)) return <NotFound />
-  if (loading || !deck || !cards) return null
-  return <TestRunner key={deck.id} deck={deck} cards={cards} />
+  if (loading || !deck || !cards || !progress) return null
+  return <TestRunner key={deck.id} deck={deck} cards={cards} progress={progress} />
 }
 
-function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
+function TestRunner({
+  deck,
+  cards,
+  progress,
+}: {
+  deck: Deck
+  cards: Card[]
+  progress: Map<string, Progress>
+}) {
   const navigate = useNavigate()
   const [state, setState] = useState<TestState | null>(null)
 
@@ -70,7 +80,7 @@ function TestRunner({ deck, cards }: { deck: Deck; cards: Card[] }) {
         }
       />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-safe sm:pt-8">
-        {!state && <TestSetup cardCount={cards.length} onStart={(c) => start(c)} />}
+        {!state && <TestSetup cards={cards} progress={progress} onStart={start} />}
         {state?.phase === 'taking' && (
           <TestForm
             deck={deck}

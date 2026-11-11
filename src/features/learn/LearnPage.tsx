@@ -1,14 +1,18 @@
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useDeckProgress } from '../../db/hooks'
 import { recordAnswer } from '../../db/progress'
-import type { AnswerSide, Card, Deck } from '../../db/types'
+import type { AnswerSide, Card, Deck, Progress } from '../../db/types'
+import { Button } from '../../design/Button'
 import { IconRefresh } from '../../design/icons'
 import { Menu } from '../../design/Menu'
 import { StudyBar } from '../../design/StudyBar'
 import { t } from '../../i18n/ru'
 import { useSetting } from '../../lib/storage'
+import { StudyScopePicker, useStudyScope } from '../study/StudyScopePicker'
+import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import { persistSession, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { Finished, RoundSummary } from './LearnSummaries'
@@ -28,12 +32,22 @@ import { type Feedback, QuestionView } from './QuestionView'
 export function LearnPage() {
   const { deckId } = useParams()
   const { deck, cards, loading } = useStudyDeck(deckId)
+  const progress = useDeckProgress(deckId)
+  // MIN_CARDS is about distractors, so it is checked on the deck; a scope may hold one card.
   if (!loading && (!deck || (cards?.length ?? 0) < MIN_CARDS)) return <NotFound />
-  if (loading || !deck || !cards) return null
-  return <Learn key={deck.id} deck={deck} cards={cards} />
+  if (loading || !deck || !cards || !progress) return null
+  return <Learn key={deck.id} deck={deck} cards={cards} progress={progress} />
 }
 
-function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
+function Learn({
+  deck,
+  cards,
+  progress,
+}: {
+  deck: Deck
+  cards: Card[]
+  progress: Map<string, Progress>
+}) {
   const navigate = useNavigate()
   const [answerWith, setAnswerWith] = useSetting<AnswerSide>('learn.answerWith', 'definition')
   const [state, setState] = useState<LearnState | null>(null)
@@ -47,7 +61,7 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
     (s) => s.version === 1 && !!s.order?.length,
   )
 
-  // Resume the saved session once it is loaded, or start a new one.
+  // Resume the saved session once it is loaded; otherwise the scope picker is shown first.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs once when loading finishes
   useEffect(() => {
     if (!session.ready || state) return
@@ -59,10 +73,6 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
       const pendingOk =
         saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
       setState(pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards))
-    } else {
-      const s = createLearnState(cards, answerWith)
-      setState(s)
-      persistSession(deck.id, 'learn', s, true)
     }
   }, [session.ready])
 
@@ -74,9 +84,16 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
     [deck.id],
   )
 
+  const start = (options: ScopeOptions) => {
+    const ids = selectStudyCards(cards, progress, options).map((c) => c.id)
+    persist(createLearnState(cards, answerWith, Math.random, {}, ids))
+  }
+
+  /** Starts over with the same cards as the current session. */
   const restart = (side: AnswerSide = answerWith) => {
+    if (!state) return
     setFeedback(null)
-    persist(createLearnState(cards, side))
+    persist(createLearnState(cards, side, Math.random, {}, state.order))
   }
 
   const answer = (response: string) => {
@@ -103,7 +120,17 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
     persist(nextQuestion(state, cards))
   }, [state, cards, persist])
 
-  if (!state) return null
+  if (!session.ready) return null
+  if (!state) {
+    return (
+      <div className="flex min-h-dvh flex-col">
+        <StudyBar onClose={() => navigate(`/deck/${deck.id}`)} progress={0} />
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-safe sm:pt-8">
+          <LearnSetup cards={cards} progress={progress} onStart={start} />
+        </main>
+      </div>
+    )
+  }
 
   const finished = isFinished(state)
   const phase = finished ? 'done' : state.roundOver && !feedback ? 'round' : 'question'
@@ -186,5 +213,42 @@ function Learn({ deck, cards }: { deck: Deck; cards: Card[] }) {
         </AnimatePresence>
       </main>
     </div>
+  )
+}
+
+function LearnSetup({
+  cards,
+  progress,
+  onStart,
+}: {
+  cards: Card[]
+  progress: Map<string, Progress>
+  onStart: (options: ScopeOptions) => void
+}) {
+  const { scope, setScope, limit, setLimit } = useStudyScope()
+  const counts = scopeCounts(cards, progress)
+  const shown = usableScope(scope, counts)
+  return (
+    <motion.form
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      onSubmit={(e) => {
+        e.preventDefault()
+        onStart({ scope: shown, limit })
+      }}
+      className="raised mx-auto flex max-w-lg flex-col gap-6 rounded-[1.75rem] p-6"
+    >
+      <h1 className="text-2xl font-bold tracking-tight">{t.deck.learn}</h1>
+      <StudyScopePicker
+        counts={counts}
+        scope={shown}
+        onScope={setScope}
+        limit={limit}
+        onLimit={setLimit}
+      />
+      <Button type="submit" variant="primary" size="lg" block>
+        {t.scope.start}
+      </Button>
+    </motion.form>
   )
 }

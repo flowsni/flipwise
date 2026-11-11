@@ -121,6 +121,26 @@ describe('learn engine', () => {
   })
 })
 
+describe('study scope', () => {
+  it('studies only the chosen cards but draws distractors from the whole deck', () => {
+    const rng = seededRng(14)
+    let s = createLearnState(cards, 'definition', rng, {}, ['c3', 'c7'])
+    expect(s.order.sort()).toEqual(['c3', 'c7'])
+    expect(s.round.queue).toHaveLength(2)
+    expect(s.current?.options).toHaveLength(4)
+    let guard = 0
+    while (!isFinished(s) && guard++ < 50) {
+      if (s.roundOver) {
+        s = startRound(s, cards, rng)
+        continue
+      }
+      expect(['c3', 'c7']).toContain(s.current!.cardId)
+      s = nextQuestion(answerCorrectly(s).state, cards, rng)
+    }
+    expect(isFinished(s)).toBe(true)
+  })
+})
+
 describe('answered flag', () => {
   it('marks a question as answered until the next one is prepared', () => {
     const s = createLearnState(cards, 'definition', seededRng(12))

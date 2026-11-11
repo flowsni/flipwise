@@ -99,14 +99,20 @@ export function pickDistractors(
     .map((x) => x.c)
 }
 
+/**
+ * `onlyCardIds` limits the session to some cards (a study scope); distractors for choice
+ * questions still come from the whole deck in `cards`.
+ */
 export function createLearnState(
   cards: readonly LearnCard[],
   answerWith: AnswerSide,
   rng: Rng = Math.random,
   initialStage: Record<string, Stage> = {},
+  onlyCardIds?: readonly string[],
 ): LearnState {
+  const only = onlyCardIds && new Set(onlyCardIds)
   const order = shuffle(
-    cards.map((c) => c.id),
+    cards.filter((c) => !only || only.has(c.id)).map((c) => c.id),
     rng,
   )
   const stage: Record<string, Stage> = {}
