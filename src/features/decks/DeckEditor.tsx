@@ -84,7 +84,10 @@ function EditorForm({ deck }: { deck?: Deck }) {
 
   useEffect(() => {
     if (!focusKey.current) return
-    document.querySelector<HTMLInputElement>(`[data-row="${focusKey.current}"] input`)?.focus()
+    const input = document.querySelector<HTMLInputElement>(`[data-row="${focusKey.current}"] input`)
+    input?.focus()
+    // Keep the new row above the sticky «Добавить карточку» bar.
+    input?.scrollIntoView({ block: 'nearest' })
     focusKey.current = null
   })
 
@@ -187,7 +190,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
           </Button>
         }
       />
-      <main className="mx-auto max-w-3xl px-4 pt-2 pb-24 sm:px-6">
+      <main className="mx-auto max-w-3xl px-4 pt-2 pb-8 sm:px-6">
         <section className="raised flex flex-col gap-4 rounded-card p-5">
           <Field
             id={ids.title}
@@ -311,12 +314,17 @@ function EditorForm({ deck }: { deck?: Deck }) {
             </AnimatePresence>
           </Reorder.Group>
         )}
-
-        <Button variant="raised" size="lg" block className="mt-4" onClick={addRow}>
-          <IconPlus size={20} />
-          {t.editor.addRow}
-        </Button>
       </main>
+
+      {/* Sticky, not fixed: fixed bars jump around the iOS keyboard. */}
+      <div className="sticky bottom-0 z-20 bg-bg/85 px-safe pt-3 pb-safe backdrop-blur-xl">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <Button variant="raised" size="lg" block onClick={addRow}>
+            <IconPlus size={20} />
+            {t.editor.addRow}
+          </Button>
+        </div>
+      </div>
 
       <ImportSheet
         open={importState.open}
@@ -358,7 +366,7 @@ function EditorRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
       whileDrag={{ scale: 1.02, boxShadow: 'var(--fw-shadow-float)' }}
-      className="relative flex items-stretch gap-1 rounded-2xl border border-line bg-surface p-2"
+      className="relative flex scroll-mb-28 items-stretch gap-1 rounded-2xl border border-line bg-surface p-2"
     >
       <button
         type="button"
