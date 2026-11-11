@@ -5,17 +5,21 @@ import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { useDeckProgress } from '../../db/hooks'
 import { setFlash, toggleStar, updateProgress } from '../../db/progress'
-import type { Card, Deck, FlashStatus } from '../../db/types'
+import type { Card, Deck, FlashStatus, Progress } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
-import { IconRefresh, IconShuffle, IconUndo } from '../../design/icons'
+import { IconChevronDown, IconRefresh, IconShuffle, IconUndo } from '../../design/icons'
 import { Menu } from '../../design/Menu'
 import { enterSpring, softSpring } from '../../design/motion'
 import { CountUp, Ring } from '../../design/Progress'
+import { Sheet } from '../../design/Sheet'
 import { StudyBar, shortcutsBlocked } from '../../design/StudyBar'
+import { useToast } from '../../design/Toast'
 import { t } from '../../i18n/ru'
 import { shuffle } from '../../lib/shuffle'
 import { useSetting } from '../../lib/storage'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
+import { StudyScopePicker, scopeLabels, useStudyScope } from '../study/StudyScopePicker'
+import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
 
@@ -30,32 +34,52 @@ interface HistoryEntry {
 export function FlashcardsPage() {
   const { deckId } = useParams()
   const { deck, cards, cardsById, loading } = useStudyDeck(deckId)
+  const progress = useDeckProgress(deckId)
   if (!loading && (!deck || !cards?.length)) return <NotFound />
-  if (loading || !deck || !cards) return null
-  return <Flashcards key={deck.id} deck={deck} initialCards={cards} cardsById={cardsById} />
+  if (loading || !deck || !cards || !progress) return null
+  return (
+    <Flashcards key={deck.id} deck={deck} cards={cards} cardsById={cardsById} progress={progress} />
+  )
+}
+
+/** The cards of one session: a scope of the deck, picked when the session starts. */
+interface Selection {
+  scope: ScopeOptions['scope']
+  ids: string[]
+}
+
+function select(cards: Card[], progress: Map<string, Progress>, options: ScopeOptions): Selection {
+  const scope = usableScope(options.scope, scopeCounts(cards, progress))
+  return { scope, ids: selectStudyCards(cards, progress, { ...options, scope }) }
 }
 
 function Flashcards({
   deck,
-  initialCards,
+  cards,
   cardsById,
+  progress,
 }: {
   deck: Deck
-  initialCards: Card[]
+  cards: Card[]
   cardsById: Map<string, Card>
+  /** Live: stars and the scope counters follow changes made during the session. */
+  progress: Map<string, Progress>
 }) {
   const navigate = useNavigate()
+  const toast = useToast()
   const deckId = deck.id
   const [shuffled, setShuffled] = useSetting('flash.shuffle', false)
   const [front, setFront] = useSetting<'term' | 'definition'>('flash.front', 'term')
+  const { scope, setScope, limit, setLimit } = useStudyScope()
+  const [selection, setSelection] = useState(() => select(cards, progress, { scope, limit }))
+  const [scopeOpen, setScopeOpen] = useState(false)
   const order = useCallback((ids: string[]) => (shuffled ? shuffle(ids) : ids), [shuffled])
-  const [queue, setQueue] = useState(() => order(initialCards.map((c) => c.id)))
+  const [queue, setQueue] = useState(() => order(selection.ids))
   const [index, setIndex] = useState(0)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [enterFrom, setEnterFrom] = useState<SwipeDir | undefined>()
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const [announce, setAnnounce] = useState('')
-  const progress = useDeckProgress(deckId)
   const cardRef = useRef<SwipeCardHandle>(null)
   const busy = useRef(false)
 
@@ -113,6 +137,20 @@ function Flashcards({
     setIndex(0)
     setHistory([])
     setEnterFrom(undefined)
+  }
+
+  // The remembered scope can be empty (e.g. «Избранные» without stars): say we show all cards.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only for the first selection
+  useEffect(() => {
+    if (selection.scope !== scope) toast.show({ message: t.scope.fallback })
+  }, [])
+
+  const changeScope = (options: ScopeOptions) => {
+    setScope(options.scope)
+    setLimit(options.limit)
+    const next = select(cards, progress, options)
+    setSelection(next)
+    restart(next.ids)
   }
 
   useEffect(() => {
@@ -200,7 +238,7 @@ function Flashcards({
                   {
                     label: t.flash.restart,
                     icon: <IconRefresh />,
-                    onSelect: () => restart(initialCards.map((c) => c.id)),
+                    onSelect: () => restart(selection.ids),
                   },
                 ],
               },
@@ -218,11 +256,24 @@ function Flashcards({
           known={known}
           learning={learning.length}
           onRepeat={learning.length ? () => restart(learning) : undefined}
-          onRestart={() => restart(initialCards.map((c) => c.id))}
+          onRestart={() => restart(selection.ids)}
           onUndo={history.length ? undo : undefined}
         />
       ) : (
-        <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-3 pb-safe sm:pt-8">
+        <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-3 pb-safe sm:pt-6">
+          <div className="mb-3 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setScopeOpen(true)}
+              aria-label={t.scope.change(
+                t.scope.chip(scopeLabels[selection.scope], selection.ids.length),
+              )}
+              className="inline-flex min-h-9 items-center gap-1 rounded-full bg-surface-2 px-3.5 text-[0.875rem] font-medium text-ink-2 transition-colors hover:bg-surface-3 hover:text-ink"
+            >
+              {t.scope.chip(scopeLabels[selection.scope], selection.ids.length)}
+              <IconChevronDown size={14} />
+            </button>
+          </div>
           <div className="relative flex-1">
             <div className="relative mx-auto aspect-[3/4] max-h-[min(62dvh,560px)] w-full sm:aspect-[4/3]">
               {/* Next card peeks from behind for depth. */}
@@ -251,7 +302,7 @@ function Flashcards({
                       deck={deck}
                       front={front}
                       enterFrom={enterFrom}
-                      starred={!!progress?.get(current.id)?.starred}
+                      starred={!!progress.get(current.id)?.starred}
                       onSwiped={onSwiped}
                       onExamples={() => setExamplesFor(current)}
                       onStar={() => toggleStar(current.id, deckId)}
@@ -294,6 +345,25 @@ function Flashcards({
           </p>
         </main>
       )}
+
+      <Sheet
+        open={scopeOpen}
+        onClose={() => setScopeOpen(false)}
+        title={t.scope.title}
+        footer={
+          <Button variant="primary" size="lg" block onClick={() => setScopeOpen(false)}>
+            {t.app.done}
+          </Button>
+        }
+      >
+        <StudyScopePicker
+          counts={scopeCounts(cards, progress)}
+          scope={selection.scope}
+          onScope={(s) => changeScope({ scope: s, limit })}
+          limit={limit}
+          onLimit={(l) => changeScope({ scope: selection.scope, limit: l })}
+        />
+      </Sheet>
 
       <ExamplesSheet
         card={examplesFor ? (cardsById.get(examplesFor.id) ?? null) : null}

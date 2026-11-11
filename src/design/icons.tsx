@@ -48,6 +48,11 @@ export const IconChevronRight = (p: IconProps) => (
     <path d="m9 18 6-6-6-6" />
   </Svg>
 )
+export const IconChevronDown = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </Svg>
+)
 export const IconMore = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="5" cy="12" r="1.4" fill="currentColor" />

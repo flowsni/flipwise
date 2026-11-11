@@ -58,13 +58,16 @@ export function useFieldId(prefix: string) {
   return `${prefix}-${useId()}`
 }
 
-export interface SegmentedOption<T extends string> {
+export interface SegmentedOption<T extends string | number> {
   value: T
   label: string
+  /** Small second line, e.g. a counter. */
+  detail?: string
+  disabled?: boolean
 }
 
 /** iOS-style segmented control (radio group). */
-export function Segmented<T extends string>({
+export function Segmented<T extends string | number>({
   value,
   options,
   onChange,
@@ -88,8 +91,9 @@ export function Segmented<T extends string>({
           <label
             key={o.value}
             className={cx(
-              'relative flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-[0.6rem] px-1.5 py-2 text-center text-[0.9375rem] whitespace-nowrap font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
-              active ? 'raised text-ink' : 'text-ink-2 hover:text-ink',
+              'relative flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center rounded-[0.6rem] px-1.5 py-2 text-center text-[0.9375rem] whitespace-nowrap font-medium transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-plum',
+              active ? 'raised text-ink' : 'text-ink-2',
+              o.disabled ? 'cursor-not-allowed opacity-45' : 'cursor-pointer hover:text-ink',
             )}
           >
             <input
@@ -97,10 +101,16 @@ export function Segmented<T extends string>({
               name={name}
               value={o.value}
               checked={active}
+              disabled={o.disabled}
               onChange={() => onChange(o.value)}
               className="sr-only"
             />
             {o.label}
+            {o.detail !== undefined && (
+              <span className="text-[0.8125rem] font-normal text-ink-3 tabular-nums">
+                {o.detail}
+              </span>
+            )}
           </label>
         )
       })}

@@ -1,10 +1,12 @@
 import { motion } from 'motion/react'
 import { useState } from 'react'
-import type { AnswerSide } from '../../db/types'
+import type { AnswerSide, Card, Progress } from '../../db/types'
 import { Button } from '../../design/Button'
 import { Checkbox, Segmented } from '../../design/Field'
 import { t } from '../../i18n/ru'
 import { useSetting } from '../../lib/storage'
+import { StudyScopePicker, useStudyScope } from '../study/StudyScopePicker'
+import { scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import {
   defaultQuestionCount,
   QUESTION_TYPES,
@@ -13,15 +15,22 @@ import {
 } from './testGenerator'
 
 export function TestSetup({
-  cardCount,
+  cards,
+  progress,
   onStart,
 }: {
-  cardCount: number
-  onStart: (c: TestConfig) => void
+  cards: Card[]
+  progress: Map<string, Progress>
+  /** `cardIds`: the cards to ask about (the chosen scope). */
+  onStart: (c: TestConfig, cardIds: string[]) => void
 }) {
   const [savedTypes, setSavedTypes] = useSetting<QuestionType[]>('test.types', [...QUESTION_TYPES])
   const [answerWith, setAnswerWith] = useSetting<AnswerSide>('test.answerWith', 'definition')
-  const [count, setCount] = useState(defaultQuestionCount(cardCount))
+  const { scope: savedScope, setScope } = useStudyScope()
+  const counts = scopeCounts(cards, progress)
+  const scope = usableScope(savedScope, counts)
+  const cardCount = counts[scope]
+  const [count, setCount] = useState(() => defaultQuestionCount(cardCount))
   const types = savedTypes.filter((x) => QUESTION_TYPES.includes(x))
   const toggle = (type: QuestionType, on: boolean) =>
     setSavedTypes(on ? [...new Set([...types, type])] : types.filter((x) => x !== type))
@@ -37,11 +46,23 @@ export function TestSetup({
       animate={{ opacity: 1, y: 0 }}
       onSubmit={(e) => {
         e.preventDefault()
-        if (types.length) onStart({ count, types, answerWith })
+        if (!types.length) return
+        onStart(
+          { count, types, answerWith },
+          selectStudyCards(cards, progress, { scope, limit: 0 }),
+        )
       }}
       className="raised mx-auto flex max-w-lg flex-col gap-6 rounded-[1.75rem] p-6"
     >
       <h1 className="text-2xl font-bold tracking-tight">{t.test.setupTitle}</h1>
+      <StudyScopePicker
+        counts={counts}
+        scope={scope}
+        onScope={(s) => {
+          setScope(s)
+          setCount(defaultQuestionCount(counts[s]))
+        }}
+      />
       <div className="flex flex-col gap-2">
         <label
           htmlFor="test-count"
