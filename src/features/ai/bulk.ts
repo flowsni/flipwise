@@ -7,6 +7,11 @@ import { call, type ProviderConfig } from './examples'
 import { type BatchResult, batchJsonSchema, buildBatchPrompt, parseBatchExamples } from './prompt'
 
 export const BATCH_SIZE = 10
+/**
+ * Cards left out go once more in smaller batches: if a whole batch failed because the answer
+ * was too long or garbled, the same 10 cards would most likely fail the same way again.
+ */
+export const RETRY_BATCH_SIZE = 5
 /** ~3 sentences with translations for 10 cards, with headroom. */
 export const BATCH_MAX_TOKENS = 6000
 /** Wait before the one retry after a rate limit or an overloaded provider. */
@@ -25,11 +30,19 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
   return out
 }
 
+export interface BulkProgress {
+  /** Cards that got examples. */
+  saved: number
+  /** Cards dealt with: saved, or skipped because they were edited or deleted meanwhile. */
+  done: number
+  total: number
+}
+
 export interface BulkOptions {
   level: Level
   signal?: AbortSignal
-  /** Called after every batch with the number of cards that got examples so far. */
-  onProgress?: (saved: number, total: number) => void
+  /** Called after every batch. */
+  onProgress?: (progress: BulkProgress) => void
   /** Injected in tests. */
   request?: (config: ProviderConfig, req: Parameters<typeof call>[1]) => Promise<string>
   wait?: (ms: number, signal?: AbortSignal) => Promise<void>
@@ -37,7 +50,9 @@ export interface BulkOptions {
 
 export interface BulkResult {
   saved: number
-  /** Cards still without new examples after the retry. */
+  /** Edited or deleted during the run: left alone on purpose. */
+  skipped: number
+  /** Cards without new examples because generation failed or stopped. */
   failed: number
   /** Why the run stopped early, if it did. */
   error?: AiErrorCode
@@ -46,21 +61,21 @@ export interface BulkResult {
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(new AiError('aborted'))
-    const timer = setTimeout(resolve, ms)
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer)
-        reject(new AiError('aborted'))
-      },
-      { once: true },
-    )
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(new AiError('aborted'))
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
 
 /**
  * Generates examples batch by batch, sequentially, saving each batch as soon as it arrives so a
- * stop keeps what is done. Cards the model skipped get one more try at the end.
+ * stop keeps what is done. Cards the model left out get one more try at the end.
  */
 export async function generateDeckExamples(
   cards: readonly Card[],
@@ -73,6 +88,8 @@ export async function generateDeckExamples(
   const wait = options.wait ?? sleep
   const total = cards.length
   let saved = 0
+  let skipped = 0
+  let done = 0
 
   const ask = (batch: readonly Card[]): Promise<BatchResult> => {
     if (!config.apiKey) throw new AiError('no-key')
@@ -95,7 +112,7 @@ export async function generateDeckExamples(
   }
 
   /** One batch with a single retry on rate limits and overloads; returns the cards left out. */
-  const run = async (batch: readonly Card[]): Promise<Card[]> => {
+  const run = async (batch: readonly Card[], last: boolean): Promise<Card[]> => {
     let result: BatchResult
     try {
       try {
@@ -109,27 +126,30 @@ export async function generateDeckExamples(
       const code = e instanceof AiError ? e.code : 'unknown'
       // A garbled or refused batch only fails its own cards; the next batch may work.
       if (FATAL.includes(code) || code === 'rate' || code === 'busy') throw e
-      return [...batch]
+      result = { results: new Map(), missing: batch.map((_, i) => i) }
     }
     const createdAt = Date.now()
-    for (const [index, items] of result.results) {
-      const card = batch[index]!
-      const examples = { items, provider: config.provider, model: config.model, createdAt, level }
-      if (await setExamplesIfUnchanged(card, examples)) saved++
-    }
-    onProgress?.(saved, total)
+    const entries = [...result.results].map(([index, items]) => ({
+      card: batch[index]!,
+      examples: { items, provider: config.provider, model: config.model, createdAt, level },
+    }))
+    const written = await setExamplesIfUnchanged(entries)
+    saved += written
+    skipped += entries.length - written
+    // Cards the model left out are done only after their retry.
+    done += entries.length + (last ? result.missing.length : 0)
+    onProgress?.({ saved, done, total })
     return result.missing.map((i) => batch[i]!)
   }
 
   try {
     const missing: Card[] = []
-    for (const batch of chunk(cards, BATCH_SIZE)) missing.push(...(await run(batch)))
-    const failed: Card[] = []
-    for (const batch of chunk(missing, BATCH_SIZE)) failed.push(...(await run(batch)))
-    return { saved, failed: failed.length }
+    for (const batch of chunk(cards, BATCH_SIZE)) missing.push(...(await run(batch, false)))
+    for (const batch of chunk(missing, RETRY_BATCH_SIZE)) await run(batch, true)
+    return { saved, skipped, failed: total - saved - skipped }
   } catch (e) {
     const code = e instanceof AiError ? e.code : 'unknown'
     if (code !== 'aborted') console.warn('Bulk examples stopped', e)
-    return { saved, failed: total - saved, error: code }
+    return { saved, skipped, failed: total - saved - skipped, error: code }
   }
 }

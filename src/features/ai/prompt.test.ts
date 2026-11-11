@@ -29,6 +29,7 @@ describe('buildPrompt', () => {
     expect(user).toContain('CEFR B1')
     expect(user).toContain('[[double square brackets]]')
     expect(user).toContain('"items"')
+    expect(user).toContain('do not force in the given meaning word')
   })
 
   it('asks for an explanation instead of a translation for monolingual decks', () => {
@@ -85,6 +86,11 @@ describe('batches', () => {
     expect(missing).toEqual([])
     expect(results.get(0)![0]!.text).toBe('A [[ticket]] here.')
     expect(results.get(1)![0]!.text).toBe('A [[luggage]] here.')
+  })
+
+  it('accepts n written as a string', () => {
+    const raw = JSON.stringify({ cards: [{ ...entry(1, 'ticket'), n: '1' }] })
+    expect([...parseBatchExamples(raw, cards).results.keys()]).toEqual([0])
   })
 
   it('reports skipped and broken cards as missing and ignores unknown n', () => {

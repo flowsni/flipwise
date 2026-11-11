@@ -4,7 +4,11 @@ export interface GenerateRequest {
   schema: Record<string, unknown>
   apiKey: string
   model: string
-  /** Output budget; batches of several cards need more than the adapters' default. */
+  /**
+   * Output budget a batch of several cards needs. Only adapters whose API caps output below it
+   * by default apply it; OpenAI and Gemini default to the model's maximum, and a cap there would
+   * also have to cover reasoning tokens.
+   */
   maxTokens?: number
   signal?: AbortSignal
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CardExamples } from '../../db/types'
 import { seededRng } from '../../lib/shuffle'
-import { hasSentences, pickSentences, sentenceOf } from './sentences'
+import { pickSentences, sentenceOf } from './sentences'
 
 function examples(n: number): CardExamples {
   return {
@@ -11,15 +11,6 @@ function examples(n: number): CardExamples {
     createdAt: 1,
   }
 }
-
-describe('hasSentences', () => {
-  it('needs at least one cached example', () => {
-    expect(hasSentences({ examples: examples(2) })).toBe(true)
-    expect(hasSentences({ examples: examples(0) })).toBe(false)
-    expect(hasSentences({})).toBe(false)
-    expect(hasSentences(undefined)).toBe(false)
-  })
-})
 
 describe('pickSentences', () => {
   const cards = new Map([

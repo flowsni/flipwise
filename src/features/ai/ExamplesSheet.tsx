@@ -1,7 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSettingsSheet } from '../../app/SettingsContext'
 import { db } from '../../db/db'
 import { updateCardExamples } from '../../db/decks'
 import type { Card, Deck, ExampleItem, Level } from '../../db/types'
@@ -13,6 +12,7 @@ import { Sheet } from '../../design/Sheet'
 import { useToast } from '../../design/Toast'
 import { t } from '../../i18n/ru'
 import { SpeakButton } from '../tts/SpeakButton'
+import { AiErrorBox } from './AiErrorBox'
 import { AiError, type AiErrorCode } from './errors'
 import { generateExamples } from './examples'
 import { LevelPicker } from './LevelPicker'
@@ -50,7 +50,6 @@ function ExamplesBody({
   // Read the card live: generated, regenerated or deleted examples must show up immediately.
   const card = useLiveQuery(() => db.cards.get(initialCard.id), [initialCard.id]) ?? initialCard
   const ai = useAiSettings()
-  const settings = useSettingsSheet()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<AiErrorCode | null>(null)
@@ -116,31 +115,7 @@ function ExamplesBody({
 
       <div aria-live="polite" aria-busy={loading} className="flex flex-col gap-3">
         {loading && <Skeleton />}
-        {!loading && error && (
-          <div className="flex flex-col items-start gap-3 rounded-2xl bg-bad-soft p-4">
-            <p className="text-bad">
-              {t.examples.errors[error as keyof typeof t.examples.errors] ??
-                t.examples.errors.unknown}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="raised" onClick={generate}>
-                {t.examples.retry}
-              </Button>
-              {(error === 'auth' || error === 'model' || error === 'no-key') && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    onClose()
-                    settings.open('ai')
-                  }}
-                >
-                  {t.examples.openSettings}
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
+        {!loading && error && <AiErrorBox code={error} onRetry={generate} onClose={onClose} />}
         {!loading &&
           examples?.items.map((item, i) => (
             <ExampleRow

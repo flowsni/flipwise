@@ -12,7 +12,6 @@ export async function generateGemini(req: GenerateRequest): Promise<string> {
         systemInstruction: req.system,
         responseMimeType: 'application/json',
         responseJsonSchema: req.schema,
-        ...(req.maxTokens ? { maxOutputTokens: req.maxTokens } : {}),
         abortSignal: req.signal,
       },
     })

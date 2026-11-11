@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../../db/db'
 import { createDeck, getDeckCards } from '../../db/decks'
 import type { Card } from '../../db/types'
-import { BATCH_MAX_TOKENS, batchCount, chunk, generateDeckExamples } from './bulk'
+import { BATCH_MAX_TOKENS, batchCount, chunk, generateDeckExamples, RETRY_DELAY } from './bulk'
 import { AiError } from './errors'
 import type { ProviderConfig } from './examples'
 
@@ -46,6 +46,28 @@ describe('helpers', () => {
   })
 })
 
+describe('the default pause', () => {
+  it('stops waiting when aborted', async () => {
+    const cards = await makeCards(2)
+    const controller = new AbortController()
+    const request = vi.fn().mockRejectedValue(new AiError('rate'))
+    vi.useFakeTimers()
+    try {
+      const pending = generateDeckExamples(cards, deck, config, {
+        level: 'B1',
+        request,
+        signal: controller.signal,
+      })
+      await vi.advanceTimersByTimeAsync(RETRY_DELAY / 2)
+      controller.abort()
+      await expect(pending).resolves.toMatchObject({ saved: 0, error: 'aborted' })
+      expect(request).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 describe('generateDeckExamples', () => {
   it('sends batches of 10 in order and saves every card with the level', async () => {
     const cards = await makeCards(23)
@@ -56,10 +78,10 @@ describe('generateDeckExamples', () => {
       level: 'A2',
       request,
       wait: noWait,
-      onProgress: (saved) => progress.push(saved),
+      onProgress: (p) => progress.push(p.done),
     })
 
-    expect(result).toEqual({ saved: 23, failed: 0 })
+    expect(result).toEqual({ saved: 23, skipped: 0, failed: 0 })
     expect(request).toHaveBeenCalledTimes(3)
     expect(request.mock.calls.map(([, req]) => itemsOf(req.user).length)).toEqual([10, 10, 3])
     expect(request.mock.calls[0]![1]).toMatchObject({ maxTokens: BATCH_MAX_TOKENS })
@@ -83,8 +105,25 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 12, failed: 0 })
+    expect(result).toEqual({ saved: 12, skipped: 0, failed: 0 })
     expect(itemsOf(request.mock.calls[2]![1].user).map((c) => c.term)).toEqual(['w3'])
+  })
+
+  it('retries a wholly failed batch in smaller batches', async () => {
+    const cards = await makeCards(10)
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce('{"cards": [') // cut off mid-answer
+      .mockImplementation(async (_c, req) => answer(req.user))
+
+    const result = await generateDeckExamples(cards, deck, config, {
+      level: 'B1',
+      request,
+      wait: noWait,
+    })
+
+    expect(result).toEqual({ saved: 10, skipped: 0, failed: 0 })
+    expect(request.mock.calls.slice(1).map(([, req]) => itemsOf(req.user).length)).toEqual([5, 5])
   })
 
   it('reports cards still missing after the retry and survives a garbled batch', async () => {
@@ -100,7 +139,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 2, failed: 1 })
+    expect(result).toEqual({ saved: 2, skipped: 0, failed: 1 })
     expect(await db.cards.get(cards[1]!.id)).not.toHaveProperty('examples.items')
   })
 
@@ -118,7 +157,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result.saved).toBe(1)
+    expect(result).toEqual({ saved: 1, skipped: 2, failed: 0 })
     expect((await db.cards.get(cards[0]!.id))?.examples).toBeUndefined()
     expect(await db.cards.get(cards[1]!.id)).toBeUndefined()
     expect((await db.cards.get(cards[2]!.id))?.examples?.items).toHaveLength(1)
@@ -134,7 +173,7 @@ describe('generateDeckExamples', () => {
 
     const result = await generateDeckExamples(cards, deck, config, { level: 'B1', request, wait })
 
-    expect(result).toEqual({ saved: 2, failed: 0 })
+    expect(result).toEqual({ saved: 2, skipped: 0, failed: 0 })
     expect(wait).toHaveBeenCalledTimes(1)
   })
 
@@ -151,7 +190,7 @@ describe('generateDeckExamples', () => {
       wait: noWait,
     })
 
-    expect(result).toEqual({ saved: 10, failed: 15, error: 'auth' })
+    expect(result).toEqual({ saved: 10, skipped: 0, failed: 15, error: 'auth' })
     expect(request).toHaveBeenCalledTimes(2)
   })
 

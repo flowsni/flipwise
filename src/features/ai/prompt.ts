@@ -73,7 +73,7 @@ function secondFieldRule(input: Pick<ExamplesInput, 'termLang' | 'defLang'>): st
   const defLanguage = englishLanguageName(input.defLang)
   return isMonolingual(input)
     ? `"translation": a short, simple explanation in ${termLanguage} of what the sentence means (no translation, since the learner studies ${termLanguage} in ${termLanguage}).`
-    : `"translation": a natural ${defLanguage} translation of the sentence; wrap the words that translate the studied item in [[double square brackets]] too.`
+    : `"translation": a natural, idiomatic ${defLanguage} translation of the sentence, as a native speaker would say it. Translate the studied item with whatever word and form fits this sentence; do not force in the given meaning word if it sounds unnatural. Wrap the words that translate the studied item in [[double square brackets]] too.`
 }
 
 const SYSTEM =
@@ -233,7 +233,8 @@ export function buildBatchPrompt(input: BatchInput): { system: string; user: str
   return { system: SYSTEM, user }
 }
 
-const batchEntrySchema = z.object({ n: z.number().int(), items: z.unknown() })
+// Models without a schema (DeepSeek's json_object mode) sometimes write "n": "1".
+const batchEntrySchema = z.object({ n: z.coerce.number().int(), items: z.unknown() })
 const batchSchema = z.object({ cards: z.array(z.unknown()) })
 
 export interface BatchResult {

@@ -27,7 +27,8 @@ export async function generateOpenAICompat(
     const completion = await client.chat.completions.create(
       {
         model: req.model,
-        ...(req.maxTokens ? { max_completion_tokens: req.maxTokens } : {}),
+        // DeepSeek and OpenRouter default to a small cap; OpenAI defaults to the model maximum.
+        ...(req.maxTokens && flavor !== 'openai' ? { max_tokens: req.maxTokens } : {}),
         messages: [
           { role: 'system', content: req.system },
           { role: 'user', content: req.user },

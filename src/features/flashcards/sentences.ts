@@ -5,14 +5,9 @@ import type { Rng } from '../../lib/shuffle'
 
 export type FlashContent = 'words' | 'sentences'
 
-/** Whether the card has cached example sentences to study. */
-export function hasSentences(card: Pick<Card, 'examples'> | undefined): boolean {
-  return !!card?.examples?.items.length
-}
-
 /**
  * One random example per card for a round. Cards without examples are left out, so callers
- * pass cards that were already filtered with `hasSentences`.
+ * pass cards that were already filtered with `hasExamples`.
  */
 export function pickSentences(
   cardIds: readonly string[],

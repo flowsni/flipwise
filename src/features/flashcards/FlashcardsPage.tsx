@@ -22,6 +22,7 @@ import { Sheet } from '../../design/Sheet'
 import { StudyBar, shortcutsBlocked } from '../../design/StudyBar'
 import { useToast } from '../../design/Toast'
 import { t } from '../../i18n/ru'
+import { hasExamples } from '../../lib/examples'
 import { shuffle } from '../../lib/shuffle'
 import { useSetting } from '../../lib/storage'
 import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
@@ -31,7 +32,7 @@ import { StudyScopePicker, scopeLabels, useStudyScope } from '../study/StudyScop
 import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { type CardSide, SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
-import { type FlashContent, hasSentences, pickSentences, sentenceOf } from './sentences'
+import { type FlashContent, pickSentences, sentenceOf } from './sentences'
 
 interface HistoryEntry {
   cardId: string
@@ -85,7 +86,7 @@ function Flashcards({
   const [contentSetting, setContent] = useSetting<FlashContent>('flash.content', 'words')
   const content: FlashContent = !mono && contentSetting === 'sentences' ? 'sentences' : 'words'
   // Filter before sampling, so a session of 10 holds 10 cards that do have sentences.
-  const withSentences = useMemo(() => cards.filter(hasSentences), [cards])
+  const withSentences = useMemo(() => cards.filter(hasExamples), [cards])
   const poolOf = (c: FlashContent) => (c === 'sentences' ? withSentences : cards)
   const pool = poolOf(content)
   const counts = useMemo(() => scopeCounts(pool, progress), [pool, progress])
@@ -122,7 +123,7 @@ function Flashcards({
   const done = index >= queue.length
   const currentId = queue[index]
   const playable = (card: Card | undefined): card is Card =>
-    !!card && (content === 'words' || hasSentences(card))
+    !!card && (content === 'words' || hasExamples(card))
   const currentCard = currentId ? cardsById.get(currentId) : undefined
   const current = playable(currentCard) ? currentCard : undefined
   const next = queue[index + 1] ? cardsById.get(queue[index + 1]!) : undefined

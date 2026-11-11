@@ -137,6 +137,37 @@ describe('openai-compatible adapter', () => {
   })
 })
 
+describe('output budget', () => {
+  const req = {
+    system: 's',
+    user: 'u',
+    schema: {},
+    apiKey: 'k',
+    model: 'm',
+    maxTokens: 6000,
+  }
+
+  it('raises the caps that are low by default and leaves the others alone', async () => {
+    const { generateAnthropic } = await import('./anthropic')
+    const { generateOpenAICompat } = await import('./openaiCompat')
+    const { generateGemini } = await import('./gemini')
+    anthropicCreate.mockResolvedValue({ stop_reason: 'end_turn', content: [] })
+    openaiCreate.mockResolvedValue({ choices: [{ message: { content: json } }] })
+    geminiGenerate.mockResolvedValue({ text: json })
+
+    await generateAnthropic({ ...req, model: 'claude-haiku-5-5' })
+    await generateOpenAICompat('deepseek', req)
+    await generateOpenAICompat('openai', req)
+    await generateGemini(req)
+
+    expect(anthropicCreate.mock.calls[0]![0].max_tokens).toBe(6000)
+    expect(openaiCreate.mock.calls[0]![0].max_tokens).toBe(6000)
+    expect(openaiCreate.mock.calls[1]![0]).not.toHaveProperty('max_tokens')
+    expect(openaiCreate.mock.calls[1]![0]).not.toHaveProperty('max_completion_tokens')
+    expect(geminiGenerate.mock.calls[0]![0].config).not.toHaveProperty('maxOutputTokens')
+  })
+})
+
 describe('gemini adapter', () => {
   it('requests JSON with a schema', async () => {
     geminiGenerate.mockResolvedValue({ text: json })
