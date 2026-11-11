@@ -13,6 +13,84 @@ export interface ExamplesInput {
 
 const EXAMPLE_COUNT = 3
 
+interface LevelGuide {
+  length: string
+  grammar: string
+  /** What else besides the studied item may appear. */
+  vocabulary: string
+}
+
+/** Concrete CEFR constraints: models drift towards B2 unless told what a level means. */
+export const LEVEL_GUIDE: Record<Level, LevelGuide> = {
+  A1: {
+    length: '4–8 words',
+    grammar: 'present tense only; short simple sentences with one clause; no idioms',
+    vocabulary: 'only very common everyday words of level A1',
+  },
+  A2: {
+    length: '5–10 words',
+    grammar:
+      'present, simple past and "going to" future; at most two clauses joined with and, but or because; no idioms',
+    vocabulary: 'only words of level A2 or below',
+  },
+  B1: {
+    length: '7–13 words',
+    grammar:
+      'past, future and present perfect; simple subordinate clauses (when, if, that, who); common phrasal verbs',
+    vocabulary: 'only words of level B1 or below',
+  },
+  B2: {
+    length: '8–16 words',
+    grammar: 'any common tense, passive voice, conditionals and relative clauses',
+    vocabulary: 'words of level B2 or below; common collocations',
+  },
+  C1: {
+    length: '10–18 words',
+    grammar:
+      'complex syntax: participle clauses, inversion, nuanced connectors; idioms are welcome',
+    vocabulary: 'words of level C1 or below; idiomatic collocations',
+  },
+  C2: {
+    length: 'up to about 20 words',
+    grammar: 'anything a fluent native speaker would write, including idioms and subtle register',
+    vocabulary: 'any vocabulary, including rare and idiomatic words',
+  },
+}
+
+/** Prompt lines that pin the sentences to the learner's level. */
+function levelRules(level: Level): string[] {
+  const g = LEVEL_GUIDE[level]
+  return [
+    `- Learner level: CEFR ${level}. Sentence length: ${g.length}.`,
+    `- Grammar: ${g.grammar}.`,
+    `- Vocabulary: apart from the studied item, ${g.vocabulary}.`,
+    '- Natural, not textbook-stiff.',
+  ]
+}
+
+function secondFieldRule(input: Pick<ExamplesInput, 'termLang' | 'defLang'>): string {
+  const termLanguage = englishLanguageName(input.termLang)
+  const defLanguage = englishLanguageName(input.defLang)
+  return isMonolingual(input)
+    ? `"translation": a short, simple explanation in ${termLanguage} of what the sentence means (no translation, since the learner studies ${termLanguage} in ${termLanguage}).`
+    : `"translation": a natural, idiomatic ${defLanguage} translation of the sentence, as a native speaker would say it. Translate the studied item with whatever word and form fits this sentence; do not force in the given meaning word if it sounds unnatural. Wrap the words that translate the studied item in [[double square brackets]] too.`
+}
+
+const SYSTEM =
+  'You write example sentences for language learners. You always answer with a single json object and nothing else.'
+
+const CONTEXT_RULE =
+  '- Each sentence shows a different, everyday context (for example: home, work or study, travel, friends).'
+const MARK_RULE =
+  '- The studied item may appear in any grammatical form. Wrap exactly that occurrence in [[double square brackets]], once per sentence.'
+
+function sampleItem(mono: boolean) {
+  return {
+    text: 'I left my [[luggage]] at the hotel.',
+    translation: mono ? '…' : 'Я оставил свой [[багаж]] в отеле.',
+  }
+}
+
 /** JSON schema shared by every provider's structured-output mode. */
 export const examplesJsonSchema = {
   type: 'object',
@@ -47,44 +125,29 @@ export function isMonolingual(input: Pick<ExamplesInput, 'termLang' | 'defLang'>
 export function buildPrompt(input: ExamplesInput): { system: string; user: string } {
   const termLanguage = englishLanguageName(input.termLang)
   const defLanguage = englishLanguageName(input.defLang)
-  const mono = isMonolingual(input)
-  const secondField = mono
-    ? `"translation": a short, simple explanation in ${termLanguage} of what the sentence means (no translation, since the learner studies ${termLanguage} in ${termLanguage}).`
-    : `"translation": a natural ${defLanguage} translation of the sentence; wrap the words that translate the studied item in [[double square brackets]] too.`
-
-  const system =
-    'You write example sentences for language learners. You always answer with a single json object and nothing else.'
 
   const user = [
     `Studied item (${termLanguage}): ${input.term}`,
     `Meaning (${defLanguage}): ${input.definition}`,
-    `Learner level: CEFR ${input.level}.`,
     '',
     `Write ${EXAMPLE_COUNT} example sentences in ${termLanguage} that use the studied item in the meaning above.`,
-    '- Each sentence shows a different, everyday context (for example: home, work or study, travel, friends).',
-    `- Vocabulary and grammar must fit CEFR ${input.level}; 6–16 words; natural, not textbook-stiff.`,
-    '- The studied item may appear in any grammatical form. Wrap exactly that occurrence in [[double square brackets]], once per sentence.',
+    CONTEXT_RULE,
+    ...levelRules(input.level),
+    MARK_RULE,
     '',
     'Return json with an "items" array. Each item has:',
     '"text": the sentence with the [[marked]] item.',
-    secondField,
+    secondFieldRule(input),
     '',
     'Example of the json shape:',
-    JSON.stringify({
-      items: [
-        {
-          text: 'I left my [[luggage]] at the hotel.',
-          translation: mono ? '…' : 'Я оставил свой [[багаж]] в отеле.',
-        },
-      ],
-    }),
+    JSON.stringify({ items: [sampleItem(isMonolingual(input))] }),
   ].join('\n')
 
-  return { system, user }
+  return { system: SYSTEM, user }
 }
 
-/** Parses and validates the model's json; tolerant to code fences and surrounding prose. */
-export function parseExamples(raw: string | null | undefined, term: string): ExampleItem[] {
+/** Finds the json object in a model answer; tolerant to code fences and surrounding prose. */
+function extractJson(raw: string | null | undefined): unknown {
   if (!raw?.trim()) throw new AiError('invalid', 'empty')
   let text = raw
     .trim()
@@ -94,18 +157,120 @@ export function parseExamples(raw: string | null | undefined, term: string): Exa
   const end = text.lastIndexOf('}')
   if (start < 0 || end <= start) throw new AiError('invalid', 'no json')
   text = text.slice(start, end + 1)
-  let json: unknown
   try {
-    json = JSON.parse(text)
+    return JSON.parse(text)
   } catch {
     throw new AiError('invalid', 'bad json')
   }
-  const parsed = responseSchema.safeParse(json)
-  if (!parsed.success) throw new AiError('invalid', 'schema')
-  return parsed.data.items.slice(0, EXAMPLE_COUNT).map((item) => ({
+}
+
+function toItems(items: { text: string; translation: string }[], term: string): ExampleItem[] {
+  return items.slice(0, EXAMPLE_COUNT).map((item) => ({
     text: ensureMarked(item.text, term),
     translation: item.translation,
   }))
+}
+
+/** Parses and validates the model's json for one card. */
+export function parseExamples(raw: string | null | undefined, term: string): ExampleItem[] {
+  const parsed = responseSchema.safeParse(extractJson(raw))
+  if (!parsed.success) throw new AiError('invalid', 'schema')
+  return toItems(parsed.data.items, term)
+}
+
+// ── Batches: examples for several cards in one request ──────────────────────────────────────
+
+export interface BatchInput {
+  cards: readonly { term: string; definition: string }[]
+  termLang: string
+  defLang: string
+  level: Level
+}
+
+export const batchJsonSchema = {
+  type: 'object',
+  properties: {
+    cards: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          n: { type: 'integer' },
+          items: examplesJsonSchema.properties.items,
+        },
+        required: ['n', 'items'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['cards'],
+  additionalProperties: false,
+} as const
+
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+export function buildBatchPrompt(input: BatchInput): { system: string; user: string } {
+  const termLanguage = englishLanguageName(input.termLang)
+  const defLanguage = englishLanguageName(input.defLang)
+
+  const user = [
+    `Studied items (${termLanguage}) with their meaning (${defLanguage}), numbered:`,
+    // One line per card: a line break inside a card would read as the start of another item.
+    ...input.cards.map((c, i) => `${i + 1}. ${oneLine(c.term)} — ${oneLine(c.definition)}`),
+    '',
+    `For every numbered item, write ${EXAMPLE_COUNT} example sentences in ${termLanguage} that use that item in the meaning given.`,
+    CONTEXT_RULE,
+    ...levelRules(input.level),
+    MARK_RULE,
+    '',
+    `Return json with a "cards" array: one entry per numbered item, ${input.cards.length} in total. Each entry has:`,
+    '"n": the item number from the list above.',
+    '"items": an array of sentences. Each sentence has:',
+    '"text": the sentence with the [[marked]] item.',
+    secondFieldRule(input),
+    '',
+    'Example of the json shape:',
+    JSON.stringify({ cards: [{ n: 1, items: [sampleItem(isMonolingual(input))] }] }),
+  ].join('\n')
+
+  return { system: SYSTEM, user }
+}
+
+// Models without a schema (DeepSeek's json_object mode) sometimes write "n": "1".
+const batchEntrySchema = z.object({ n: z.coerce.number().int(), items: z.unknown() })
+const batchSchema = z.object({ cards: z.array(z.unknown()) })
+
+export interface BatchResult {
+  /** Index in the batch → examples. */
+  results: Map<number, ExampleItem[]>
+  /** Indexes the answer left out or got wrong; worth one more try. */
+  missing: number[]
+}
+
+/**
+ * Parses a batch answer card by card: a broken entry, an unknown `n` or a skipped card only
+ * lands in `missing` and never throws away the rest. A wholly unreadable answer throws.
+ */
+export function parseBatchExamples(
+  raw: string | null | undefined,
+  cards: readonly { term: string }[],
+): BatchResult {
+  const parsed = batchSchema.safeParse(extractJson(raw))
+  if (!parsed.success) throw new AiError('invalid', 'schema')
+  const results = new Map<number, ExampleItem[]>()
+  for (const entry of parsed.data.cards) {
+    const e = batchEntrySchema.safeParse(entry)
+    if (!e.success) continue
+    const index = e.data.n - 1
+    const card = cards[index]
+    if (!card || results.has(index)) continue
+    const items = responseSchema.shape.items.safeParse(e.data.items)
+    if (items.success) results.set(index, toItems(items.data, card.term))
+  }
+  const missing = cards.map((_, i) => i).filter((i) => !results.has(i))
+  return { results, missing }
 }
 
 /** If the model forgot the [[ ]] markers, mark the first case-insensitive occurrence of the term. */

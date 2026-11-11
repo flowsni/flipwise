@@ -88,6 +88,8 @@ describe('anthropic adapter', () => {
     expect(r.items[0]!.text).toBe('My [[luggage]].')
     const body = anthropicCreate.mock.calls[0]![0]
     expect(body.output_config.format.type).toBe('json_schema')
+    expect(body.output_config.effort).toBe('low')
+    expect(body.max_tokens).toBe(4000)
     expect(body.fallbacks).toBeUndefined()
   })
 
@@ -132,6 +134,41 @@ describe('openai-compatible adapter', () => {
     await expect(
       generateExamples(input, { provider: 'openrouter', apiKey: 'k', model: 'x' }),
     ).rejects.toMatchObject({ code: 'network' })
+  })
+})
+
+describe('output budget', () => {
+  const req = {
+    system: 's',
+    user: 'u',
+    schema: {},
+    apiKey: 'k',
+    model: 'm',
+    maxTokens: 6000,
+  }
+
+  it('raises the caps that are low by default and leaves the others alone', async () => {
+    const { generateAnthropic } = await import('./anthropic')
+    const { generateOpenAICompat } = await import('./openaiCompat')
+    const { generateGemini } = await import('./gemini')
+    anthropicCreate.mockResolvedValue({ stop_reason: 'end_turn', content: [] })
+    openaiCreate.mockResolvedValue({ choices: [{ message: { content: json } }] })
+    geminiGenerate.mockResolvedValue({ text: json })
+
+    await generateAnthropic({ ...req, model: 'claude-haiku-5-5' })
+    await generateOpenAICompat('deepseek', req)
+    await generateOpenAICompat('openai', req)
+    await generateOpenAICompat('openrouter', { ...req, model: 'openai/gpt-6-luna' })
+    await generateOpenAICompat('deepseek', { ...req, model: 'deepseek-reasoner' })
+    await generateGemini(req)
+
+    expect(anthropicCreate.mock.calls[0]![0].max_tokens).toBe(6000)
+    expect(openaiCreate.mock.calls[0]![0].max_tokens).toBe(6000)
+    for (const call of openaiCreate.mock.calls.slice(1)) {
+      expect(call[0]).not.toHaveProperty('max_tokens')
+      expect(call[0]).not.toHaveProperty('max_completion_tokens')
+    }
+    expect(geminiGenerate.mock.calls[0]![0].config).not.toHaveProperty('maxOutputTokens')
   })
 })
 

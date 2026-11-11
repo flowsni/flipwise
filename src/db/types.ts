@@ -26,6 +26,8 @@ export interface CardExamples {
   provider: string
   model: string
   createdAt: number
+  /** Level the examples were written for; older examples use the deck's level. */
+  level?: Level
 }
 
 export interface Card {

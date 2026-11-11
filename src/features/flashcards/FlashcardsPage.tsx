@@ -22,15 +22,17 @@ import { Sheet } from '../../design/Sheet'
 import { StudyBar, shortcutsBlocked } from '../../design/StudyBar'
 import { useToast } from '../../design/Toast'
 import { t } from '../../i18n/ru'
+import { hasExamples } from '../../lib/examples'
 import { shuffle } from '../../lib/shuffle'
 import { useSetting } from '../../lib/storage'
+import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { isMonolingual } from '../ai/prompt'
 import { StudyScopePicker, scopeLabels, useStudyScope } from '../study/StudyScopePicker'
 import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { type CardSide, SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
-import { type FlashContent, hasSentences, pickSentences, sentenceOf } from './sentences'
+import { type FlashContent, pickSentences, sentenceOf } from './sentences'
 
 interface HistoryEntry {
   cardId: string
@@ -84,7 +86,7 @@ function Flashcards({
   const [contentSetting, setContent] = useSetting<FlashContent>('flash.content', 'words')
   const content: FlashContent = !mono && contentSetting === 'sentences' ? 'sentences' : 'words'
   // Filter before sampling, so a session of 10 holds 10 cards that do have sentences.
-  const withSentences = useMemo(() => cards.filter(hasSentences), [cards])
+  const withSentences = useMemo(() => cards.filter(hasExamples), [cards])
   const poolOf = (c: FlashContent) => (c === 'sentences' ? withSentences : cards)
   const pool = poolOf(content)
   const counts = useMemo(() => scopeCounts(pool, progress), [pool, progress])
@@ -104,6 +106,7 @@ function Flashcards({
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [enterFrom, setEnterFrom] = useState<SwipeDir | undefined>()
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
+  const [bulkOpen, setBulkOpen] = useState(false)
   const [announce, setAnnounce] = useState('')
   const cardRef = useRef<SwipeCardHandle>(null)
   // The previous card unmounts after its exit animation, i.e. after the next card attached its
@@ -120,7 +123,7 @@ function Flashcards({
   const done = index >= queue.length
   const currentId = queue[index]
   const playable = (card: Card | undefined): card is Card =>
-    !!card && (content === 'words' || hasSentences(card))
+    !!card && (content === 'words' || hasExamples(card))
   const currentCard = currentId ? cardsById.get(currentId) : undefined
   const current = playable(currentCard) ? currentCard : undefined
   const next = queue[index + 1] ? cardsById.get(queue[index + 1]!) : undefined
@@ -225,6 +228,13 @@ function Flashcards({
     setSelection(next)
     restart(next.ids, c)
   }
+
+  // Examples generated from the empty state: start the sentence round once the sheet closes.
+  const sentencesArrived = empty && content === 'sentences' && !bulkOpen && withSentences.length > 0
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only when examples arrive
+  useEffect(() => {
+    if (sentencesArrived) changeContent('sentences')
+  }, [sentencesArrived])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -332,7 +342,10 @@ function Flashcards({
       {empty ? (
         <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-3 pb-safe sm:pt-6">
           <ContentSwitch value={content} onChange={changeContent} mono={mono} />
-          <NoSentences onWords={() => changeContent('words')} />
+          <NoSentences
+            onGenerate={() => setBulkOpen(true)}
+            onWords={() => changeContent('words')}
+          />
         </main>
       ) : done ? (
         <Summary
@@ -458,6 +471,12 @@ function Flashcards({
         deck={deck}
         onClose={() => setExamplesFor(null)}
       />
+      <BulkExamplesSheet
+        open={bulkOpen}
+        deck={deck}
+        cards={cards}
+        onClose={() => setBulkOpen(false)}
+      />
     </div>
   )
 }
@@ -490,7 +509,7 @@ function ContentSwitch({
   )
 }
 
-function NoSentences({ onWords }: { onWords: () => void }) {
+function NoSentences({ onGenerate, onWords }: { onGenerate: () => void; onWords: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -503,9 +522,15 @@ function NoSentences({ onWords }: { onWords: () => void }) {
       </span>
       <h1 className="text-xl font-bold tracking-tight">{t.flash.noSentencesTitle}</h1>
       <p className="max-w-xs text-ink-2">{t.flash.noSentences}</p>
-      <Button variant="primary" size="lg" onClick={onWords}>
-        {t.flash.toWords}
-      </Button>
+      <div className="flex flex-col items-center gap-2">
+        <Button variant="primary" size="lg" onClick={onGenerate}>
+          <IconSparkles size={20} />
+          {t.flash.generate}
+        </Button>
+        <Button variant="ghost" onClick={onWords}>
+          {t.flash.toWords}
+        </Button>
+      </div>
     </motion.div>
   )
 }

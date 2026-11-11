@@ -30,6 +30,7 @@ import { t } from '../../i18n/ru'
 import { backupFileName, exportDeck } from '../../lib/backup'
 import { shareOrDownloadJson } from '../../lib/files'
 import { languageName } from '../../lib/languages'
+import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { HardList } from '../hard/HardList'
 import { SpeakButton } from '../tts/SpeakButton'
@@ -50,6 +51,7 @@ export function DeckPage() {
   const toast = useToast()
   const [importOpen, setImportOpen] = useState(false)
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
+  const [bulkOpen, setBulkOpen] = useState(false)
   const hasLearn = useHasSession(deckId, 'learn')
   const hasTest = useHasSession(deckId, 'test')
   const hard = useHardCards(deckId)
@@ -132,6 +134,19 @@ export function DeckPage() {
                   { label: t.deck.share, icon: <IconShare />, onSelect: onShare },
                 ],
               },
+              ...(cards.length
+                ? [
+                    {
+                      items: [
+                        {
+                          label: t.bulk.open,
+                          icon: <IconSparkles />,
+                          onSelect: () => setBulkOpen(true),
+                        },
+                      ],
+                    },
+                  ]
+                : []),
               {
                 items: [
                   { label: t.deck.delete, icon: <IconTrash />, danger: true, onSelect: onDelete },
@@ -285,6 +300,12 @@ export function DeckPage() {
         }}
       />
       <ExamplesSheet card={examplesFor} deck={deck} onClose={() => setExamplesFor(null)} />
+      <BulkExamplesSheet
+        open={bulkOpen}
+        deck={deck}
+        cards={cards}
+        onClose={() => setBulkOpen(false)}
+      />
     </>
   )
 }

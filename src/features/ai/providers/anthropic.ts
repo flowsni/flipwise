@@ -12,7 +12,7 @@ export async function generateAnthropic(req: GenerateRequest): Promise<string> {
   const client = new Anthropic({ apiKey: req.apiKey, dangerouslyAllowBrowser: true, maxRetries: 1 })
   const base = {
     model: req.model,
-    max_tokens: 4000,
+    max_tokens: req.maxTokens ?? 4000,
     system: req.system,
     messages: [{ role: 'user' as const, content: req.user }],
   }

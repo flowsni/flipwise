@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { AiError } from './errors'
 import {
+  buildBatchPrompt,
   buildPrompt,
   ensureMarked,
   isMonolingual,
+  LEVEL_GUIDE,
+  parseBatchExamples,
   parseExamples,
   parseMarked,
   stripMarks,
@@ -26,6 +29,7 @@ describe('buildPrompt', () => {
     expect(user).toContain('CEFR B1')
     expect(user).toContain('[[double square brackets]]')
     expect(user).toContain('"items"')
+    expect(user).toContain('do not force in the given meaning word')
   })
 
   it('asks for an explanation instead of a translation for monolingual decks', () => {
@@ -33,6 +37,86 @@ describe('buildPrompt', () => {
     const { user } = buildPrompt({ ...input, defLang: 'en' })
     expect(user).toContain('explanation')
     expect(user).not.toContain('natural English translation')
+  })
+})
+
+describe('levels', () => {
+  it('gives A1 and C2 different, concrete constraints', () => {
+    const a1 = buildPrompt({ ...input, level: 'A1' }).user
+    const c2 = buildPrompt({ ...input, level: 'C2' }).user
+    expect(a1).toContain('CEFR A1')
+    expect(a1).toContain(LEVEL_GUIDE.A1.length)
+    expect(a1).toContain('present tense only')
+    expect(c2).toContain(LEVEL_GUIDE.C2.length)
+    expect(c2).toContain('idioms')
+    expect(a1).not.toContain(LEVEL_GUIDE.C2.length)
+  })
+
+  it('has a guide for every level', () => {
+    const lengths = Object.values(LEVEL_GUIDE).map((g) => g.length)
+    expect(new Set(lengths).size).toBe(6)
+  })
+})
+
+describe('batches', () => {
+  const cards = [
+    { term: 'ticket', definition: 'билет' },
+    { term: 'luggage', definition: 'багаж' },
+    { term: 'gate', definition: 'выход на посадку' },
+  ]
+  const entry = (n: number, term: string) => ({
+    n,
+    items: [{ text: `A ${term} here.`, translation: 'перевод' }],
+  })
+
+  it('numbers the cards and keeps the level rules', () => {
+    const { user } = buildBatchPrompt({ cards, termLang: 'en', defLang: 'ru', level: 'A2' })
+    expect(user).toContain('1. ticket — билет')
+    expect(user).toContain('3. gate — выход на посадку')
+    expect(user).toContain('3 in total')
+    expect(user).toContain(LEVEL_GUIDE.A2.length)
+    expect(user).toContain('"cards"')
+  })
+
+  it('keeps every card on one line', () => {
+    const { user } = buildBatchPrompt({
+      cards: [{ term: 'luggage', definition: 'багаж\n2. кладь' }],
+      termLang: 'en',
+      defLang: 'ru',
+      level: 'B1',
+    })
+    expect(user).toContain('1. luggage — багаж 2. кладь')
+    expect(user).not.toMatch(/^2\. /m)
+  })
+
+  it('maps entries by n and marks the term', () => {
+    const raw = JSON.stringify({
+      cards: [entry(2, 'luggage'), entry(1, 'ticket'), entry(3, 'gate')],
+    })
+    const { results, missing } = parseBatchExamples(raw, cards)
+    expect(missing).toEqual([])
+    expect(results.get(0)![0]!.text).toBe('A [[ticket]] here.')
+    expect(results.get(1)![0]!.text).toBe('A [[luggage]] here.')
+  })
+
+  it('accepts n written as a string', () => {
+    const raw = JSON.stringify({ cards: [{ ...entry(1, 'ticket'), n: '1' }] })
+    expect([...parseBatchExamples(raw, cards).results.keys()]).toEqual([0])
+  })
+
+  it('reports skipped and broken cards as missing and ignores unknown n', () => {
+    const raw = JSON.stringify({
+      cards: [entry(1, 'ticket'), { n: 2, items: [] }, entry(7, 'nope'), { foo: 1 }],
+    })
+    const { results, missing } = parseBatchExamples(`\`\`\`json\n${raw}\n\`\`\``, cards)
+    expect([...results.keys()]).toEqual([0])
+    expect(missing).toEqual([1, 2])
+  })
+
+  it('throws on an unreadable answer', () => {
+    for (const raw of ['', '{oops', '{"items": []}']) {
+      expect(() => parseBatchExamples(raw, cards)).toThrow(AiError)
+    }
   })
 })
 
