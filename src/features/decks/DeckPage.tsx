@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
-import { useDeck, useDeckCards, useDeckProgress, useHasSession } from '../../db/hooks'
+import { useDeck, useDeckCards, useDeckProgress, useHardCards, useHasSession } from '../../db/hooks'
 import { isMastered, toggleStar } from '../../db/progress'
 import type { Card, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
@@ -31,12 +31,15 @@ import { backupFileName, exportDeck } from '../../lib/backup'
 import { shareOrDownloadJson } from '../../lib/files'
 import { languageName } from '../../lib/languages'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
+import { HardList } from '../hard/HardList'
 import { SpeakButton } from '../tts/SpeakButton'
 import { CardRow } from './CardRow'
 import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'
 
 const MotionLink = motion.create(Link)
+/** Hard cards shown on the deck page; the rest are one tap away. */
+const HARD_PREVIEW = 5
 
 export function DeckPage() {
   const { deckId } = useParams()
@@ -49,6 +52,7 @@ export function DeckPage() {
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const hasLearn = useHasSession(deckId, 'learn')
   const hasTest = useHasSession(deckId, 'test')
+  const hard = useHardCards(deckId)
   const [params, setParams] = useSearchParams()
   const [highlight, setHighlight] = useState<string | null>(null)
   const target = params.get('card')
@@ -61,7 +65,7 @@ export function DeckPage() {
     setHighlight(target)
     requestAnimationFrame(() =>
       document
-        .querySelector(`[data-card="${CSS.escape(target)}"]`)
+        .querySelector(`#deck-cards [data-card="${CSS.escape(target)}"]`)
         ?.scrollIntoView({ block: 'center' }),
     )
   }, [target, cards, setParams])
@@ -189,6 +193,25 @@ export function DeckPage() {
           />
         </div>
 
+        {!!hard?.length && (
+          <section className="mt-10" aria-labelledby="hard-title">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 id="hard-title" className="text-lg font-semibold tracking-tight">
+                {t.hard.title}
+              </h2>
+              {hard.length > HARD_PREVIEW && (
+                <Link
+                  to={`/hard?deck=${deck.id}`}
+                  className="inline-flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+                >
+                  {t.hard.showAll(hard.length)}
+                </Link>
+              )}
+            </div>
+            <HardList items={hard.slice(0, HARD_PREVIEW)} />
+          </section>
+        )}
+
         <section className="mt-10" aria-labelledby="cards-title">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="cards-title" className="text-lg font-semibold tracking-tight">
@@ -212,7 +235,7 @@ export function DeckPage() {
               </div>
             </div>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul id="deck-cards" className="flex flex-col gap-2">
               <AnimatePresence initial={false}>
                 {cards.map((card) => (
                   <CardRow

@@ -24,6 +24,12 @@ export const router = createHashRouter([
           Component: (await import('../features/search/SearchPage')).SearchPage,
         }),
       },
+      {
+        path: '/hard',
+        lazy: async () => ({
+          Component: (await import('../features/hard/HardWordsPage')).HardWordsPage,
+        }),
+      },
       { path: '/deck/:deckId', element: <DeckPage /> },
       {
         path: '/deck/:deckId/edit',

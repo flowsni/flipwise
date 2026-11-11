@@ -178,6 +178,11 @@ export const IconSearch = (p: IconProps) => (
     <path d="m20 20-3.6-3.6" />
   </Svg>
 )
+export const IconFlame = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4-10-2 1.5-3 3.5-3 6-1.5-1-2-2.5-2-4C7.5 9 5 11.5 5 15a7 7 0 0 0 7 7Z" />
+  </Svg>
+)
 export const IconPlay = (p: IconProps) => (
   <Svg {...p}>
     <path d="m7 4 13 8-13 8V4Z" />
