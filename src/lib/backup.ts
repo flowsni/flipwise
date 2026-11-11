@@ -45,6 +45,7 @@ const progressSchema = z.object({
   correct: z.number(),
   wrong: z.number(),
   lastSeenAt: z.number(),
+  starred: z.boolean().optional(),
 })
 
 const backupSchema = z.object({

@@ -14,6 +14,7 @@ import { IconSparkles } from '../../design/icons'
 import { enterSpring, flipSpring, snappySpring } from '../../design/motion'
 import { t } from '../../i18n/ru'
 import { fitClass } from '../../lib/textFit'
+import { StarButton } from '../decks/StarButton'
 import { SpeakButton } from '../tts/SpeakButton'
 
 export type SwipeDir = 1 | -1 // 1 = know (right), -1 = still learning (left)
@@ -34,10 +35,12 @@ export const SwipeCard = forwardRef<
     front: 'term' | 'definition'
     /** Card comes back from this side (undo). */
     enterFrom?: SwipeDir
+    starred: boolean
     onSwiped: (dir: SwipeDir) => void
     onExamples: () => void
+    onStar: () => void
   }
->(function SwipeCard({ card, deck, front, enterFrom, onSwiped, onExamples }, ref) {
+>(function SwipeCard({ card, deck, front, enterFrom, starred, onSwiped, onExamples, onStar }, ref) {
   const reduce = useReducedMotion()
   const x = useMotionValue(enterFrom ? enterFrom * 700 : 0)
   const rotate = useTransform(x, [-320, 0, 320], [-16, 0, 16])
@@ -131,7 +134,14 @@ export const SwipeCard = forwardRef<
 
       {/* Controls live outside the rotating surface so buttons are never nested. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 sm:p-5">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-1">
+          <StarButton
+            term={card.term}
+            starred={starred}
+            onToggle={onStar}
+            size="md"
+            className="pointer-events-auto"
+          />
           <SpeakButton
             text={shownText}
             lang={shownLang}

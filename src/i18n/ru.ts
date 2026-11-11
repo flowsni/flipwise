@@ -54,6 +54,8 @@ export const ru = {
     toHome: 'На главную',
     speak: (text: string) => `Озвучить «${text}»`,
     sessionSaved: 'Есть незаконченная сессия',
+    star: (term: string) => `В избранное: ${term}`,
+    unstar: (term: string) => `Убрать из избранного: ${term}`,
   },
   editor: {
     newTitle: 'Новый набор',
@@ -123,7 +125,7 @@ export const ru = {
     learningCount: (n: number) => `Учу: ${n}`,
     repeatLearning: (n: number) => `Повторить невыученные (${n})`,
     restart: 'Начать заново',
-    keys: 'Пробел — перевернуть · ← учу · → знаю · ⌫ отмена',
+    keys: 'Пробел — перевернуть · ← учу · → знаю · S — избранное · ⌫ отмена',
     announceKnow: 'Отмечено: знаю',
     announceLearning: 'Отмечено: учу',
   },

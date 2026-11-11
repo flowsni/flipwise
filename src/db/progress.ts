@@ -20,6 +20,20 @@ export async function updateProgress(
   })
 }
 
+/**
+ * Stars or unstars a card. Not via `updateProgress`: starring is not a review, so
+ * `lastSeenAt` must stay untouched.
+ */
+export async function toggleStar(cardId: string, deckId: string): Promise<boolean> {
+  return db.transaction('rw', db.progress, db.cards, async () => {
+    if (!(await db.cards.get(cardId))) return false
+    const current = (await db.progress.get(cardId)) ?? blank(cardId, deckId)
+    const starred = !current.starred
+    await db.progress.put({ ...current, starred })
+    return starred
+  })
+}
+
 export function setFlash(cardId: string, deckId: string, flash: FlashStatus) {
   return updateProgress(cardId, deckId, () => ({ flash }))
 }

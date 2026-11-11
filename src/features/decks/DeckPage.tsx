@@ -5,7 +5,7 @@ import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
 import { useDeck, useDeckCards, useDeckProgress, useHasSession } from '../../db/hooks'
-import { isMastered } from '../../db/progress'
+import { isMastered, toggleStar } from '../../db/progress'
 import type { Card, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { cx } from '../../design/cx'
@@ -33,6 +33,7 @@ import { languageName } from '../../lib/languages'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { SpeakButton } from '../tts/SpeakButton'
 import { ImportSheet } from './ImportSheet'
+import { StarButton } from './StarButton'
 
 const MotionLink = motion.create(Link)
 
@@ -206,6 +207,11 @@ export function DeckPage() {
                         {card.definition}
                       </span>
                     </div>
+                    <StarButton
+                      term={card.term}
+                      starred={!!progress?.get(card.id)?.starred}
+                      onToggle={() => toggleStar(card.id, deck.id)}
+                    />
                     <SpeakButton text={card.term} lang={deck.termLang} />
                     <IconButton
                       size="sm"
