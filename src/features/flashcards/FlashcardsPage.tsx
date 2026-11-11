@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
-import { setFlash, updateProgress } from '../../db/progress'
+import { useDeckProgress } from '../../db/hooks'
+import { setFlash, toggleStar, updateProgress } from '../../db/progress'
 import type { Card, Deck, FlashStatus } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { IconRefresh, IconShuffle, IconUndo } from '../../design/icons'
@@ -54,6 +55,7 @@ function Flashcards({
   const [enterFrom, setEnterFrom] = useState<SwipeDir | undefined>()
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const [announce, setAnnounce] = useState('')
+  const progress = useDeckProgress(deckId)
   const cardRef = useRef<SwipeCardHandle>(null)
   const busy = useRef(false)
 
@@ -134,11 +136,14 @@ function Flashcards({
         cardRef.current?.swipe(1)
       } else if (e.key === 'ArrowLeft') {
         cardRef.current?.swipe(-1)
+      } else if (e.key.toLowerCase() === 's' || e.code === 'KeyS') {
+        e.preventDefault()
+        if (currentId) toggleStar(currentId, deckId)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [undo, done])
+  }, [undo, done, currentId, deckId])
 
   // Results of the current round (latest verdict per card).
   const verdicts = new Map(history.map((h) => [h.cardId, h.dir]))
@@ -246,8 +251,10 @@ function Flashcards({
                       deck={deck}
                       front={front}
                       enterFrom={enterFrom}
+                      starred={!!progress?.get(current.id)?.starred}
                       onSwiped={onSwiped}
                       onExamples={() => setExamplesFor(current)}
+                      onStar={() => toggleStar(current.id, deckId)}
                     />
                   </motion.div>
                 )}

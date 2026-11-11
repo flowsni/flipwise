@@ -52,6 +52,8 @@ export interface Progress {
   correct: number
   wrong: number
   lastSeenAt: number
+  /** Personal favourite. Not part of shared decks; deleted together with the card. */
+  starred?: boolean
 }
 
 export type StudyMode = 'learn' | 'test'

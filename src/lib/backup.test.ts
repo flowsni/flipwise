@@ -60,6 +60,16 @@ describe('backup', () => {
     expect(parsed.progress).toHaveLength(1)
   })
 
+  it('keeps favourites in a full backup but not in a shared deck', async () => {
+    await db.progress.update('c1', { starred: true })
+    const parsed = parseBackup(JSON.stringify(await exportAll(db)))
+    expect(parsed.progress[0]!.starred).toBe(true)
+    await importBackup(db, parsed, 'replace')
+    expect((await db.progress.get('c1'))?.starred).toBe(true)
+    const shared = parseBackup(JSON.stringify(await exportDeck(db, 'd1')))
+    expect(shared.progress).toEqual([])
+  })
+
   it('rejects foreign or broken files', () => {
     expect(() => parseBackup('nope')).toThrow('not-json')
     expect(() => parseBackup(JSON.stringify({ app: 'other' }))).toThrow('invalid')

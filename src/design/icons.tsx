@@ -159,6 +159,14 @@ export const IconRefresh = (p: IconProps) => (
     <path d="M21 3v5h-5" />
   </Svg>
 )
+export const IconStar = ({ filled, ...p }: IconProps & { filled?: boolean }) => (
+  <Svg {...p}>
+    <path
+      d="m12 2.8 2.8 5.7 6.3.9-4.5 4.4 1 6.3-5.6-3-5.6 3 1-6.3-4.5-4.4 6.3-.9Z"
+      fill={filled ? 'currentColor' : 'none'}
+    />
+  </Svg>
+)
 export const IconPlay = (p: IconProps) => (
   <Svg {...p}>
     <path d="m7 4 13 8-13 8V4Z" />

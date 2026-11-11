@@ -5,7 +5,7 @@ import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
 import { useDeck, useDeckCards, useDeckProgress, useHasSession } from '../../db/hooks'
-import { isMastered } from '../../db/progress'
+import { isMastered, toggleStar } from '../../db/progress'
 import type { Card, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { cx } from '../../design/cx'
@@ -18,6 +18,7 @@ import {
   IconEdit,
   IconShare,
   IconSparkles,
+  IconStar,
   IconTrash,
   IconUpload,
 } from '../../design/icons'
@@ -206,6 +207,11 @@ export function DeckPage() {
                         {card.definition}
                       </span>
                     </div>
+                    <StarButton
+                      term={card.term}
+                      starred={!!progress?.get(card.id)?.starred}
+                      onToggle={() => toggleStar(card.id, deck.id)}
+                    />
                     <SpeakButton text={card.term} lang={deck.termLang} />
                     <IconButton
                       size="sm"
@@ -241,6 +247,28 @@ export function DeckPage() {
       />
       <ExamplesSheet card={examplesFor} deck={deck} onClose={() => setExamplesFor(null)} />
     </>
+  )
+}
+
+function StarButton({
+  term,
+  starred,
+  onToggle,
+}: {
+  term: string
+  starred: boolean
+  onToggle: () => void
+}) {
+  return (
+    <IconButton
+      size="sm"
+      label={starred ? t.deck.unstar(term) : t.deck.star(term)}
+      aria-pressed={starred}
+      onClick={onToggle}
+      className={cx(starred && 'text-sun-ink hover:text-sun-ink')}
+    >
+      <IconStar size={18} filled={starred} />
+    </IconButton>
   )
 }
 

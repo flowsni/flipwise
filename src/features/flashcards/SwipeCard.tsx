@@ -10,7 +10,7 @@ import {
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Card, Deck } from '../../db/types'
 import { cx } from '../../design/cx'
-import { IconSparkles } from '../../design/icons'
+import { IconSparkles, IconStar } from '../../design/icons'
 import { enterSpring, flipSpring, snappySpring } from '../../design/motion'
 import { t } from '../../i18n/ru'
 import { fitClass } from '../../lib/textFit'
@@ -34,10 +34,12 @@ export const SwipeCard = forwardRef<
     front: 'term' | 'definition'
     /** Card comes back from this side (undo). */
     enterFrom?: SwipeDir
+    starred: boolean
     onSwiped: (dir: SwipeDir) => void
     onExamples: () => void
+    onStar: () => void
   }
->(function SwipeCard({ card, deck, front, enterFrom, onSwiped, onExamples }, ref) {
+>(function SwipeCard({ card, deck, front, enterFrom, starred, onSwiped, onExamples, onStar }, ref) {
   const reduce = useReducedMotion()
   const x = useMotionValue(enterFrom ? enterFrom * 700 : 0)
   const rotate = useTransform(x, [-320, 0, 320], [-16, 0, 16])
@@ -131,7 +133,26 @@ export const SwipeCard = forwardRef<
 
       {/* Controls live outside the rotating surface so buttons are never nested. */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 sm:p-5">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-1">
+          <motion.button
+            type="button"
+            aria-label={starred ? t.deck.unstar(card.term) : t.deck.star(card.term)}
+            aria-pressed={starred}
+            title={starred ? t.deck.unstar(card.term) : t.deck.star(card.term)}
+            whileTap={{ scale: 0.9 }}
+            // Neither start a swipe nor flip the card.
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onStar()
+            }}
+            className={cx(
+              'pointer-events-auto inline-flex size-12 items-center justify-center rounded-full transition-colors hover:bg-surface-2',
+              starred ? 'text-sun-ink' : 'text-ink-3 hover:text-ink',
+            )}
+          >
+            <IconStar size={22} filled={starred} />
+          </motion.button>
           <SpeakButton
             text={shownText}
             lang={shownLang}
