@@ -80,6 +80,8 @@ export const ru = {
     pasteImport: 'Импортировать',
     emptyRowsSkipped: 'Пустые строки будут пропущены',
     unsaved: 'Есть несохранённые изменения. Выйти без сохранения?',
+    duplicateOf: (n: number, definition: string) =>
+      definition ? `Уже есть в наборе: № ${n} («${definition}»)` : `Уже есть в наборе: № ${n}`,
   },
   import: {
     title: 'Импорт карточек',
@@ -96,9 +98,11 @@ export const ru = {
     preview: 'Предпросмотр',
     found: (n: number) => `Найдено: ${ru.plural.cards(n)}`,
     skipped: (n: number) => `пропущено строк: ${n}`,
-    submit: (n: number) => `Импортировать ${ru.plural.cards(n)}`,
+    submit: (n: number) => `Импортировать ${n} ${plural(n, ['карточку', 'карточки', 'карточек'])}`,
     added: (n: number) => `Добавлено: ${ru.plural.cards(n)}`,
     nothing: 'Карточки не найдены — проверьте разделители',
+    duplicates: (n: number) => `${ru.plural.cards(n)} уже есть в наборе`,
+    skipDuplicates: 'Пропустить дубликаты',
   },
   study: {
     close: 'Закрыть',

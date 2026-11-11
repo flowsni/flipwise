@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../design/Button'
-import { Input, inputClass, Segmented } from '../../design/Field'
+import { cx } from '../../design/cx'
+import { Checkbox, Input, inputClass, Segmented } from '../../design/Field'
 import { Sheet } from '../../design/Sheet'
 import { t } from '../../i18n/ru'
+import { findDuplicates } from '../../lib/duplicates'
 import {
   type CardSeparator,
   guessOptions,
@@ -26,17 +28,24 @@ export function ImportSheet({
   onClose,
   onImport,
   initialText = '',
+  existingTerms = [],
+  lang,
 }: {
   open: boolean
   onClose: () => void
   onImport: (cards: ParsedCard[]) => void
   initialText?: string
+  /** Terms already in the deck, to warn about and optionally skip duplicates. */
+  existingTerms?: readonly string[]
+  /** Term language, for article-aware duplicate matching. */
+  lang?: string
 }) {
   const [text, setText] = useState(initialText)
   const [termSep, setTermSep] = useState<TermKind>('tab')
   const [termCustom, setTermCustom] = useState(' - ')
   const [cardSep, setCardSep] = useState<CardKind>('newline')
   const [cardCustom, setCardCustom] = useState('\\n\\n')
+  const [skipDuplicates, setSkipDuplicates] = useState(true)
 
   useEffect(() => {
     if (!open) return
@@ -68,7 +77,13 @@ export function ImportSheet({
     setText(value)
   }
 
-  const count = result.cards.length
+  // A card is a duplicate when its term is already in the deck or earlier in the import.
+  const isDuplicate = findDuplicates([...existingTerms, ...result.cards.map((c) => c.term)], lang)
+    .slice(existingTerms.length)
+    .map((first) => first >= 0)
+  const duplicateCount = isDuplicate.filter(Boolean).length
+  const toImport = skipDuplicates ? result.cards.filter((_, i) => !isDuplicate[i]) : result.cards
+  const count = toImport.length
 
   return (
     <Sheet
@@ -83,7 +98,7 @@ export function ImportSheet({
           block
           disabled={!count}
           onClick={() => {
-            onImport(result.cards)
+            onImport(toImport)
             onClose()
           }}
         >
@@ -159,15 +174,25 @@ export function ImportSheet({
         </div>
 
         <div>
-          <div className="mb-2 flex items-baseline gap-2" aria-live="polite">
-            <span className="font-semibold">{t.import.found(count)}</span>
+          <div className="mb-2 flex flex-wrap items-baseline gap-x-2" aria-live="polite">
+            <span className="font-semibold">{t.import.found(result.cards.length)}</span>
             {result.skipped.length > 0 && (
               <span className="text-[0.9375rem] text-ink-3">
                 · {t.import.skipped(result.skipped.length)}
               </span>
             )}
+            {duplicateCount > 0 && (
+              <span className="text-[0.9375rem] text-sun-ink">
+                · {t.import.duplicates(duplicateCount)}
+              </span>
+            )}
           </div>
-          {count > 0 && (
+          {duplicateCount > 0 && (
+            <Checkbox checked={skipDuplicates} onChange={setSkipDuplicates}>
+              {t.import.skipDuplicates}
+            </Checkbox>
+          )}
+          {result.cards.length > 0 && (
             <div className="max-h-64 overflow-auto rounded-xl border border-line">
               <table className="w-full text-left text-[0.9375rem]">
                 <thead className="sticky top-0 bg-surface-2 text-ink-2">
@@ -179,8 +204,14 @@ export function ImportSheet({
                 </thead>
                 <tbody>
                   {result.cards.slice(0, 200).map((c, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: preview rows have no identity
-                    <tr key={i} className="border-t border-line align-top">
+                    <tr
+                      // biome-ignore lint/suspicious/noArrayIndexKey: preview rows have no identity
+                      key={i}
+                      className={cx(
+                        'border-t border-line align-top',
+                        skipDuplicates && isDuplicate[i] && 'text-ink-3 line-through',
+                      )}
+                    >
                       <td className="px-3 py-2 text-ink-3 tabular-nums">{i + 1}</td>
                       <td className="px-3 py-2 break-words">{c.term}</td>
                       <td className="px-3 py-2 break-words text-ink-2">{c.definition}</td>

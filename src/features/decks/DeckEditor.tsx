@@ -11,6 +11,7 @@ import { IconChevronLeft, IconGrip, IconPlus, IconUpload, IconX } from '../../de
 import { useToast } from '../../design/Toast'
 import { TopBar } from '../../design/TopBar'
 import { t } from '../../i18n/ru'
+import { findDuplicates } from '../../lib/duplicates'
 import { newId } from '../../lib/ids'
 import type { ParsedCard } from '../../lib/importParser'
 import { LANGUAGES } from '../../lib/languages'
@@ -170,6 +171,14 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
+  const duplicates = findDuplicates(
+    rows.map((r) => r.term),
+    termLang,
+  )
+  const duplicateHint = (i: number) => {
+    const j = duplicates[i]!
+    return j < 0 ? undefined : t.editor.duplicateOf(j + 1, rows[j]!.definition.trim())
+  }
 
   return (
     <form onSubmit={onSave} noValidate>
@@ -305,6 +314,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
                   index={i}
                   termLang={termLang}
                   defLang={defLang}
+                  duplicateOf={duplicateHint(i)}
                   onChange={(patch) => updateRow(row.key, patch)}
                   onRemove={() => removeRow(row.key)}
                   onPaste={onPaste(row)}
@@ -329,6 +339,8 @@ function EditorForm({ deck }: { deck?: Deck }) {
       <ImportSheet
         open={importState.open}
         initialText={importState.text}
+        existingTerms={rows.map((r) => r.term)}
+        lang={termLang}
         onClose={() => setImportState((s) => ({ ...s, open: false }))}
         onImport={(cards) => importRows(cards, importState.rowKey)}
       />
@@ -341,6 +353,7 @@ function EditorRow({
   index,
   termLang,
   defLang,
+  duplicateOf,
   onChange,
   onRemove,
   onPaste,
@@ -350,12 +363,15 @@ function EditorRow({
   index: number
   termLang: string
   defLang: string
+  /** Warning when an earlier row has the same term; saving is not blocked. */
+  duplicateOf?: string
   onChange: (patch: Partial<Row>) => void
   onRemove: () => void
   onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void
   onEnterLast?: () => void
 }) {
   const controls = useDragControls()
+  const hintId = `dup-${row.key}`
   return (
     <Reorder.Item
       value={row}
@@ -382,6 +398,7 @@ function EditorRow({
           placeholder={t.editor.term}
           lang={termLang}
           value={row.term}
+          aria-describedby={duplicateOf ? hintId : undefined}
           onChange={(e) => onChange({ term: e.target.value })}
           onPaste={onPaste}
           className={`${inputClass} border-transparent bg-surface-2 font-medium`}
@@ -401,6 +418,11 @@ function EditorRow({
           }}
           className={`${inputClass} border-transparent bg-surface-2`}
         />
+        {duplicateOf && (
+          <p id={hintId} className="px-1 text-[0.875rem] text-sun-ink sm:col-span-2">
+            {duplicateOf}
+          </p>
+        )}
       </div>
       <motion.div className="flex items-center">
         <IconButton size="sm" label={`${t.editor.removeRow} ${index + 1}`} onClick={onRemove}>
