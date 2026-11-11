@@ -171,7 +171,14 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
-  const duplicates = findDuplicates(rows, termLang)
+  const duplicates = findDuplicates(
+    rows.map((r) => r.term),
+    termLang,
+  )
+  const duplicateHint = (i: number) => {
+    const j = duplicates[i]!
+    return j < 0 ? undefined : t.editor.duplicateOf(j + 1, rows[j]!.definition.trim())
+  }
 
   return (
     <form onSubmit={onSave} noValidate>
@@ -307,14 +314,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
                   index={i}
                   termLang={termLang}
                   defLang={defLang}
-                  duplicateOf={
-                    duplicates[i]! >= 0
-                      ? t.editor.duplicateOf(
-                          duplicates[i]! + 1,
-                          rows[duplicates[i]!]!.definition.trim(),
-                        )
-                      : undefined
-                  }
+                  duplicateOf={duplicateHint(i)}
                   onChange={(patch) => updateRow(row.key, patch)}
                   onRemove={() => removeRow(row.key)}
                   onPaste={onPaste(row)}
@@ -339,7 +339,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
       <ImportSheet
         open={importState.open}
         initialText={importState.text}
-        existingTerms={rows.filter((r) => r.key !== importState.rowKey).map((r) => r.term)}
+        existingTerms={rows.map((r) => r.term)}
         lang={termLang}
         onClose={() => setImportState((s) => ({ ...s, open: false }))}
         onImport={(cards) => importRows(cards, importState.rowKey)}

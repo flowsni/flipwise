@@ -4,7 +4,7 @@ import { cx } from '../../design/cx'
 import { Checkbox, Input, inputClass, Segmented } from '../../design/Field'
 import { Sheet } from '../../design/Sheet'
 import { t } from '../../i18n/ru'
-import { splitDuplicates } from '../../lib/duplicates'
+import { findDuplicates } from '../../lib/duplicates'
 import {
   type CardSeparator,
   guessOptions,
@@ -77,11 +77,12 @@ export function ImportSheet({
     setText(value)
   }
 
-  const { fresh, duplicates } = useMemo(
-    () => splitDuplicates(result.cards, existingTerms, lang),
-    [result.cards, existingTerms, lang],
-  )
-  const toImport = skipDuplicates ? fresh : result.cards
+  // A card is a duplicate when its term is already in the deck or earlier in the import.
+  const isDuplicate = findDuplicates([...existingTerms, ...result.cards.map((c) => c.term)], lang)
+    .slice(existingTerms.length)
+    .map((first) => first >= 0)
+  const duplicateCount = isDuplicate.filter(Boolean).length
+  const toImport = skipDuplicates ? result.cards.filter((_, i) => !isDuplicate[i]) : result.cards
   const count = toImport.length
 
   return (
@@ -180,13 +181,13 @@ export function ImportSheet({
                 · {t.import.skipped(result.skipped.length)}
               </span>
             )}
-            {duplicates.length > 0 && (
+            {duplicateCount > 0 && (
               <span className="text-[0.9375rem] text-sun-ink">
-                · {t.import.duplicates(duplicates.length)}
+                · {t.import.duplicates(duplicateCount)}
               </span>
             )}
           </div>
-          {duplicates.length > 0 && (
+          {duplicateCount > 0 && (
             <Checkbox checked={skipDuplicates} onChange={setSkipDuplicates}>
               {t.import.skipDuplicates}
             </Checkbox>
@@ -208,7 +209,7 @@ export function ImportSheet({
                       key={i}
                       className={cx(
                         'border-t border-line align-top',
-                        skipDuplicates && duplicates.includes(c) && 'text-ink-3 line-through',
+                        skipDuplicates && isDuplicate[i] && 'text-ink-3 line-through',
                       )}
                     >
                       <td className="px-3 py-2 text-ink-3 tabular-nums">{i + 1}</td>
