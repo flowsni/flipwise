@@ -172,6 +172,12 @@ export const IconStar = ({ filled, ...p }: IconProps & { filled?: boolean }) => 
     />
   </Svg>
 )
+export const IconSearch = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.6-3.6" />
+  </Svg>
+)
 export const IconPlay = (p: IconProps) => (
   <Svg {...p}>
     <path d="m7 4 13 8-13 8V4Z" />

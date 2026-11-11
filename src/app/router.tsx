@@ -18,6 +18,12 @@ export const router = createHashRouter([
           Component: (await import('../features/decks/DeckEditor')).DeckEditor,
         }),
       },
+      {
+        path: '/search',
+        lazy: async () => ({
+          Component: (await import('../features/search/SearchPage')).SearchPage,
+        }),
+      },
       { path: '/deck/:deckId', element: <DeckPage /> },
       {
         path: '/deck/:deckId/edit',
