@@ -1,11 +1,22 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { db } from '../../db/db'
 import { createDeck } from '../../db/decks'
 import { ToastProvider } from '../../design/Toast'
 import { t } from '../../i18n/ru'
 import { FlashcardsPage } from './FlashcardsPage'
+
+// happy-dom's Animation.cancel() rejects `finished` without marking it handled (browsers do, per
+// the Web Animations spec), so Motion stopping a native animation shows up as an unhandled
+// rejection. Without Element.prototype.animate, Motion animates in JS and never hits it.
+const nativeAnimate = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')
+beforeAll(() => {
+  delete (Element.prototype as Partial<Element>).animate
+})
+afterAll(() => {
+  if (nativeAnimate) Object.defineProperty(Element.prototype, 'animate', nativeAnimate)
+})
 
 afterEach(async () => {
   await Promise.all([db.decks.clear(), db.cards.clear(), db.progress.clear()])
