@@ -1,8 +1,8 @@
 import type { Progress } from '../db/types'
 
-export const HARD_MIN_WRONG = 2
-export const HARD_MIN_RATE = 0.3
-export const HARD_LIMIT = 50
+const MIN_WRONG = 2
+const MIN_RATE = 0.3
+const LIMIT = 50
 
 /** Share of wrong answers, 0..1. */
 export function errorRate(p: Pick<Progress, 'correct' | 'wrong'>): number {
@@ -17,10 +17,10 @@ export function errorRate(p: Pick<Progress, 'correct' | 'wrong'>): number {
  */
 export function hardestCards(
   progress: readonly Progress[],
-  { limit = HARD_LIMIT }: { limit?: number } = {},
+  { limit = LIMIT }: { limit?: number } = {},
 ): Progress[] {
   return progress
-    .filter((p) => p.wrong >= HARD_MIN_WRONG && errorRate(p) >= HARD_MIN_RATE)
+    .filter((p) => p.wrong >= MIN_WRONG && errorRate(p) >= MIN_RATE)
     .sort((a, b) => b.wrong - a.wrong || errorRate(b) - errorRate(a))
     .slice(0, limit)
 }
