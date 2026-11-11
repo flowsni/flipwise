@@ -50,8 +50,7 @@ interface Selection {
 
 function select(cards: Card[], progress: Map<string, Progress>, options: ScopeOptions): Selection {
   const scope = usableScope(options.scope, scopeCounts(cards, progress))
-  const ids = selectStudyCards(cards, progress, { ...options, scope }).map((c) => c.id)
-  return { scope, ids }
+  return { scope, ids: selectStudyCards(cards, progress, { ...options, scope }) }
 }
 
 function Flashcards({

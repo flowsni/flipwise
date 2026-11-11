@@ -25,8 +25,8 @@ function inScope(scope: StudyScope, p: Progress | undefined): boolean {
 }
 
 /** Number of cards in each scope, for the picker's counters. */
-export function scopeCounts<C extends { id: string }>(
-  cards: readonly C[],
+export function scopeCounts(
+  cards: readonly { id: string }[],
   progress: ProgressMap,
 ): Record<StudyScope, number> {
   const counts = { all: 0, unknown: 0, starred: 0 }
@@ -45,17 +45,17 @@ export function usableScope(
 }
 
 /**
- * Cards of the scope, at most `limit` of them. A limited session takes a random sample so
+ * Ids of the scope's cards, at most `limit` of them. A limited session takes a random sample so
  * repeated short sessions cover the whole set; the result keeps deck order either way.
  */
-export function selectStudyCards<C extends { id: string }>(
-  cards: readonly C[],
+export function selectStudyCards(
+  cards: readonly { id: string }[],
   progress: ProgressMap,
   { scope, limit }: ScopeOptions,
   rng: Rng = Math.random,
-): C[] {
-  const pool = cards.filter((c) => inScope(scope, progress.get(c.id)))
+): string[] {
+  const pool = cards.filter((c) => inScope(scope, progress.get(c.id))).map((c) => c.id)
   if (!limit || pool.length <= limit) return pool
   const picked = new Set(shuffle(pool, rng).slice(0, limit))
-  return pool.filter((c) => picked.has(c))
+  return pool.filter((id) => picked.has(id))
 }

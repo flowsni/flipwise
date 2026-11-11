@@ -85,7 +85,7 @@ function Learn({
   )
 
   const start = (options: ScopeOptions) => {
-    const ids = selectStudyCards(cards, progress, options).map((c) => c.id)
+    const ids = selectStudyCards(cards, progress, options)
     persist(createLearnState(cards, answerWith, Math.random, {}, ids))
   }
 
@@ -120,7 +120,8 @@ function Learn({
     persist(nextQuestion(state, cards))
   }, [state, cards, persist])
 
-  if (!session.ready) return null
+  // Wait until a saved session is restored, so the setup screen doesn't flash before it.
+  if (!session.ready || (!state && session.saved)) return null
   if (!state) {
     return (
       <div className="flex min-h-dvh flex-col">

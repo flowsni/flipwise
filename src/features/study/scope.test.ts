@@ -36,7 +36,7 @@ describe('scopeCounts', () => {
 
 describe('selectStudyCards', () => {
   it('«Незнакомые» leaves out cards mastered in any mode', () => {
-    const ids = selectStudyCards(cards, progress, { scope: 'unknown', limit: 0 }).map((c) => c.id)
+    const ids = selectStudyCards(cards, progress, { scope: 'unknown', limit: 0 })
     expect(ids).toHaveLength(27)
     expect(ids).not.toContain('c0')
     expect(ids).not.toContain('c1')
@@ -44,14 +44,14 @@ describe('selectStudyCards', () => {
   })
 
   it('«Избранные» takes only starred cards, mastered or not', () => {
-    const ids = selectStudyCards(cards, progress, { scope: 'starred', limit: 0 }).map((c) => c.id)
+    const ids = selectStudyCards(cards, progress, { scope: 'starred', limit: 0 })
     expect(ids).toEqual(['c2', 'c3'])
   })
 
   it('limits the session to a random sample in deck order', () => {
     const picked = selectStudyCards(cards, progress, { scope: 'all', limit: 10 }, seededRng(1))
     expect(picked).toHaveLength(10)
-    const positions = picked.map((c) => cards.indexOf(c))
+    const positions = picked.map((id) => Number(id.slice(1)))
     expect(positions).toEqual([...positions].sort((a, b) => a - b))
     const other = selectStudyCards(cards, progress, { scope: 'all', limit: 10 }, seededRng(2))
     expect(other).not.toEqual(picked)

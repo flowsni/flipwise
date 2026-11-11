@@ -30,9 +30,7 @@ export function TestSetup({
   const counts = scopeCounts(cards, progress)
   const scope = usableScope(savedScope, counts)
   const cardCount = counts[scope]
-  const [wanted, setCount] = useState(() => defaultQuestionCount(cardCount))
-  // The slider never goes past the chosen scope.
-  const count = Math.min(wanted, cardCount)
+  const [count, setCount] = useState(() => defaultQuestionCount(cardCount))
   const types = savedTypes.filter((x) => QUESTION_TYPES.includes(x))
   const toggle = (type: QuestionType, on: boolean) =>
     setSavedTypes(on ? [...new Set([...types, type])] : types.filter((x) => x !== type))
@@ -49,8 +47,10 @@ export function TestSetup({
       onSubmit={(e) => {
         e.preventDefault()
         if (!types.length) return
-        const ids = selectStudyCards(cards, progress, { scope, limit: 0 }).map((c) => c.id)
-        onStart({ count, types, answerWith }, ids)
+        onStart(
+          { count, types, answerWith },
+          selectStudyCards(cards, progress, { scope, limit: 0 }),
+        )
       }}
       className="raised mx-auto flex max-w-lg flex-col gap-6 rounded-[1.75rem] p-6"
     >
