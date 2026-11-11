@@ -162,6 +162,17 @@ export const ru = {
     keys: 'Пробел — перевернуть · ← учу · → знаю · S — избранное · ⌫ отмена',
     announceKnow: 'Отмечено: знаю',
     announceLearning: 'Отмечено: учу',
+    content: 'Что на карточках',
+    words: 'Слова',
+    sentences: 'Предложения',
+    sentenceFront: 'Перевод',
+    sentenceBack: 'Оригинал',
+    sentencesPartial: (n: number, total: number) => `Предложения есть у ${n} из ${total}`,
+    monolingual: 'В одноязычном наборе у примеров пояснения, а не перевод',
+    noSentencesTitle: 'Предложений пока нет',
+    noSentences:
+      'Они берутся из ИИ-примеров. Переверните карточку в режиме «Слова» и нажмите «Примеры» — предложения сохранятся и появятся здесь.',
+    toWords: 'Учить слова',
   },
   learn: {
     chooseAnswer: 'Выберите правильный ответ',

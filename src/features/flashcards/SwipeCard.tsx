@@ -8,12 +8,14 @@ import {
 } from 'motion/react'
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import type { Card, Deck } from '../../db/types'
+import type { Card } from '../../db/types'
 import { cx } from '../../design/cx'
 import { IconSparkles } from '../../design/icons'
 import { enterSpring, flipSpring, snappySpring } from '../../design/motion'
 import { t } from '../../i18n/ru'
-import { fitClass } from '../../lib/textFit'
+import { fitClass, fitSentenceClass } from '../../lib/textFit'
+import { Marked } from '../ai/Marked'
+import { stripMarks } from '../ai/prompt'
 import { StarButton } from '../decks/StarButton'
 import { SpeakButton } from '../tts/SpeakButton'
 
@@ -24,23 +26,33 @@ export interface SwipeCardHandle {
   swipe: (dir: SwipeDir) => void
 }
 
+/** One face of the card. */
+export interface CardSide {
+  text: string
+  lang: string
+  label: string
+  /** A sentence with [[marked]] words: rendered with <mark> and a sentence-sized font. */
+  marked?: boolean
+}
+
 const THRESHOLD = 110
 const VELOCITY = 550
 
 export const SwipeCard = forwardRef<
   SwipeCardHandle,
   {
+    /** For the star; the faces come from `sides`. */
     card: Card
-    deck: Deck
-    front: 'term' | 'definition'
+    sides: { front: CardSide; back: CardSide }
     /** Card comes back from this side (undo). */
     enterFrom?: SwipeDir
     starred: boolean
     onSwiped: (dir: SwipeDir) => void
-    onExamples: () => void
+    /** Leave out to hide the «Примеры» button on the back. */
+    onExamples?: () => void
     onStar: () => void
   }
->(function SwipeCard({ card, deck, front, enterFrom, starred, onSwiped, onExamples, onStar }, ref) {
+>(function SwipeCard({ card, sides, enterFrom, starred, onSwiped, onExamples, onStar }, ref) {
   const reduce = useReducedMotion()
   const x = useMotionValue(enterFrom ? enterFrom * 700 : 0)
   const rotate = useTransform(x, [-320, 0, 320], [-16, 0, 16])
@@ -72,12 +84,8 @@ export const SwipeCard = forwardRef<
     swipe: (dir) => fly(dir),
   }))
 
-  const frontText = front === 'term' ? card.term : card.definition
-  const backText = front === 'term' ? card.definition : card.term
-  const frontLang = front === 'term' ? deck.termLang : deck.defLang
-  const backLang = front === 'term' ? deck.defLang : deck.termLang
-  const shownText = flipped ? backText : frontText
-  const shownLang = flipped ? backLang : frontLang
+  const shown = flipped ? sides.back : sides.front
+  const shownText = shown.marked ? stripMarks(shown.text) : shown.text
 
   return (
     <motion.div
@@ -118,18 +126,8 @@ export const SwipeCard = forwardRef<
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={reduce ? { duration: 0 } : flipSpring}
       >
-        <Face
-          text={frontText}
-          lang={frontLang}
-          label={front === 'term' ? t.study.termSide : t.study.definitionSide}
-          hint={t.flash.tapToFlip}
-        />
-        <Face
-          back
-          text={backText}
-          lang={backLang}
-          label={front === 'term' ? t.study.definitionSide : t.study.termSide}
-        />
+        <Face side={sides.front} hint={t.flash.tapToFlip} />
+        <Face back side={sides.back} />
       </motion.div>
 
       {/* Controls live outside the rotating surface so buttons are never nested. */}
@@ -144,14 +142,14 @@ export const SwipeCard = forwardRef<
           />
           <SpeakButton
             text={shownText}
-            lang={shownLang}
+            lang={shown.lang}
             size="md"
             className="pointer-events-auto"
           />
         </div>
         <div className="flex h-12 items-center justify-center">
           <AnimatePresence>
-            {flipped && (
+            {flipped && onExamples && (
               <motion.button
                 type="button"
                 initial={{ opacity: 0, y: 6 }}
@@ -193,19 +191,8 @@ export const SwipeCard = forwardRef<
   )
 })
 
-function Face({
-  text,
-  lang,
-  label,
-  back,
-  hint,
-}: {
-  text: string
-  lang: string
-  label: string
-  back?: boolean
-  hint?: string
-}) {
+function Face({ side, back, hint }: { side: CardSide; back?: boolean; hint?: string }) {
+  const { text, lang, label, marked } = side
   return (
     <span
       aria-hidden="true"
@@ -222,11 +209,19 @@ function Face({
       <span
         lang={lang}
         className={cx(
-          'flex flex-1 items-center justify-center px-2 text-center leading-tight font-semibold tracking-tight break-words hyphens-auto',
-          fitClass(text),
+          'flex flex-1 items-center justify-center px-2 text-center break-words hyphens-auto',
+          marked
+            ? `leading-snug font-medium ${fitSentenceClass(stripMarks(text))}`
+            : `leading-tight font-semibold tracking-tight ${fitClass(text)}`,
         )}
       >
-        {text}
+        {marked ? (
+          <span>
+            <Marked text={text} />
+          </span>
+        ) : (
+          text
+        )}
       </span>
       <span className="flex min-h-10 items-center justify-center text-[0.9375rem] text-ink-3">
         {hint}

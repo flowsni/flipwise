@@ -7,7 +7,14 @@ import { useDeckProgress } from '../../db/hooks'
 import { setFlash, toggleStar, updateProgress } from '../../db/progress'
 import type { Card, Deck, FlashStatus, Progress } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
-import { IconChevronDown, IconRefresh, IconShuffle, IconUndo } from '../../design/icons'
+import { Segmented } from '../../design/Field'
+import {
+  IconChevronDown,
+  IconRefresh,
+  IconShuffle,
+  IconSparkles,
+  IconUndo,
+} from '../../design/icons'
 import { Menu } from '../../design/Menu'
 import { enterSpring, softSpring } from '../../design/motion'
 import { CountUp, Ring } from '../../design/Progress'
@@ -18,10 +25,12 @@ import { t } from '../../i18n/ru'
 import { shuffle } from '../../lib/shuffle'
 import { useSetting } from '../../lib/storage'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
+import { isMonolingual } from '../ai/prompt'
 import { StudyScopePicker, scopeLabels, useStudyScope } from '../study/StudyScopePicker'
 import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
 import { useStudyDeck } from '../study/useStudyDeck'
-import { SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
+import { type CardSide, SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
+import { type FlashContent, hasSentences, pickSentences, sentenceOf } from './sentences'
 
 interface HistoryEntry {
   cardId: string
@@ -70,8 +79,17 @@ function Flashcards({
   const deckId = deck.id
   const [shuffled, setShuffled] = useSetting('flash.shuffle', false)
   const [front, setFront] = useSetting<'term' | 'definition'>('flash.front', 'term')
+  // A monolingual deck's examples carry explanations, not translations: words only.
+  const mono = isMonolingual(deck)
+  const [contentSetting, setContent] = useSetting<FlashContent>('flash.content', 'words')
+  const content: FlashContent = !mono && contentSetting === 'sentences' ? 'sentences' : 'words'
+  // Filter before sampling, so a session of 10 holds 10 cards that do have sentences.
+  const poolOf = (c: FlashContent) => (c === 'sentences' ? cards.filter(hasSentences) : cards)
+  const pool = poolOf(content)
   const { scope, setScope, limit, setLimit } = useStudyScope()
-  const [selection, setSelection] = useState(() => select(cards, progress, { scope, limit }))
+  const [selection, setSelection] = useState(() => select(pool, progress, { scope, limit }))
+  // Which example each card shows this round; kept in state so undo brings back the same one.
+  const [picked, setPicked] = useState(() => pickSentences(selection.ids, cardsById))
   const [scopeOpen, setScopeOpen] = useState(false)
   const order = useCallback((ids: string[]) => (shuffled ? shuffle(ids) : ids), [shuffled])
   const [queue, setQueue] = useState(() => order(selection.ids))
@@ -91,15 +109,45 @@ function Flashcards({
   }, [])
   const busy = useRef(false)
 
+  const empty = !selection.ids.length
   const done = index >= queue.length
   const currentId = queue[index]
-  const current = currentId ? cardsById.get(currentId) : undefined
+  const playable = (card: Card | undefined): card is Card =>
+    !!card && (content === 'words' || hasSentences(card))
+  const currentCard = currentId ? cardsById.get(currentId) : undefined
+  const current = playable(currentCard) ? currentCard : undefined
   const next = queue[index + 1] ? cardsById.get(queue[index + 1]!) : undefined
 
-  // Skip cards deleted mid-session.
+  // Skip cards deleted mid-session, or whose examples were deleted in sentence mode.
+  const skip = !done && !!currentId && !current
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run per card, even when several are skipped in a row
   useEffect(() => {
-    if (!done && currentId && !cardsById.has(currentId)) setIndex((i) => i + 1)
-  }, [done, currentId, cardsById])
+    if (skip) setIndex((i) => i + 1)
+  }, [skip, currentId])
+
+  const sidesOf = (card: Card): { front: CardSide; back: CardSide } => {
+    const sentence = content === 'sentences' && sentenceOf(card, picked.get(card.id))
+    if (sentence) {
+      // A translation without [[ ]] simply shows unmarked: guessing the word form is unreliable.
+      return {
+        front: {
+          text: sentence.translation,
+          lang: deck.defLang,
+          label: t.flash.sentenceFront,
+          marked: true,
+        },
+        back: {
+          text: sentence.text,
+          lang: deck.termLang,
+          label: t.flash.sentenceBack,
+          marked: true,
+        },
+      }
+    }
+    const term = { text: card.term, lang: deck.termLang, label: t.study.termSide }
+    const definition = { text: card.definition, lang: deck.defLang, label: t.study.definitionSide }
+    return front === 'term' ? { front: term, back: definition } : { front: definition, back: term }
+  }
 
   const historyRef = useRef(history)
   historyRef.current = history
@@ -141,6 +189,7 @@ function Flashcards({
   }, [deckId])
 
   const restart = (ids: string[]) => {
+    setPicked(pickSentences(ids, cardsById))
     setQueue(order(ids))
     setIndex(0)
     setHistory([])
@@ -150,13 +199,21 @@ function Flashcards({
   // The remembered scope can be empty (e.g. «Избранные» without stars): say we show all cards.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only for the first selection
   useEffect(() => {
-    if (selection.scope !== scope) toast.show({ message: t.scope.fallback })
+    if (selection.ids.length && selection.scope !== scope) toast.show({ message: t.scope.fallback })
   }, [])
 
   const changeScope = (options: ScopeOptions) => {
     setScope(options.scope)
     setLimit(options.limit)
-    const next = select(cards, progress, options)
+    const next = select(pool, progress, options)
+    setSelection(next)
+    restart(next.ids)
+  }
+
+  const changeContent = (c: FlashContent) => {
+    setContent(c)
+    const next = select(poolOf(c), progress, { scope, limit })
+    if (next.ids.length && next.scope !== scope) toast.show({ message: t.scope.fallback })
     setSelection(next)
     restart(next.ids)
   }
@@ -226,21 +283,26 @@ function Flashcards({
                   },
                 ],
               },
-              {
-                title: t.study.showFirst,
-                items: [
-                  {
-                    label: t.study.termSide,
-                    checked: front === 'term',
-                    onSelect: () => setFront('term'),
-                  },
-                  {
-                    label: t.study.definitionSide,
-                    checked: front === 'definition',
-                    onSelect: () => setFront('definition'),
-                  },
-                ],
-              },
+              // Sentences always go translation → original.
+              ...(content === 'words'
+                ? [
+                    {
+                      title: t.study.showFirst,
+                      items: [
+                        {
+                          label: t.study.termSide,
+                          checked: front === 'term',
+                          onSelect: () => setFront('term'),
+                        },
+                        {
+                          label: t.study.definitionSide,
+                          checked: front === 'definition',
+                          onSelect: () => setFront('definition'),
+                        },
+                      ],
+                    },
+                  ]
+                : []),
               {
                 items: [
                   {
@@ -259,7 +321,12 @@ function Flashcards({
         {announce}
       </p>
 
-      {done ? (
+      {empty ? (
+        <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-3 pb-safe sm:pt-6">
+          <ContentSwitch value={content} onChange={changeContent} mono={mono} />
+          <NoSentences onWords={() => changeContent('words')} />
+        </main>
+      ) : done ? (
         <Summary
           known={known}
           learning={learning.length}
@@ -269,6 +336,7 @@ function Flashcards({
         />
       ) : (
         <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-3 pb-safe sm:pt-6">
+          <ContentSwitch value={content} onChange={changeContent} mono={mono} />
           <div className="mb-3 flex justify-center">
             <button
               type="button"
@@ -282,6 +350,11 @@ function Flashcards({
               <IconChevronDown size={14} />
             </button>
           </div>
+          {content === 'sentences' && pool.length < cards.length && (
+            <p className="-mt-1 mb-3 text-center text-[0.8125rem] text-ink-3">
+              {t.flash.sentencesPartial(pool.length, cards.length)}
+            </p>
+          )}
           <div className="relative flex-1">
             <div className="relative mx-auto aspect-[3/4] max-h-[min(62dvh,560px)] w-full sm:aspect-[4/3]">
               {/* Next card peeks from behind for depth. */}
@@ -307,12 +380,11 @@ function Flashcards({
                     <SwipeCard
                       ref={attachCard}
                       card={current}
-                      deck={deck}
-                      front={front}
+                      sides={sidesOf(current)}
                       enterFrom={enterFrom}
                       starred={!!progress.get(current.id)?.starred}
                       onSwiped={onSwiped}
-                      onExamples={() => setExamplesFor(current)}
+                      onExamples={content === 'words' ? () => setExamplesFor(current) : undefined}
                       onStar={() => toggleStar(current.id, deckId)}
                     />
                   </motion.div>
@@ -365,7 +437,7 @@ function Flashcards({
         }
       >
         <StudyScopePicker
-          counts={scopeCounts(cards, progress)}
+          counts={scopeCounts(pool, progress)}
           scope={selection.scope}
           onScope={(s) => changeScope({ scope: s, limit })}
           limit={limit}
@@ -379,6 +451,54 @@ function Flashcards({
         onClose={() => setExamplesFor(null)}
       />
     </div>
+  )
+}
+
+/** «Слова / Предложения»; disabled with the reason for monolingual decks. */
+function ContentSwitch({
+  value,
+  onChange,
+  mono,
+}: {
+  value: FlashContent
+  onChange: (c: FlashContent) => void
+  mono: boolean
+}) {
+  return (
+    <div className="mx-auto mb-3 w-full max-w-xs">
+      <Segmented
+        label={t.flash.content}
+        value={value}
+        onChange={onChange}
+        options={[
+          { value: 'words', label: t.flash.words },
+          { value: 'sentences', label: t.flash.sentences, disabled: mono },
+        ]}
+      />
+      {mono && (
+        <p className="mt-1.5 text-center text-[0.8125rem] text-ink-3">{t.flash.monolingual}</p>
+      )}
+    </div>
+  )
+}
+
+function NoSentences({ onWords }: { onWords: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={softSpring}
+      className="flex flex-1 flex-col items-center justify-center gap-4 pb-16 text-center"
+    >
+      <span className="grid size-16 place-items-center rounded-2xl bg-sun-soft text-sun-ink">
+        <IconSparkles size={30} />
+      </span>
+      <h1 className="text-xl font-bold tracking-tight">{t.flash.noSentencesTitle}</h1>
+      <p className="max-w-xs text-ink-2">{t.flash.noSentences}</p>
+      <Button variant="primary" size="lg" onClick={onWords}>
+        {t.flash.toWords}
+      </Button>
+    </motion.div>
   )
 }
 
