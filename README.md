@@ -27,7 +27,7 @@ npm ci
 npm run dev
 ```
 
-Requires Node 22+.
+Requires Node 24+.
 
 | Script              | What it does                  |
 | ------------------- | ----------------------------- |
