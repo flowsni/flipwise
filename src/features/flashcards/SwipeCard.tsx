@@ -31,8 +31,8 @@ export interface CardSide {
   text: string
   lang: string
   label: string
-  /** A sentence with [[marked]] words: rendered with <mark> and a sentence-sized font. */
-  marked?: boolean
+  /** A sentence, possibly with [[marked]] words: rendered with <mark> and a sentence-sized font. */
+  sentence?: boolean
 }
 
 const THRESHOLD = 110
@@ -85,7 +85,7 @@ export const SwipeCard = forwardRef<
   }))
 
   const shown = flipped ? sides.back : sides.front
-  const shownText = shown.marked ? stripMarks(shown.text) : shown.text
+  const shownText = shown.sentence ? stripMarks(shown.text) : shown.text
 
   return (
     <motion.div
@@ -192,7 +192,7 @@ export const SwipeCard = forwardRef<
 })
 
 function Face({ side, back, hint }: { side: CardSide; back?: boolean; hint?: string }) {
-  const { text, lang, label, marked } = side
+  const { text, lang, label, sentence } = side
   return (
     <span
       aria-hidden="true"
@@ -210,12 +210,12 @@ function Face({ side, back, hint }: { side: CardSide; back?: boolean; hint?: str
         lang={lang}
         className={cx(
           'flex flex-1 items-center justify-center px-2 text-center break-words hyphens-auto',
-          marked
+          sentence
             ? `leading-snug font-medium ${fitSentenceClass(stripMarks(text))}`
             : `leading-tight font-semibold tracking-tight ${fitClass(text)}`,
         )}
       >
-        {marked ? (
+        {sentence ? (
           <span>
             <Marked text={text} />
           </span>

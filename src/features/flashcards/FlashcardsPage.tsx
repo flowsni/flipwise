@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
@@ -84,12 +84,19 @@ function Flashcards({
   const [contentSetting, setContent] = useSetting<FlashContent>('flash.content', 'words')
   const content: FlashContent = !mono && contentSetting === 'sentences' ? 'sentences' : 'words'
   // Filter before sampling, so a session of 10 holds 10 cards that do have sentences.
-  const poolOf = (c: FlashContent) => (c === 'sentences' ? cards.filter(hasSentences) : cards)
+  const withSentences = useMemo(() => cards.filter(hasSentences), [cards])
+  const poolOf = (c: FlashContent) => (c === 'sentences' ? withSentences : cards)
   const pool = poolOf(content)
+  const counts = useMemo(() => scopeCounts(pool, progress), [pool, progress])
   const { scope, setScope, limit, setLimit } = useStudyScope()
   const [selection, setSelection] = useState(() => select(pool, progress, { scope, limit }))
   // Which example each card shows this round; kept in state so undo brings back the same one.
-  const [picked, setPicked] = useState(() => pickSentences(selection.ids, cardsById))
+  const pickFor = (ids: string[], c: FlashContent) =>
+    c === 'sentences' ? pickSentences(ids, cardsById) : new Map<string, number>()
+  const [picked, setPicked] = useState(() => pickFor(selection.ids, content))
+  // Part of the card key: a restart must remount the card even when it starts on the same one,
+  // or a flipped card would come back flipped and show the answer.
+  const [round, setRound] = useState(0)
   const [scopeOpen, setScopeOpen] = useState(false)
   const order = useCallback((ids: string[]) => (shuffled ? shuffle(ids) : ids), [shuffled])
   const [queue, setQueue] = useState(() => order(selection.ids))
@@ -134,13 +141,13 @@ function Flashcards({
           text: sentence.translation,
           lang: deck.defLang,
           label: t.flash.sentenceFront,
-          marked: true,
+          sentence: true,
         },
         back: {
           text: sentence.text,
           lang: deck.termLang,
           label: t.flash.sentenceBack,
-          marked: true,
+          sentence: true,
         },
       }
     }
@@ -188,8 +195,9 @@ function Flashcards({
     }
   }, [deckId])
 
-  const restart = (ids: string[]) => {
-    setPicked(pickSentences(ids, cardsById))
+  const restart = (ids: string[], c: FlashContent = content) => {
+    setPicked(pickFor(ids, c))
+    setRound((r) => r + 1)
     setQueue(order(ids))
     setIndex(0)
     setHistory([])
@@ -215,7 +223,7 @@ function Flashcards({
     const next = select(poolOf(c), progress, { scope, limit })
     if (next.ids.length && next.scope !== scope) toast.show({ message: t.scope.fallback })
     setSelection(next)
-    restart(next.ids)
+    restart(next.ids, c)
   }
 
   useEffect(() => {
@@ -370,7 +378,7 @@ function Flashcards({
               <AnimatePresence initial={false}>
                 {current && (
                   <motion.div
-                    key={`${current.id}-${index}`}
+                    key={`${current.id}-${round}-${index}`}
                     className="absolute inset-0"
                     initial={enterFrom ? false : { scale: 0.94, y: 16 }}
                     animate={{ scale: 1, y: 0 }}
@@ -437,7 +445,7 @@ function Flashcards({
         }
       >
         <StudyScopePicker
-          counts={scopeCounts(pool, progress)}
+          counts={counts}
           scope={selection.scope}
           onScope={(s) => changeScope({ scope: s, limit })}
           limit={limit}

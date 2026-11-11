@@ -22,19 +22,26 @@ afterAll(() => {
 
 afterEach(async () => {
   setSetting('flash.content', 'words')
+  setSetting('study.limit', 0)
   await Promise.all([db.decks.clear(), db.cards.clear(), db.progress.clear()])
 })
 
+const words = [
+  { term: 'one', definition: 'один' },
+  { term: 'two', definition: 'два' },
+  { term: 'three', definition: 'три' },
+]
+
 async function renderDeck(
-  options: { examples?: Record<string, ExampleItem[]>; defLang?: string } = {},
+  options: {
+    examples?: Record<string, ExampleItem[]>
+    defLang?: string
+    cards?: { term: string; definition: string }[]
+  } = {},
 ) {
   const deckId = await createDeck(
     { title: 'Deck', termLang: 'en', defLang: options.defLang ?? 'ru', level: 'A1' },
-    [
-      { term: 'one', definition: 'один' },
-      { term: 'two', definition: 'два' },
-      { term: 'three', definition: 'три' },
-    ],
+    options.cards ?? words,
   )
   for (const card of await db.cards.where({ deckId }).toArray()) {
     const items = options.examples?.[card.term]
@@ -141,6 +148,25 @@ describe('FlashcardsPage', () => {
       await screen.findByRole('button', { name: before! }, { timeout: 3000 })
     })
 
+    it('applies the session size after leaving out cards without examples', async () => {
+      setSetting('flash.content', 'sentences')
+      setSetting('study.limit', 10)
+      const cards = Array.from({ length: 22 }, (_, i) => ({ term: `w${i}`, definition: `с${i}` }))
+      // Every other card has an example: 11 with, 11 without.
+      const examples = Object.fromEntries(
+        cards
+          .filter((_, i) => i % 2 === 0)
+          .map((c) => [
+            c.term,
+            [{ text: `[[${c.term}]] here`, translation: `тут ${c.definition}` }],
+          ]),
+      )
+      await renderDeck({ cards, examples })
+
+      await screen.findByRole('button', { name: /тут/ })
+      expect(screen.getByText(t.study.progress(1, 10))).toBeTruthy()
+    })
+
     it('shows an empty state without examples and switches back to words', async () => {
       setSetting('flash.content', 'sentences')
       await renderDeck()
@@ -150,9 +176,10 @@ describe('FlashcardsPage', () => {
       await screen.findByRole('button', { name: cardLabel('one') })
     })
 
-    it('switching the mode restarts the round', async () => {
+    it('switching the mode restarts the round on an unflipped card', async () => {
       await renderDeck({ examples: sentences })
-      await screen.findByRole('button', { name: cardLabel('one') })
+      fireEvent.click(await screen.findByRole('button', { name: cardLabel('one') }))
+      await screen.findByRole('button', { name: cardLabel('один') })
 
       fireEvent.click(screen.getByRole('radio', { name: t.flash.sentences }))
       await screen.findByRole('button', { name: cardLabel('У меня одна кошка') }, { timeout: 3000 })
