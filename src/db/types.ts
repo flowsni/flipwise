@@ -28,6 +28,8 @@ export interface CardExamples {
   createdAt: number
   /** Level the examples were written for; older examples use the deck's level. */
   level?: Level
+  /** Translation the examples were made for; older examples don't record it. */
+  definition?: string
 }
 
 export interface Card {

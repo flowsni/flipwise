@@ -65,8 +65,9 @@ export async function saveDeck(
           position,
           term: c.term,
           definition: c.definition,
-          // Examples were generated for the old text; drop them when the card changes.
-          examples: changed ? undefined : prev.examples,
+          // Examples are about the word: a changed term drops them, a corrected translation
+          // keeps them (ExamplesSheet flags the mismatch via `examples.definition`).
+          examples: prev.term !== c.term ? undefined : prev.examples,
           updatedAt: changed ? now : prev.updatedAt,
         }
       }

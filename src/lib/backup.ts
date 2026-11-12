@@ -33,6 +33,7 @@ const cardSchema = z.object({
       createdAt: z.number(),
       // z.object drops unknown keys: without this the level would be lost on import.
       level: z.enum(LEVELS).optional(),
+      definition: z.string().optional(),
     })
     .optional(),
   createdAt: z.number(),
