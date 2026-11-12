@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { type SessionProgress, sessionProgress } from '../features/study/sessionProgress'
 import { hardestCards } from '../lib/hardWords'
 import { db } from './db'
 import { getDeckCards } from './decks'
@@ -51,13 +52,18 @@ export function useDeckProgress(deckId: string | undefined): Map<string, Progres
   }, [deckId])
 }
 
-export function useHasSession(deckId: string | undefined, mode: StudyMode): boolean {
-  return (
-    useLiveQuery(
-      async () => (deckId ? !!(await db.sessions.get(sessionId(deckId, mode))) : false),
-      [deckId, mode],
-    ) ?? false
-  )
+/**
+ * Unfinished Learn/Test session of a deck: `undefined` while loading, `null` when there is none,
+ * otherwise `{ progress }` (`progress` is undefined when the saved state isn't recognised).
+ */
+export function useSessionProgress(
+  deckId: string | undefined,
+  mode: StudyMode,
+): { progress?: SessionProgress } | null | undefined {
+  return useLiveQuery(async () => {
+    const s = deckId ? await db.sessions.get(sessionId(deckId, mode)) : undefined
+    return s ? { progress: sessionProgress(mode, s.state) } : null
+  }, [deckId, mode])
 }
 
 export function useDeckLanguages(): string[] {
