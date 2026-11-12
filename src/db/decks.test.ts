@@ -27,12 +27,18 @@ describe('saveDeck examples', () => {
     await saveDeck(id, meta, [{ id: cardId, term: 'word', definition: 'слово (сущ.)' }])
     const card = (await getDeckCards(id))[0]!
     expect(card.definition).toBe('слово (сущ.)')
-    expect(card.examples).toEqual(examples)
+    expect(card.examples).toMatchObject(examples)
   })
 
   it('drops examples when the word changes', async () => {
     const { id, cardId } = await setup()
     await saveDeck(id, meta, [{ id: cardId, term: 'words', definition: 'слово' }])
     expect((await getDeckCards(id))[0]!.examples).toBeUndefined()
+  })
+
+  it('records the old translation on legacy examples when the translation changes', async () => {
+    const { id, cardId } = await setup() // examples without `definition`
+    await saveDeck(id, meta, [{ id: cardId, term: 'word', definition: 'новое' }])
+    expect((await getDeckCards(id))[0]!.examples).toEqual({ ...examples, definition: 'слово' })
   })
 })
