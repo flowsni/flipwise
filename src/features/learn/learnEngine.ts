@@ -129,8 +129,18 @@ export function createLearnState(
   return startRound(state, cards, rng)
 }
 
+/** A card is learned once it reached the last stage. */
+export function isLearned(state: Pick<LearnState, 'stage'>, id: string): boolean {
+  return state.stage[id] === 2
+}
+
 export function isFinished(state: LearnState): boolean {
-  return state.order.every((id) => state.stage[id] === 2)
+  return state.order.every((id) => isLearned(state, id))
+}
+
+/** Whether a stored session can be resumed; `LearnPage` and the deck tile share this. */
+export function acceptLearnSession(s: Partial<LearnState>): boolean {
+  return s.version === 1 && !!s.order?.length
 }
 
 /** Overall progress 0..1: every card needs two correct answers. */
@@ -146,7 +156,7 @@ export function startRound(
   rng: Rng = Math.random,
 ): LearnState {
   // Cards already in progress go first so a batch is finished before new cards appear.
-  const pending = state.order.filter((id) => state.stage[id] !== 2)
+  const pending = state.order.filter((id) => !isLearned(state, id))
   const inProgress = pending.filter((id) => state.stage[id] === 1)
   const fresh = pending.filter((id) => state.stage[id] === 0)
   const queue = [...inProgress, ...fresh].slice(0, ROUND_SIZE)

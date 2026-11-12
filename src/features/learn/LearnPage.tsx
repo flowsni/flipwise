@@ -17,6 +17,7 @@ import { persistSession, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { Finished, RoundSummary } from './LearnSummaries'
 import {
+  acceptLearnSession,
   createLearnState,
   isFinished,
   type LearnState,
@@ -55,11 +56,7 @@ function Learn({
   const answerLang = answerWith === 'term' ? deck.termLang : deck.defLang
   const promptLang = answerWith === 'term' ? deck.defLang : deck.termLang
 
-  const session = useSavedSession<LearnState>(
-    deck.id,
-    'learn',
-    (s) => s.version === 1 && !!s.order?.length,
-  )
+  const session = useSavedSession<LearnState>(deck.id, 'learn', acceptLearnSession)
 
   // Resume the saved session once it is loaded; otherwise the scope picker is shown first.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs once when loading finishes

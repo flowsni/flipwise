@@ -10,6 +10,11 @@ export interface TestState {
   overrides: Record<string, boolean>
 }
 
+/** Whether a stored session can be resumed; `TestPage` and the deck tile share this. */
+export function acceptTestSession(s: Partial<TestState>): boolean {
+  return s.version === 1 && s.phase === 'taking' && !!s.questions?.length
+}
+
 /** Language of the side the learner answers with. */
 export function langOf(deck: Deck, side: AnswerSide) {
   return side === 'term' ? deck.termLang : deck.defLang

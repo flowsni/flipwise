@@ -1,4 +1,7 @@
 import type { StudyMode } from '../../db/types'
+import { acceptLearnSession, isLearned, type LearnState } from '../learn/learnEngine'
+import { isAnswered } from '../test/testGenerator'
+import { acceptTestSession, type TestState } from '../test/testState'
 
 /** What the deck page shows on a tile with an unfinished session. */
 export interface SessionProgress {
@@ -8,29 +11,32 @@ export interface SessionProgress {
   total: number
 }
 
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
-
 /**
- * Progress of a saved Learn/Test session, read defensively: sessions outlive app versions,
- * so an unknown shape gives `undefined` (the tile then shows no numbers) instead of throwing.
+ * Progress of a saved Learn/Test session, or `null` when the Learn/Test page would not resume
+ * it (so the tile must not offer «Продолжить»). The rules come from the engines, so the tile
+ * and the study screens cannot disagree. `cardIds` are the deck's current cards: cards deleted
+ * while the session was paused are dropped by Learn on resume, so they are not counted here.
  */
-export function sessionProgress(mode: StudyMode, state: unknown): SessionProgress | undefined {
-  if (!isObject(state) || state.version !== 1) return undefined
+export function sessionProgress(
+  mode: StudyMode,
+  state: unknown,
+  cardIds: ReadonlySet<string>,
+): SessionProgress | null {
+  if (typeof state !== 'object' || state === null) return null
   if (mode === 'learn') {
-    const { order, stage, round } = state
-    if (!Array.isArray(order) || !isObject(stage) || !isObject(round)) return undefined
-    if (typeof round.number !== 'number') return undefined
+    const s = state as LearnState
+    if (!acceptLearnSession(s)) return null
+    const live = s.order.filter((id) => cardIds.has(id))
     return {
-      round: round.number,
-      done: order.filter((id) => stage[String(id)] === 2).length,
-      total: order.length,
+      round: s.round?.number ?? 1,
+      done: live.filter((id) => isLearned(s, id)).length,
+      total: live.length,
     }
   }
-  const { questions, answers } = state
-  if (!Array.isArray(questions) || !isObject(answers)) return undefined
-  const answered = questions.filter((q) => {
-    const a = isObject(q) ? answers[String(q.id)] : undefined
-    return typeof a === 'string' && a.trim() !== ''
-  })
-  return { done: answered.length, total: questions.length }
+  const s = state as TestState
+  if (!acceptTestSession(s)) return null
+  return {
+    done: s.questions.filter((q) => isAnswered(q, s.answers ?? {})).length,
+    total: s.questions.length,
+  }
 }

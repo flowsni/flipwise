@@ -13,7 +13,7 @@ import { TestForm } from './TestForm'
 import { TestResults } from './TestResults'
 import { TestSetup } from './TestSetup'
 import { generateTest, gradeTest, isAnswered, type TestConfig } from './testGenerator'
-import { langOf, type TestState } from './testState'
+import { acceptTestSession, langOf, type TestState } from './testState'
 
 export function TestPage() {
   const { deckId } = useParams()
@@ -36,11 +36,7 @@ function TestRunner({
   const navigate = useNavigate()
   const [state, setState] = useState<TestState | null>(null)
 
-  const session = useSavedSession<TestState>(
-    deck.id,
-    'test',
-    (s) => s.version === 1 && s.phase === 'taking' && !!s.questions?.length,
-  )
+  const session = useSavedSession<TestState>(deck.id, 'test', acceptTestSession)
   const [restored, setRestored] = useState(false)
   // Show a saved unfinished test once it has been loaded.
   if (session.ready && !restored) {

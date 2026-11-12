@@ -4,13 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
-import {
-  useDeck,
-  useDeckCards,
-  useDeckProgress,
-  useHardCards,
-  useSessionProgress,
-} from '../../db/hooks'
+import { useDeck, useDeckCards, useDeckProgress, useHardCards } from '../../db/hooks'
 import { isMastered, toggleStar } from '../../db/progress'
 import type { Card, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
@@ -40,6 +34,7 @@ import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { HardList } from '../hard/HardList'
 import type { SessionProgress } from '../study/sessionProgress'
+import { useSessionProgress } from '../study/useSessionProgress'
 import { SpeakButton } from '../tts/SpeakButton'
 import { CardRow } from './CardRow'
 import { ImportSheet } from './ImportSheet'
@@ -327,6 +322,15 @@ const tones = {
   sun: 'bg-sun-soft text-sun-ink',
 }
 
+/**
+ * Motion starts the tile's press animation from a native `pointerdown` on the tile. Stopping the
+ * event on the «Заново» link (natively, before it bubbles up: React's handlers run too late) keeps
+ * pressing it from playing the animation of the main «Продолжить» action. Clicks are unaffected.
+ */
+const stopPress = (e: Event) => e.stopPropagation()
+const keepOutOfPress = (el: HTMLAnchorElement | null) =>
+  el?.addEventListener('pointerdown', stopPress)
+
 function ModeTile({
   to,
   deckId,
@@ -347,7 +351,7 @@ function ModeTile({
   tone: keyof typeof tones
   disabled?: boolean
   /** Unfinished session of this mode (see `useSessionProgress`); `null`/`undefined` — none. */
-  session?: { progress?: SessionProgress } | null
+  session?: SessionProgress | null
   sessionText?: (progress: SessionProgress) => string | undefined
   restartLabel?: string
 }) {
@@ -394,7 +398,7 @@ function ModeTile({
   }
   // Unfinished session: the tile is a container so «Продолжить» and «Заново» are sibling links
   // (no nested anchors). The first link is stretched over the whole tile; the second sits above it.
-  const progress = session.progress ? sessionText?.(session.progress) : undefined
+  const progress = sessionText?.(session)
   return (
     <motion.div
       whileHover={{ y: -3 }}
@@ -417,6 +421,7 @@ function ModeTile({
         <Link
           to={`/deck/${deckId}/${to}?fresh=1`}
           aria-label={restartLabel}
+          ref={keepOutOfPress}
           className="relative z-10 rounded-full px-3.5 py-2 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
         >
           {t.deck.restartShort}
