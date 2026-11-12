@@ -401,6 +401,9 @@ function ModeTile({
   const progress = sessionText?.(session)
   return (
     <motion.div
+      // Motion makes press targets tabbable unless they have a tabindex; the links inside are
+      // the real tab stops, the tile itself must not be a dead one.
+      tabIndex={-1}
       whileHover={{ y: -3 }}
       whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
       transition={pressSpring}
