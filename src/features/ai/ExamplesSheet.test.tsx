@@ -38,7 +38,10 @@ afterEach(async () => {
   await Promise.all([db.decks.clear(), db.cards.clear()])
 })
 
-async function renderSheet(cached: boolean): Promise<{ deck: Deck; card: Card }> {
+async function renderSheet(
+  cached: boolean,
+  cachedDefinition?: string,
+): Promise<{ deck: Deck; card: Card }> {
   const deckId = await createDeck({ title: 'D', termLang: 'en', defLang: 'ru', level: 'B1' }, [
     { term: 'word', definition: 'слово' },
   ])
@@ -51,6 +54,7 @@ async function renderSheet(cached: boolean): Promise<{ deck: Deck; card: Card }>
         model: 'm',
         createdAt: 1,
         level: 'A2',
+        definition: cachedDefinition,
       },
     })
     card = (await db.cards.get(card.id))!
@@ -67,7 +71,7 @@ async function renderSheet(cached: boolean): Promise<{ deck: Deck; card: Card }>
 const radio = (level: string) => screen.getByRole('radio', { name: level }) as HTMLInputElement
 
 describe('ExamplesSheet level', () => {
-  it('starts from the cached level and applies a new one only on «Ещё варианты»', async () => {
+  it('starts from the cached level and applies a new one only on the button', async () => {
     const { card } = await renderSheet(true)
     await screen.findByText('Old')
     expect(radio('A2').checked).toBe(true)
@@ -76,7 +80,7 @@ describe('ExamplesSheet level', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(generateExamples).not.toHaveBeenCalled()
 
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(t.examples.more) }))
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(t.examples.generateFor('C2')) }))
     await waitFor(() => expect(generateExamples).toHaveBeenCalledTimes(1))
     expect(generateExamples.mock.calls[0]![0]).toMatchObject({ level: 'C2' })
     await waitFor(async () => {
@@ -91,5 +95,42 @@ describe('ExamplesSheet level', () => {
     await waitFor(async () => {
       expect((await db.cards.get(card.id))?.examples).toMatchObject({ level: 'B1' })
     })
+  })
+
+  it('offers «Сгенерировать для …» and labels the shown examples after a level change', async () => {
+    await renderSheet(true)
+    await screen.findByText('Old')
+    expect(screen.queryByText(t.examples.forLevel('A2'))).toBeNull()
+
+    fireEvent.click(radio('C1'))
+    expect(
+      screen.getByRole('button', { name: new RegExp(t.examples.generateFor('C1')) }),
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: new RegExp(t.examples.more) })).toBeNull()
+    expect(screen.getByText(t.examples.forLevel('A2'))).toBeTruthy()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(generateExamples).not.toHaveBeenCalled()
+
+    fireEvent.click(radio('A2'))
+    expect(screen.getByRole('button', { name: new RegExp(t.examples.more) })).toBeTruthy()
+    expect(screen.queryByText(t.examples.forLevel('A2'))).toBeNull()
+  })
+
+  it('flags examples made for a different translation', async () => {
+    await renderSheet(true, 'старый перевод')
+    await screen.findByText('Old')
+    expect(screen.getByText(t.examples.definitionChanged)).toBeTruthy()
+  })
+
+  it('does not flag examples whose translation matches or was never recorded', async () => {
+    await renderSheet(true, 'слово')
+    await screen.findByText('Old')
+    expect(screen.queryByText(t.examples.definitionChanged)).toBeNull()
+    cleanup()
+    await db.cards.clear()
+    await db.decks.clear()
+    await renderSheet(true)
+    await screen.findByText('Old')
+    expect(screen.queryByText(t.examples.definitionChanged)).toBeNull()
   })
 })

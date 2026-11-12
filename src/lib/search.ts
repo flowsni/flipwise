@@ -61,3 +61,10 @@ export function groupByDeck(hits: readonly SearchHit[]): SearchGroup[] {
   }
   return [...groups.values()]
 }
+
+/** Whether a card's term or definition contains the query (same normalization as `searchCards`). */
+export function matchesQuery(term: string, definition: string, query: string): boolean {
+  const q = normalize(query)
+  if (!q) return true
+  return normalize(term).includes(q) || normalize(definition).includes(q)
+}

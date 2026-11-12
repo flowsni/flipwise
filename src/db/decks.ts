@@ -60,13 +60,20 @@ export async function saveDeck(
       if (prev) {
         keep.add(prev.id)
         const changed = prev.term !== c.term || prev.definition !== c.definition
+        // Examples made before the translation was recorded: stamp the translation they were
+        // written for, so ExamplesSheet can flag the mismatch instead of keeping them silently.
+        const keptExamples =
+          prev.term === c.term && prev.examples && prev.examples.definition === undefined
+            ? { ...prev.examples, definition: prev.definition }
+            : prev.examples
         return {
           ...prev,
           position,
           term: c.term,
           definition: c.definition,
-          // Examples were generated for the old text; drop them when the card changes.
-          examples: changed ? undefined : prev.examples,
+          // Examples are about the word: a changed term drops them, a corrected translation
+          // keeps them (ExamplesSheet flags the mismatch via `examples.definition`).
+          examples: prev.term !== c.term ? undefined : keptExamples,
           updatedAt: changed ? now : prev.updatedAt,
         }
       }

@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
-import { useDeck, useDeckCards, useDeckProgress, useHardCards, useHasSession } from '../../db/hooks'
+import { useDeck, useDeckCards, useDeckProgress, useHardCards } from '../../db/hooks'
 import { isMastered, toggleStar } from '../../db/progress'
 import type { Card, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
@@ -33,6 +33,8 @@ import { languageName } from '../../lib/languages'
 import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { HardList } from '../hard/HardList'
+import type { SessionProgress } from '../study/sessionProgress'
+import { useSessionProgress } from '../study/useSessionProgress'
 import { SpeakButton } from '../tts/SpeakButton'
 import { CardRow } from './CardRow'
 import { ImportSheet } from './ImportSheet'
@@ -52,8 +54,8 @@ export function DeckPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
   const [bulkOpen, setBulkOpen] = useState(false)
-  const hasLearn = useHasSession(deckId, 'learn')
-  const hasTest = useHasSession(deckId, 'test')
+  const learnSession = useSessionProgress(deckId, 'learn')
+  const testSession = useSessionProgress(deckId, 'test')
   const hard = useHardCards(deckId)
   const [params, setParams] = useSearchParams()
   const [highlight, setHighlight] = useState<string | null>(null)
@@ -194,7 +196,9 @@ export function DeckPage() {
             hint={enough ? t.deck.learnHint : t.deck.needCards(2)}
             tone="plum"
             disabled={!enough}
-            resumable={hasLearn}
+            session={learnSession}
+            sessionText={(s) => t.deck.learnProgress(s.round ?? 1, s.done, s.total)}
+            restartLabel={t.deck.restartLearn}
           />
           <ModeTile
             to="test"
@@ -204,7 +208,9 @@ export function DeckPage() {
             hint={enough ? t.deck.testHint : t.deck.needCards(2)}
             tone="sun"
             disabled={!enough}
-            resumable={hasTest}
+            session={testSession}
+            sessionText={(s) => t.deck.testProgress(s.done, s.total)}
+            restartLabel={t.deck.restartTest}
           />
         </div>
 
@@ -316,6 +322,15 @@ const tones = {
   sun: 'bg-sun-soft text-sun-ink',
 }
 
+/**
+ * Motion starts the tile's press animation from a native `pointerdown` on the tile. Stopping the
+ * event on the «Заново» link (natively, before it bubbles up: React's handlers run too late) keeps
+ * pressing it from playing the animation of the main «Продолжить» action. Clicks are unaffected.
+ */
+const stopPress = (e: Event) => e.stopPropagation()
+const keepOutOfPress = (el: HTMLAnchorElement | null) =>
+  el?.addEventListener('pointerdown', stopPress)
+
 function ModeTile({
   to,
   deckId,
@@ -324,7 +339,9 @@ function ModeTile({
   hint,
   tone,
   disabled,
-  resumable,
+  session,
+  sessionText,
+  restartLabel,
 }: {
   to: StudyMode | 'flashcards'
   deckId: string
@@ -333,44 +350,36 @@ function ModeTile({
   hint: string
   tone: keyof typeof tones
   disabled?: boolean
-  resumable?: boolean
+  /** Unfinished session of this mode (see `useSessionProgress`); `null`/`undefined` — none. */
+  session?: SessionProgress | null
+  sessionText?: (progress: SessionProgress) => string | undefined
+  restartLabel?: string
 }) {
-  const inner = (
-    <>
-      <span
-        className={cx(
-          'grid size-12 shrink-0 place-items-center rounded-2xl [&>svg]:size-6',
-          tones[tone],
-        )}
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
-        <span className="block text-[0.9375rem] text-ink-2">
-          {resumable ? t.deck.sessionSaved : hint}
-        </span>
-      </span>
-      {resumable ? (
-        <span className="rounded-full bg-primary px-2.5 py-1 text-[0.8125rem] font-semibold text-primary-ink">
-          {t.deck.continue}
-        </span>
-      ) : (
-        <IconChevronRight className="text-ink-3 sm:hidden" />
-      )}
-    </>
-  )
   const base =
     'raised flex items-center gap-3 rounded-card p-4 sm:min-h-36 sm:flex-col sm:items-start sm:justify-between'
+  const iconBox = (
+    <span
+      className={cx(
+        'grid size-12 shrink-0 place-items-center rounded-2xl [&>svg]:size-6',
+        tones[tone],
+      )}
+    >
+      {icon}
+    </span>
+  )
   if (disabled) {
     return (
       <div className={cx(base, 'opacity-55')} aria-disabled="true">
-        {inner}
+        {iconBox}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
+          <span className="block text-[0.9375rem] text-ink-2">{hint}</span>
+        </span>
       </div>
     )
   }
-  return (
-    <div className="flex flex-col">
+  if (!session) {
+    return (
       <MotionLink
         to={`/deck/${deckId}/${to}`}
         whileHover={{ y: -3 }}
@@ -378,16 +387,49 @@ function ModeTile({
         transition={pressSpring}
         className={cx(base, 'outline-offset-4')}
       >
-        {inner}
+        {iconBox}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
+          <span className="block text-[0.9375rem] text-ink-2">{hint}</span>
+        </span>
+        <IconChevronRight className="text-ink-3 sm:hidden" />
       </MotionLink>
-      {resumable && (
+    )
+  }
+  // Unfinished session: the tile is a container so «Продолжить» and «Заново» are sibling links
+  // (no nested anchors). The first link is stretched over the whole tile; the second sits above it.
+  const progress = sessionText?.(session)
+  return (
+    <motion.div
+      // Motion makes press targets tabbable unless they have a tabindex; the links inside are
+      // the real tab stops, the tile itself must not be a dead one.
+      tabIndex={-1}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
+      transition={pressSpring}
+      className={cx(base, 'relative flex-wrap sm:flex-nowrap')}
+    >
+      {iconBox}
+      <span className="min-w-0 flex-1">
+        <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
+        <span className="block text-[0.9375rem] text-ink-2">{progress ?? t.deck.sessionSaved}</span>
+      </span>
+      <span className="flex basis-full items-center gap-2 sm:basis-auto">
+        <Link
+          to={`/deck/${deckId}/${to}`}
+          className="rounded-full bg-primary px-3.5 py-2 text-[0.9375rem] font-semibold text-primary-ink outline-offset-4 after:absolute after:inset-0 after:rounded-card"
+        >
+          {t.deck.continue}
+        </Link>
         <Link
           to={`/deck/${deckId}/${to}?fresh=1`}
-          className="mt-1 inline-flex min-h-11 items-center justify-center self-end rounded-xl px-3 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+          aria-label={restartLabel}
+          ref={keepOutOfPress}
+          className="relative z-10 rounded-full px-3.5 py-2 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
         >
-          {t.deck.restart}
+          {t.deck.restartShort}
         </Link>
-      )}
-    </div>
+      </span>
+    </motion.div>
   )
 }

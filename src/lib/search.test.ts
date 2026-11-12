@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Card, Deck } from '../db/types'
-import { groupByDeck, searchCards } from './search'
+import { groupByDeck, matchesQuery, searchCards } from './search'
 
 const deck = (id: string): Deck => ({
   id,
@@ -67,5 +67,17 @@ describe('groupByDeck', () => {
       ['travel', 2],
       ['food', 2],
     ])
+  })
+})
+
+describe('matchesQuery', () => {
+  it('matches term or definition, ignoring case and ё/е', () => {
+    expect(matchesQuery('Boarding pass', 'посадочный талон', 'BOARD')).toBe(true)
+    expect(matchesQuery('pass', 'ёлка', 'елк')).toBe(true)
+    expect(matchesQuery('pass', 'пропуск', 'талон')).toBe(false)
+  })
+
+  it('matches everything for an empty query', () => {
+    expect(matchesQuery('a', 'б', '  ')).toBe(true)
   })
 })

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, Reorder, useDragControls } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { createDeck, getDeckCards, saveDeck } from '../../db/decks'
@@ -7,7 +7,14 @@ import { useDeck } from '../../db/hooks'
 import { type Deck, LEVELS, type Level } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { Field, Input, inputClass, Select, useFieldId } from '../../design/Field'
-import { IconChevronLeft, IconGrip, IconPlus, IconUpload, IconX } from '../../design/icons'
+import {
+  IconChevronLeft,
+  IconGrip,
+  IconPlus,
+  IconSearch,
+  IconUpload,
+  IconX,
+} from '../../design/icons'
 import { useToast } from '../../design/Toast'
 import { TopBar } from '../../design/TopBar'
 import { t } from '../../i18n/ru'
@@ -15,6 +22,7 @@ import { findDuplicates } from '../../lib/duplicates'
 import { newId } from '../../lib/ids'
 import type { ParsedCard } from '../../lib/importParser'
 import { LANGUAGES } from '../../lib/languages'
+import { matchesQuery } from '../../lib/search'
 import { getSetting, setSetting } from '../../lib/storage'
 import { ImportSheet } from './ImportSheet'
 
@@ -24,6 +32,9 @@ interface Row {
   term: string
   definition: string
 }
+
+/** The filter field appears once the set has this many cards. */
+const FILTER_FROM = 10
 
 const emptyRow = (): Row => ({ key: newId(), term: '', definition: '' })
 
@@ -60,6 +71,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
     text: '',
   })
   const [saving, setSaving] = useState(false)
+  const [query, setQuery] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
   const focusKey = useRef<string | null>(null)
 
@@ -85,10 +97,11 @@ function EditorForm({ deck }: { deck?: Deck }) {
 
   useEffect(() => {
     if (!focusKey.current) return
-    const input = document.querySelector<HTMLInputElement>(`[data-row="${focusKey.current}"] input`)
-    input?.focus()
-    // Keep the new row above the sticky «Добавить карточку» bar.
-    input?.scrollIntoView({ block: 'nearest' })
+    const row = document.querySelector<HTMLElement>(`[data-row="${focusKey.current}"]`)
+    // Scroll the row, not the input: the row's scroll-margin keeps it above the sticky
+    // «Добавить карточку» bar, and the input's own scroll would ignore that margin.
+    row?.querySelector('input')?.focus({ preventScroll: true })
+    row?.scrollIntoView({ block: 'nearest' })
     focusKey.current = null
   })
 
@@ -100,6 +113,8 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   const addRow = () => {
+    // A new row would be hidden by an active filter.
+    setQuery('')
     const row = emptyRow()
     focusKey.current = row.key
     setRows((rs) => [...rs, row])
@@ -112,6 +127,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   const importRows = (cards: ParsedCard[], replaceKey?: string) => {
+    setQuery('')
     const incoming = cards.map((c) => ({ key: newId(), term: c.term, definition: c.definition }))
     setRows((rs) => {
       // Drop the row the text was pasted into and trailing blank rows, then append.
@@ -170,6 +186,18 @@ function EditorForm({ deck }: { deck?: Deck }) {
     }
   }
 
+  const filtering = query.trim() !== ''
+  // Matches are fixed when the query changes, not on every keystroke in a row: otherwise
+  // fixing a word so that it no longer matches would make the row vanish while typing.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: recomputed only when the query changes
+  const matchedKeys = useMemo(
+    () => new Set(rows.filter((r) => matchesQuery(r.term, r.definition, query)).map((r) => r.key)),
+    [query],
+  )
+  const isShown = (r: Row) => !filtering || matchedKeys.has(r.key)
+  // Counted from the live rows: deleting a match must update the number.
+  const shownCount = rows.filter(isShown).length
+  const lastShown = rows.findLastIndex(isShown)
   const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
   const duplicates = findDuplicates(
     rows.map((r) => r.term),
@@ -296,6 +324,46 @@ function EditorForm({ deck }: { deck?: Deck }) {
           </Button>
         </div>
 
+        {loaded && (filled >= FILTER_FROM || query !== '') && (
+          <div className="mb-3">
+            <div className="relative">
+              <IconSearch
+                size={18}
+                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-3"
+              />
+              <input
+                type="search"
+                enterKeyHint="search"
+                aria-label={t.editor.filterPlaceholder}
+                placeholder={t.editor.filterPlaceholder}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  // The field lives inside the form: Enter must not save it.
+                  if (e.key === 'Enter') e.preventDefault()
+                  if (e.key === 'Escape') setQuery('')
+                }}
+                className={`${inputClass} min-h-11 rounded-full py-2 pr-11 pl-10 [&::-webkit-search-cancel-button]:hidden`}
+              />
+              {query && (
+                <IconButton
+                  size="sm"
+                  label={t.editor.filterClear}
+                  onClick={() => setQuery('')}
+                  className="absolute top-1/2 right-0 -translate-y-1/2"
+                >
+                  <IconX size={16} />
+                </IconButton>
+              )}
+            </div>
+            {filtering && (
+              <p className="mt-2 px-1 text-[0.9375rem] text-ink-2" aria-live="polite">
+                {shownCount ? t.editor.filterFound(shownCount) : t.editor.filterEmpty(query.trim())}
+              </p>
+            )}
+          </div>
+        )}
+
         {loaded && (
           <Reorder.Group
             axis="y"
@@ -315,10 +383,13 @@ function EditorForm({ deck }: { deck?: Deck }) {
                   termLang={termLang}
                   defLang={defLang}
                   duplicateOf={duplicateHint(i)}
+                  hidden={!isShown(row)}
+                  draggable={!filtering}
                   onChange={(patch) => updateRow(row.key, patch)}
                   onRemove={() => removeRow(row.key)}
                   onPaste={onPaste(row)}
-                  onEnterLast={i === rows.length - 1 ? addRow : undefined}
+                  // Enter adds a card in the last row you can see (with a filter, not the deck's last one).
+                  onEnterLast={i === lastShown ? addRow : undefined}
                 />
               ))}
             </AnimatePresence>
@@ -358,6 +429,8 @@ function EditorRow({
   onRemove,
   onPaste,
   onEnterLast,
+  hidden,
+  draggable,
 }: {
   row: Row
   index: number
@@ -369,6 +442,10 @@ function EditorRow({
   onRemove: () => void
   onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void
   onEnterLast?: () => void
+  /** Filtered out: kept mounted (focus and typed text survive) but not shown. */
+  hidden?: boolean
+  /** The drag handle is hidden while a filter is active. */
+  draggable?: boolean
 }) {
   const controls = useDragControls()
   const hintId = `dup-${row.key}`
@@ -378,20 +455,23 @@ function EditorRow({
       dragListener={false}
       dragControls={controls}
       data-row={row.key}
+      hidden={hidden}
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
       whileDrag={{ scale: 1.02, boxShadow: 'var(--fw-shadow-float)' }}
       className="relative flex scroll-mb-28 items-stretch gap-1 rounded-2xl border border-line bg-surface p-2"
     >
-      <button
-        type="button"
-        aria-label={`${t.editor.dragRow} ${index + 1}`}
-        className="flex w-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2 active:cursor-grabbing"
-        onPointerDown={(e) => controls.start(e)}
-      >
-        <IconGrip size={18} />
-      </button>
+      {draggable !== false && (
+        <button
+          type="button"
+          aria-label={`${t.editor.dragRow} ${index + 1}`}
+          className="flex w-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-3 hover:bg-surface-2 active:cursor-grabbing"
+          onPointerDown={(e) => controls.start(e)}
+        >
+          <IconGrip size={18} />
+        </button>
+      )}
       <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
         <input
           aria-label={`${t.editor.term} ${index + 1}`}

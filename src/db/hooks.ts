@@ -3,8 +3,7 @@ import { hardestCards } from '../lib/hardWords'
 import { db } from './db'
 import { getDeckCards } from './decks'
 import { isMastered } from './progress'
-import { sessionId } from './sessions'
-import type { Card, Deck, Progress, StudyMode } from './types'
+import type { Card, Deck, Progress } from './types'
 
 export interface DeckSummary {
   deck: Deck
@@ -49,15 +48,6 @@ export function useDeckProgress(deckId: string | undefined): Map<string, Progres
     const rows = await db.progress.where('deckId').equals(deckId).toArray()
     return new Map(rows.map((p) => [p.cardId, p]))
   }, [deckId])
-}
-
-export function useHasSession(deckId: string | undefined, mode: StudyMode): boolean {
-  return (
-    useLiveQuery(
-      async () => (deckId ? !!(await db.sessions.get(sessionId(deckId, mode))) : false),
-      [deckId, mode],
-    ) ?? false
-  )
 }
 
 export function useDeckLanguages(): string[] {

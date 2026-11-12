@@ -56,8 +56,12 @@ function ExamplesBody({
   const abortRef = useRef<AbortController | null>(null)
   const examples = card.examples
   // Changing the level does not generate on its own (a misclick would be a paid request):
-  // «Ещё варианты» applies it.
+  // the button («Ещё варианты» / «Сгенерировать для …») applies it.
   const [level, setLevel] = useState<Level>(initialCard.examples?.level ?? deck.level)
+  const examplesLevel = examples?.level ?? deck.level
+  const levelChanged = !!examples && level !== examplesLevel
+  const definitionChanged =
+    examples?.definition !== undefined && examples.definition !== card.definition
 
   const generate = useCallback(async () => {
     if (!ai.provider || !ai.key) return
@@ -84,6 +88,7 @@ function ExamplesBody({
         model: ai.model,
         createdAt: Date.now(),
         level,
+        definition: card.definition,
       })
     } catch (e) {
       const code = e instanceof AiError ? e.code : 'unknown'
@@ -113,6 +118,13 @@ function ExamplesBody({
 
       <LevelPicker value={level} onChange={setLevel} />
 
+      {examples && !loading && definitionChanged && (
+        <p className="text-[0.875rem] text-sun-ink">{t.examples.definitionChanged}</p>
+      )}
+      {examples && !loading && levelChanged && (
+        <p className="-mb-2 text-[0.8125rem] text-ink-3">{t.examples.forLevel(examplesLevel)}</p>
+      )}
+
       <div aria-live="polite" aria-busy={loading} className="flex flex-col gap-3">
         {loading && <Skeleton />}
         {!loading && error && <AiErrorBox code={error} onRetry={generate} onClose={onClose} />}
@@ -140,7 +152,7 @@ function ExamplesBody({
           onClick={generate}
         >
           <IconRefresh size={20} />
-          {t.examples.more}
+          {levelChanged ? t.examples.generateFor(level) : t.examples.more}
         </Button>
         {examples && (
           <Button

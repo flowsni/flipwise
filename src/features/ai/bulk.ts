@@ -133,7 +133,14 @@ export async function generateDeckExamples(
     }
     const entries = [...result.results].map(([index, items]) => ({
       card: batch[index]!,
-      examples: { items, provider: config.provider, model: config.model, createdAt, level },
+      examples: {
+        items,
+        provider: config.provider,
+        model: config.model,
+        createdAt,
+        level,
+        definition: batch[index]!.definition,
+      },
     }))
     const written = await setExamplesIfUnchanged(entries)
     saved += written

@@ -70,13 +70,14 @@ describe('backup', () => {
     expect(shared.progress).toEqual([])
   })
 
-  it('keeps the level of generated examples', async () => {
+  it('keeps the level and translation of generated examples', async () => {
     const examples = {
       items: [{ text: 'My [[ticket]].', translation: 'Мой [[билет]].' }],
       provider: 'anthropic',
       model: 'm',
       createdAt: 2,
       level: 'A2' as const,
+      definition: 'билет',
     }
     await db.cards.update('c1', { examples })
     const parsed = parseBackup(JSON.stringify(await exportDeck(db, 'd1')))
