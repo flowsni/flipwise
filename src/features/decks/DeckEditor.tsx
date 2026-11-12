@@ -194,6 +194,10 @@ function EditorForm({ deck }: { deck?: Deck }) {
     () => new Set(rows.filter((r) => matchesQuery(r.term, r.definition, query)).map((r) => r.key)),
     [query],
   )
+  const isShown = (r: Row) => !filtering || matchedKeys.has(r.key)
+  // Counted from the live rows: deleting a match must update the number.
+  const shownCount = rows.filter(isShown).length
+  const lastShown = rows.findLastIndex(isShown)
   const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
   const duplicates = findDuplicates(
     rows.map((r) => r.term),
@@ -354,9 +358,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
             </div>
             {filtering && (
               <p className="mt-2 px-1 text-[0.9375rem] text-ink-2" aria-live="polite">
-                {matchedKeys.size
-                  ? t.editor.filterFound(matchedKeys.size)
-                  : t.editor.filterEmpty(query.trim())}
+                {shownCount ? t.editor.filterFound(shownCount) : t.editor.filterEmpty(query.trim())}
               </p>
             )}
           </div>
@@ -381,12 +383,13 @@ function EditorForm({ deck }: { deck?: Deck }) {
                   termLang={termLang}
                   defLang={defLang}
                   duplicateOf={duplicateHint(i)}
-                  hidden={filtering && !matchedKeys.has(row.key)}
+                  hidden={!isShown(row)}
                   draggable={!filtering}
                   onChange={(patch) => updateRow(row.key, patch)}
                   onRemove={() => removeRow(row.key)}
                   onPaste={onPaste(row)}
-                  onEnterLast={i === rows.length - 1 ? addRow : undefined}
+                  // Enter adds a card in the last row you can see (with a filter, not the deck's last one).
+                  onEnterLast={i === lastShown ? addRow : undefined}
                 />
               ))}
             </AnimatePresence>

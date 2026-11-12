@@ -121,6 +121,32 @@ describe('DeckEditor filter', () => {
     expect(visibleTerms()).toHaveLength(WORDS.length + 1)
   })
 
+  it('updates the match count and the empty message when matches are deleted', async () => {
+    await renderEditor()
+    fireEvent.change(filter(), { target: { value: 'a' } }) // many matches
+    const before = visibleTerms().length
+    expect(screen.getByText(t.editor.filterFound(before))).toBeTruthy()
+    const firstShown = document.querySelector<HTMLElement>('[data-row]:not([hidden])')!
+    fireEvent.click(within(firstShown).getByLabelText(new RegExp(t.editor.removeRow)))
+    await waitFor(() => expect(screen.getByText(t.editor.filterFound(before - 1))).toBeTruthy())
+
+    fireEvent.change(filter(), { target: { value: 'kiwi' } })
+    fireEvent.click(within(row('kiwi')).getByLabelText(new RegExp(t.editor.removeRow)))
+    await waitFor(() => expect(screen.getByText(t.editor.filterEmpty('kiwi'))).toBeTruthy())
+  })
+
+  it('Enter in the last visible row adds a card instead of saving the deck', async () => {
+    const deckId = await renderEditor()
+    fireEvent.change(filter(), { target: { value: 'apple' } }) // not the deck's last row
+    const def = within(row('apple')).getByLabelText(new RegExp(t.editor.definition))
+    const notPrevented = fireEvent.keyDown(def, { key: 'Enter' })
+    expect(notPrevented).toBe(false)
+    expect(filter().value).toBe('')
+    expect(visibleTerms()).toHaveLength(WORDS.length + 1)
+    expect(screen.queryByText('deck page')).toBeNull()
+    expect(await getDeckCards(deckId)).toHaveLength(WORDS.length)
+  })
+
   it('saves all cards in their original order while filtered', async () => {
     const deckId = await renderEditor()
     fireEvent.change(filter(), { target: { value: 'kiwi' } })
