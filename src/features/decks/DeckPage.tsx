@@ -419,7 +419,7 @@ function ModeTile({
         <span className="block text-[1.1rem] font-semibold tracking-tight">{title}</span>
         <span className="block text-[0.9375rem] text-ink-2">{progress ?? t.deck.sessionSaved}</span>
       </span>
-      <span className="flex basis-full items-center gap-2 sm:basis-auto">
+      <span className="flex basis-full flex-wrap items-center gap-2 sm:basis-auto">
         <Link
           to={`/deck/${deckId}/${to}`}
           className="rounded-full bg-primary px-3.5 py-2 text-[0.9375rem] font-semibold text-primary-ink outline-offset-4 after:absolute after:inset-0 after:rounded-card"

@@ -116,6 +116,11 @@ describe('ExamplesSheet level', () => {
     expect(screen.queryByText(t.examples.forLevel('A2'))).toBeNull()
   })
 
+  it('keeps a space between the example and its hint in the accessible name', async () => {
+    await renderSheet(true)
+    expect(await screen.findByRole('button', { name: /\. Показать перевод/ })).toBeTruthy()
+  })
+
   it('flags examples made for a different translation', async () => {
     await renderSheet(true, 'старый перевод')
     await screen.findByText('Old')

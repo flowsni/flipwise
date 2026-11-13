@@ -4,11 +4,26 @@ export function ttsSupported(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
 }
 
+// macOS novelty voices. Safari's voiceURI ends with the English id; Chrome's voiceURI equals the
+// localized name, so the name (before « (») is matched too.
+// shortcut: English and Russian names only, other system languages keep these voices; add names on request.
+const NOVELTY = new Set([
+  ...['Albert', 'BadNews', 'Bahh', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Deranged', 'GoodNews'],
+  ...['Bad News', 'Good News'],
+  ...['Hysterical', 'Jester', 'Organ', 'Superstar', 'Trinoids', 'Whisper', 'Wobble', 'Zarvox'],
+  ...['Grandma', 'Grandpa'],
+  ...['Альберт', 'Бах', 'Виолончель', 'Воббл', 'Зарвокс', 'Колокольчик', 'Орган', 'Прыг-скок'],
+  ...['Плохие новости', 'Хорошие новости', 'Пузырьки', 'Суперзвезда', 'Триноид', 'Шепот', 'Шутник'],
+])
+const isNovelty = (v: SpeechSynthesisVoice) =>
+  [v.voiceURI.split('.').pop(), v.name.split(' (')[0]].some((n) => NOVELTY.has(n ?? ''))
+
 export function voicesFor(lang: string): SpeechSynthesisVoice[] {
   if (!ttsSupported()) return []
   const base = lang.toLowerCase()
   return speechSynthesis
     .getVoices()
+    .filter((v) => !isNovelty(v))
     .filter((v) => v.lang.toLowerCase().replace('_', '-').split('-')[0] === base)
 }
 

@@ -77,6 +77,10 @@ function BulkBody({
   const provider = ai.provider
 
   const targetCount = which === 'all' ? cards.length : missingCount
+  const overwritten =
+    which === 'all'
+      ? cards.filter((c) => c.examples && (c.examples.level ?? deck.level) !== level).length
+      : 0
 
   const start = async () => {
     const targets = which === 'all' ? cards : cards.filter((c) => !hasExamples(c))
@@ -169,7 +173,10 @@ function BulkBody({
         <Segmented
           label={t.bulk.which}
           value={which}
-          onChange={setWhich}
+          onChange={(v) => {
+            setWhich(v)
+            setError(null)
+          }}
           options={[
             {
               value: 'missing',
@@ -182,12 +189,22 @@ function BulkBody({
         />
       </div>
 
-      <LevelPicker value={level} onChange={setLevel} />
+      <LevelPicker
+        value={level}
+        onChange={(v) => {
+          setLevel(v)
+          setError(null)
+        }}
+      />
 
       {error && (
         <AiErrorBox code={error.code} onClose={onClose}>
           {error.saved > 0 && <p className="text-ink-2">{t.bulk.savedSoFar(error.saved)}</p>}
         </AiErrorBox>
+      )}
+
+      {overwritten > 0 && (
+        <p className="text-[0.9375rem] text-ink-3">{t.bulk.overwrite(overwritten)}</p>
       )}
 
       <p className="text-[0.9375rem] text-ink-3">

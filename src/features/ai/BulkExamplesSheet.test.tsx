@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../../db/db'
 import { createDeck, getDeckCards } from '../../db/decks'
+import type { Level } from '../../db/types'
 import { ToastProvider } from '../../design/Toast'
 import { t } from '../../i18n/ru'
 import { setSetting } from '../../lib/storage'
@@ -39,7 +40,7 @@ function answer(user: string) {
   })
 }
 
-async function renderSheet(withExamples: number) {
+async function renderSheet(withExamples: number, examplesLevel?: Level) {
   const deckId = await createDeck(
     { title: 'D', termLang: 'en', defLang: 'ru', level: 'B1' },
     Array.from({ length: 12 }, (_, i) => ({ term: `w${i}`, definition: `с${i}` })),
@@ -52,6 +53,7 @@ async function renderSheet(withExamples: number) {
         provider: 'anthropic',
         model: 'm',
         createdAt: 1,
+        level: examplesLevel,
       },
     })
   }
@@ -118,6 +120,29 @@ describe('BulkExamplesSheet', () => {
         expect((await getDeckCards(deckId))[3]!.examples?.items[0]?.text).toBe('Old w3.')
       })
       expect((await getDeckCards(deckId))[5]!.examples?.items[0]?.text).toBe('Newer.')
+    })
+
+    it('warns before replacing examples of another level, only for «Все заново»', async () => {
+      await renderSheet(12, 'C1')
+      expect(await screen.findByText(t.bulk.overwrite(12))).toBeTruthy()
+      fireEvent.click(screen.getByRole('radio', { name: 'C1' }))
+      expect(screen.queryByText(t.bulk.overwrite(12))).toBeNull()
+    })
+
+    it('does not warn for «Без примеров»', async () => {
+      await renderSheet(1, 'C1')
+      await screen.findByText(t.bulk.requests(11, 2))
+      expect(screen.queryByText(/Перезапишет/)).toBeNull()
+    })
+
+    it('clears the error when the options change', async () => {
+      const { AiError } = await import('./errors')
+      await renderSheet(0)
+      call.mockRejectedValue(new AiError('auth'))
+      fireEvent.click(await screen.findByRole('button', { name: t.bulk.start }))
+      await screen.findByRole('alert')
+      fireEvent.click(screen.getByRole('radio', { name: 'A2' }))
+      expect(screen.queryByRole('alert')).toBeNull()
     })
 
     it('ignores a stop tapped right after the start (double tap)', async () => {

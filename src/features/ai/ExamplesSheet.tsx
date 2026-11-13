@@ -198,7 +198,7 @@ function ExampleRow({ item, index, deck }: { item: ExampleItem; index: number; d
       >
         <span lang={deck.termLang} className="block text-[1.0625rem] leading-relaxed">
           <Marked text={item.text} />
-        </span>
+        </span>{' '}
         <AnimatePresence initial={false}>
           {open ? (
             <motion.span
