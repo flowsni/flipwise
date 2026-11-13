@@ -9,6 +9,7 @@ export function ttsSupported(): boolean {
 // shortcut: English and Russian names only, other system languages keep these voices; add names on request.
 const NOVELTY = new Set([
   ...['Albert', 'BadNews', 'Bahh', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Deranged', 'GoodNews'],
+  ...['Bad News', 'Good News'],
   ...['Hysterical', 'Jester', 'Organ', 'Superstar', 'Trinoids', 'Whisper', 'Wobble', 'Zarvox'],
   ...['Grandma', 'Grandpa'],
   ...['Альберт', 'Бах', 'Виолончель', 'Воббл', 'Зарвокс', 'Колокольчик', 'Орган', 'Прыг-скок'],

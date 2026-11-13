@@ -11,8 +11,9 @@ describe('voicesFor', () => {
       getVoices: () => [
         voice('Орган', 'com.apple.speech.synthesis.voice.Organ'),
         voice('Бабушка', 'com.apple.eloquence.en-US.Grandma'),
-        voice('Пузырьки', 'Пузырьки | Пузырьки'),
-        voice('Grandpa (английский (США))', 'Grandpa (английский (США)) | en-US'),
+        voice('Пузырьки', 'Пузырьки'),
+        voice('Grandpa (английский (США))', 'Grandpa (английский (США))'),
+        voice('Bad News', 'Bad News'),
         voice('Samantha', 'com.apple.voice.compact.en-US.Samantha'),
       ],
     })
