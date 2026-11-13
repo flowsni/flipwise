@@ -239,6 +239,8 @@ export const ru = {
   examples: {
     button: 'Примеры',
     title: 'Примеры предложений',
+    has: 'Есть примеры',
+    none: 'Нет примеров',
     more: 'Ещё варианты',
     generateFor: (level: string) => `Сгенерировать для ${level}`,
     forLevel: (level: string) => `Примеры для уровня ${level}`,

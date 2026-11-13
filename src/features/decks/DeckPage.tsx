@@ -36,7 +36,7 @@ import { HardList } from '../hard/HardList'
 import type { SessionProgress } from '../study/sessionProgress'
 import { useSessionProgress } from '../study/useSessionProgress'
 import { SpeakButton } from '../tts/SpeakButton'
-import { CardRow } from './CardRow'
+import { CardRow, cardListClass } from './CardRow'
 import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'
 
@@ -256,13 +256,14 @@ export function DeckPage() {
               </div>
             </div>
           ) : (
-            <ul id="deck-cards" className="flex flex-col gap-2">
+            <ul id="deck-cards" className={cardListClass}>
               <AnimatePresence initial={false}>
                 {cards.map((card) => (
                   <CardRow
                     key={card.id}
                     card={card}
                     deck={deck}
+                    onSelect={() => setExamplesFor(card)}
                     highlighted={highlight === card.id}
                   >
                     <StarButton
@@ -271,22 +272,26 @@ export function DeckPage() {
                       onToggle={() => toggleStar(card.id, deck.id)}
                     />
                     <SpeakButton text={card.term} lang={deck.termLang} />
-                    <IconButton
-                      size="sm"
-                      label={`${t.examples.title}: ${card.term}`}
-                      onClick={() => setExamplesFor(card)}
-                      className={cx(card.examples && 'text-primary')}
-                    >
-                      <IconSparkles size={18} />
-                    </IconButton>
-                    <IconButton
-                      size="sm"
-                      label={`${t.deck.deleteCard}: ${card.term}`}
-                      onClick={() => onDeleteCard(card)}
-                      className="sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
-                    >
-                      <IconTrash size={18} />
-                    </IconButton>
+                    <Menu
+                      label={`${t.app.more}: ${card.term}`}
+                      sections={[
+                        {
+                          items: [
+                            {
+                              label: t.examples.button,
+                              icon: <IconSparkles />,
+                              onSelect: () => setExamplesFor(card),
+                            },
+                            {
+                              label: t.deck.deleteCard,
+                              icon: <IconTrash />,
+                              danger: true,
+                              onSelect: () => onDeleteCard(card),
+                            },
+                          ],
+                        },
+                      ]}
+                    />
                   </CardRow>
                 ))}
               </AnimatePresence>

@@ -19,6 +19,10 @@ export interface MenuSection {
   items: MenuItem[]
 }
 
+/** Free space under the button below which the popover opens upwards. */
+// shortcut: fits menus of up to ~2 items, measure the list if a longer menu lands near the bottom
+const MENU_ROOM = 160
+
 /** "…" button with a popover list. Secondary actions live here (Apple style). */
 export function Menu({
   label,
@@ -32,6 +36,8 @@ export function Menu({
   icon?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  // Opens above the button when there is no room below (e.g. the last card in a long list).
+  const [up, setUp] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -46,6 +52,12 @@ export function Menu({
     document.addEventListener('pointerdown', onDown)
     return () => document.removeEventListener('pointerdown', onDown)
   }, [open])
+
+  const show = () => {
+    const rect = buttonRef.current?.getBoundingClientRect()
+    setUp(!!rect && window.innerHeight - rect.bottom < MENU_ROOM)
+    setOpen(true)
+  }
 
   const close = (refocus = true) => {
     setOpen(false)
@@ -78,11 +90,11 @@ export function Menu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => (open ? close(false) : show())}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault()
-            setOpen(true)
+            show()
           }
         }}
       >
@@ -96,13 +108,15 @@ export function Menu({
             role="menu"
             aria-label={label}
             onKeyDown={onKeyDown}
-            initial={{ opacity: 0, scale: 0.92, y: -6 }}
+            initial={{ opacity: 0, scale: 0.92, y: up ? 6 : -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            exit={{ opacity: 0, scale: 0.95, y: up ? 4 : -4 }}
             transition={snappySpring}
+            style={{ originX: align === 'right' ? 1 : 0, originY: up ? 1 : 0 }}
             className={cx(
-              'absolute top-12 z-40 min-w-60 overflow-hidden rounded-2xl border border-line bg-surface p-1.5 shadow-float',
-              align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',
+              'absolute z-40 min-w-60 overflow-hidden rounded-2xl border border-line bg-surface p-1.5 shadow-float',
+              up ? 'bottom-12' : 'top-12',
+              align === 'right' ? 'right-0' : 'left-0',
             )}
           >
             {sections.map((section, si) => (
