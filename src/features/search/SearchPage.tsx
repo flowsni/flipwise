@@ -8,7 +8,7 @@ import { IconChevronLeft, IconSearch, IconX } from '../../design/icons'
 import { TopBar } from '../../design/TopBar'
 import { t } from '../../i18n/ru'
 import { groupByDeck, searchCards } from '../../lib/search'
-import { CardRow } from '../decks/CardRow'
+import { CardRow, cardListClass } from '../decks/CardRow'
 
 export function SearchPage() {
   const navigate = useNavigate()
@@ -79,7 +79,7 @@ export function SearchPage() {
             <h2 className="mb-2 truncate text-[0.9375rem] font-semibold tracking-tight text-ink-2">
               {deck.title}
             </h2>
-            <ul className="flex flex-col gap-2">
+            <ul className={cardListClass}>
               {hits.map(({ card }) => (
                 <CardRow
                   key={card.id}
