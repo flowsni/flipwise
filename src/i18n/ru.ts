@@ -283,7 +283,8 @@ export const ru = {
     stop: 'Остановить',
     progress: (a: number, b: number) => `Готово ${a} из ${b}`,
     closeHint: 'Готовые примеры сохраняются сразу — закрытие листа остановит генерацию.',
-    overwrite: (n: number) => `Перезапишет примеры другого уровня у ${ru.plural.cards(n)}`,
+    overwrite: (n: number) =>
+      `Перезапишет примеры другого уровня у ${n} ${plural(n, ['карточки', 'карточек', 'карточек'])}`,
     done: (n: number) => `Примеры готовы: ${ru.plural.cards(n)}`,
     partial: (n: number, failed: number) =>
       `Примеры готовы: ${ru.plural.cards(n)}, не получилось: ${failed}`,
