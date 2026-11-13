@@ -35,4 +35,5 @@ All four (check, typecheck, test, build) must pass before every commit; CI runs 
 - Animations are springs from `src/design/motion.ts`; `MotionConfig reducedMotion="user"` respects `prefers-reduced-motion`.
 - localStorage keys are prefixed `flipwise.` (GitHub Pages shares one origin across a user's projects).
 - Dexie schema changes require a new `version()` (FSRS fields will be added that way).
+- **Plans: after a plan is approved, do NOTHING else** — no branch, no edits, no commands. Only save the plan to `plans/<short-name>.md` (gitignored) and stop; implementation starts only when the user explicitly asks.
 - Commits: Conventional Commits in English (`feat:`, `fix:`, `chore:`, `docs:`, `test:`). After the first push, features go through `feat/*` branches and PRs.
