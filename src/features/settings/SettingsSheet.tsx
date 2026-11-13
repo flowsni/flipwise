@@ -26,6 +26,7 @@ import {
 import { downloadFile, pickFile } from '../../lib/files'
 import { languageName, speechSample } from '../../lib/languages'
 import { useSetting } from '../../lib/storage'
+import { aiErrorMessage } from '../ai/AiErrorBox'
 import { PROVIDERS, type ProviderId, providerInfo } from '../ai/catalog'
 import { AiError } from '../ai/errors'
 import { testConnection } from '../ai/examples'
@@ -123,9 +124,7 @@ function AiSection({ autoFocus }: { autoFocus: boolean }) {
       setStatus('ok')
     } catch (e) {
       const code = e instanceof AiError ? e.code : 'unknown'
-      setErrorText(
-        t.examples.errors[code as keyof typeof t.examples.errors] ?? t.examples.errors.unknown,
-      )
+      setErrorText(aiErrorMessage(code))
       setStatus('error')
     }
   }
