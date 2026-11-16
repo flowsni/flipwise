@@ -1,7 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/db'
 import { sessionId } from '../../db/sessions'
 import type { StudyMode } from '../../db/types'
+import { useCachedLiveQuery } from '../../db/useCachedLiveQuery'
 import { type SessionProgress, sessionProgress } from './sessionProgress'
 
 /**
@@ -12,7 +12,7 @@ export function useSessionProgress(
   deckId: string | undefined,
   mode: StudyMode,
 ): SessionProgress | null | undefined {
-  return useLiveQuery(async () => {
+  return useCachedLiveQuery(`session:${deckId}:${mode}`, async () => {
     if (!deckId) return null
     const [saved, cardIds] = await Promise.all([
       db.sessions.get(sessionId(deckId, mode)),

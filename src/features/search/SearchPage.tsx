@@ -1,7 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useDeferredValue, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { db } from '../../db/db'
+import { useCachedLiveQuery } from '../../db/useCachedLiveQuery'
 import { IconButton } from '../../design/Button'
 import { inputClass } from '../../design/Field'
 import { IconChevronLeft, IconSearch, IconX } from '../../design/icons'
@@ -16,7 +16,7 @@ export function SearchPage() {
   const [params, setParams] = useSearchParams()
   const query = params.get('q') ?? ''
   const deferred = useDeferredValue(query)
-  const data = useLiveQuery(async () => {
+  const data = useCachedLiveQuery('search', async () => {
     const [decks, cards] = await Promise.all([
       db.decks.orderBy('updatedAt').reverse().toArray(),
       db.cards.toArray(),
