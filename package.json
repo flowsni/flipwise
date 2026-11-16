@@ -15,7 +15,9 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest"
+    "test": "vitest",
+    "e2e": "playwright test --grep-invert @perf",
+    "e2e:perf": "playwright test --grep @perf --project=chromium"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.7",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/vite": "^4.3.5",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

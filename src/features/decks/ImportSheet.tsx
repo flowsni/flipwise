@@ -30,6 +30,7 @@ export function ImportSheet({
   initialText = '',
   existingTerms = [],
   lang,
+  room = Number.POSITIVE_INFINITY,
 }: {
   open: boolean
   onClose: () => void
@@ -39,6 +40,8 @@ export function ImportSheet({
   existingTerms?: readonly string[]
   /** Term language, for article-aware duplicate matching. */
   lang?: string
+  /** How many more cards the deck can take (see `MAX_CARDS`); the rest of the import is dropped. */
+  room?: number
 }) {
   const [text, setText] = useState(initialText)
   const [termSep, setTermSep] = useState<TermKind>('tab')
@@ -82,8 +85,10 @@ export function ImportSheet({
     .slice(existingTerms.length)
     .map((first) => first >= 0)
   const duplicateCount = isDuplicate.filter(Boolean).length
-  const toImport = skipDuplicates ? result.cards.filter((_, i) => !isDuplicate[i]) : result.cards
+  const wanted = skipDuplicates ? result.cards.filter((_, i) => !isDuplicate[i]) : result.cards
+  const toImport = wanted.slice(0, room)
   const count = toImport.length
+  const full = room <= 0
 
   return (
     <Sheet
@@ -102,7 +107,7 @@ export function ImportSheet({
             onClose()
           }}
         >
-          {count ? t.import.submit(count) : t.import.nothing}
+          {count ? t.import.submit(count) : full ? t.import.full : t.import.nothing}
         </Button>
       }
     >
@@ -187,6 +192,9 @@ export function ImportSheet({
               </span>
             )}
           </div>
+          {wanted.length > count && !full && (
+            <p className="mb-2 text-[0.9375rem] text-sun-ink">{t.import.trimmed(count)}</p>
+          )}
           {duplicateCount > 0 && (
             <Checkbox checked={skipDuplicates} onChange={setSkipDuplicates}>
               {t.import.skipDuplicates}

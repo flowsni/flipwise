@@ -15,6 +15,7 @@ Motion 14 (`motion/react`) · React Router 8 (**hash router** for GitHub Pages) 
 - `npm run typecheck` — TypeScript
 - `npm test` — Vitest (`npm test -- --run` for a single run)
 - `npm run build` — production build (`BASE_PATH=/flipwise/` for Pages)
+- `npm run e2e` / `npm run e2e:perf` — Playwright checks on the production build (see `e2e/README.md`)
 
 All four (check, typecheck, test, build) must pass before every commit; CI runs the same.
 
@@ -26,6 +27,7 @@ All four (check, typecheck, test, build) must pass before every commit; CI runs 
 - `src/features/*` — screens per feature (decks, flashcards, learn, test, ai, settings, tts)
 - `src/lib` — pure helpers (answer matching, import parsing, backup, shuffle, storage)
 - `src/i18n/ru.ts` — **all** UI strings; never hard-code Russian text in components
+- `e2e/` — Playwright browser checks (navigation, layout jumps, perf at 4× CPU, PWA caching) + the manual iOS Simulator checklist in `e2e/README.md`
 
 ## Conventions
 
@@ -34,6 +36,8 @@ All four (check, typecheck, test, build) must pass before every commit; CI runs 
 - Primary action visible, secondary actions behind the "…" `Menu`. Deletions happen immediately with an "Отменить" toast instead of confirm dialogs.
 - Animations are springs from `src/design/motion.ts`; `MotionConfig reducedMotion="user"` respects `prefers-reduced-motion`.
 - localStorage keys are prefixed `flipwise.` (GitHub Pages shares one origin across a user's projects).
+- A deck takes at most `MAX_CARDS` (250, `src/lib/limits.ts`) cards through the editor and import; existing bigger decks and backups are never truncated. All cards of a deck are mounted on its page.
+- **Verifying UI/navigation/perf/PWA changes:** run `npm run e2e` (and `npm run e2e:perf` for list/render changes) and walk the iOS Simulator checklist in `e2e/README.md` when routing, transitions or `vite.config.ts` change. Add a spec for every new bug of this kind.
 - Dexie schema changes require a new `version()` (FSRS fields will be added that way).
 - **Plans: after a plan is approved, do NOTHING else** — no branch, no edits, no commands. Only save the plan to `plans/<short-name>.md` (gitignored) and stop; implementation starts only when the user explicitly asks.
 - Commits: Conventional Commits in English (`feat:`, `fix:`, `chore:`, `docs:`, `test:`). After the first push, features go through `feat/*` branches and PRs.

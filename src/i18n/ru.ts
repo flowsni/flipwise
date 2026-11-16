@@ -1,3 +1,4 @@
+import { MAX_CARDS } from '../lib/limits'
 import { plural } from './plural'
 
 /** All UI strings. Add another locale by mirroring this object. */
@@ -93,6 +94,7 @@ export const ru = {
     term: 'Термин',
     definition: 'Определение',
     addRow: 'Добавить карточку',
+    rowsFull: `Максимум в наборе — ${MAX_CARDS} карточек`,
     removeRow: 'Удалить строку',
     dragRow: 'Перетащить строку',
     filterPlaceholder: 'Найти карточку',
@@ -130,6 +132,9 @@ export const ru = {
     nothing: 'Карточки не найдены — проверьте разделители',
     duplicates: (n: number) => `${ru.plural.cards(n)} уже есть в наборе`,
     skipDuplicates: 'Пропустить дубликаты',
+    trimmed: (n: number) =>
+      `Лимит набора — ${ru.plural.cards(MAX_CARDS)}: добавим только первые ${n}`,
+    full: `В наборе уже ${MAX_CARDS} карточек — это максимум`,
   },
   study: {
     close: 'Закрыть',

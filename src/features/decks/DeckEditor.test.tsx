@@ -5,6 +5,7 @@ import { db } from '../../db/db'
 import { createDeck, getDeckCards } from '../../db/decks'
 import { ToastProvider } from '../../design/Toast'
 import { t } from '../../i18n/ru'
+import { MAX_CARDS } from '../../lib/limits'
 import { DeckEditor } from './DeckEditor'
 
 // See FlashcardsPage.test.tsx: run Motion's JS animations instead of happy-dom's native ones.
@@ -176,5 +177,25 @@ describe('DeckEditor filter', () => {
     )
     await screen.findByLabelText(`${t.editor.term} 1`)
     expect(screen.queryByLabelText(t.editor.filterPlaceholder)).toBeNull()
+  })
+})
+
+describe('card limit', () => {
+  it('disables adding rows once the deck has MAX_CARDS', async () => {
+    const deckId = await createDeck(
+      { title: 'Big', termLang: 'en', defLang: 'ru', level: 'B1' },
+      Array.from({ length: MAX_CARDS }, (_, i) => ({ term: `w${i}`, definition: `п${i}` })),
+    )
+    render(
+      <ToastProvider>
+        <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
+          <Routes>
+            <Route path="/deck/:deckId/edit" element={<DeckEditor />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>,
+    )
+    const add = await screen.findByRole('button', { name: t.editor.rowsFull })
+    expect((add as HTMLButtonElement).disabled).toBe(true)
   })
 })

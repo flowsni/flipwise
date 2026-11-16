@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { type ThemeSetting, useThemeSetting } from '../../app/theme'
 import { db } from '../../db/db'
 import { useDeckLanguages } from '../../db/hooks'
+import { clearQueryCache } from '../../db/useCachedLiveQuery'
 import { Button, IconButton } from '../../design/Button'
 import { Field, Input, Segmented, Select, useFieldId } from '../../design/Field'
 import {
@@ -332,6 +333,7 @@ function DataSection() {
       // A shared single deck is simply added; a full backup asks how to import.
       if (backup.kind === 'deck') {
         const n = await importBackup(db, backup, 'merge')
+        clearQueryCache()
         toast.show({ message: t.settings.imported(n) })
       } else {
         setPending(backup)
@@ -345,6 +347,8 @@ function DataSection() {
   const finish = async (mode: 'replace' | 'merge') => {
     if (!pending) return
     const n = await importBackup(db, pending, mode)
+    // Forms copy their first value from the cache into state: it must not predate the restore.
+    clearQueryCache()
     setPending(null)
     toast.show({ message: t.settings.imported(n) })
   }

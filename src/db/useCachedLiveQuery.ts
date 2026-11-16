@@ -3,6 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 // shortcut: one entry per key for the whole session, never evicted; add eviction if keys become unbounded.
 const cache = new Map<string, unknown>()
 
+/** Forget every cached result, e.g. after a backup restore rewrote the database. */
+export const clearQueryCache = () => cache.clear()
+
 /** `useLiveQuery` that starts from the last result for `key`, so a remounted page (back/forward) has data on its first frame. */
 export function useCachedLiveQuery<T>(
   key: string,

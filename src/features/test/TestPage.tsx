@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useBack } from '../../app/useBack'
 import { useDeckProgress } from '../../db/hooks'
 import { recordAnswer } from '../../db/progress'
 import type { Card, Deck, Progress } from '../../db/types'
@@ -33,7 +34,7 @@ function TestRunner({
   cards: Card[]
   progress: Map<string, Progress>
 }) {
-  const navigate = useNavigate()
+  const back = useBack(`/deck/${deck.id}`)
   const [state, setState] = useState<TestState | null>(null)
 
   const session = useSavedSession<TestState>(deck.id, 'test', acceptTestSession)
@@ -65,9 +66,13 @@ function TestRunner({
   return (
     <div className="flex min-h-dvh flex-col">
       <StudyBar
-        onClose={() => navigate(`/deck/${deck.id}`)}
+        onClose={back}
         progress={
-          state ? (state.phase === 'results' ? 1 : answeredCount / state.questions.length) : 0
+          state
+            ? state.phase === 'results'
+              ? 1
+              : answeredCount / state.questions.length
+            : undefined
         }
         label={
           state?.phase === 'taking'
@@ -108,7 +113,7 @@ function TestRunner({
               start({ ...state.config, count: cardIds.length }, cardIds)
             }}
             onNew={() => update(null)}
-            onDeck={() => navigate(`/deck/${deck.id}`)}
+            onDeck={back}
           />
         )}
       </main>

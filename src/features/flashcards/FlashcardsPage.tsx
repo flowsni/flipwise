@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useBack } from '../../app/useBack'
 import { db } from '../../db/db'
 import { useDeckProgress } from '../../db/hooks'
 import { setFlash, toggleStar, updateProgress } from '../../db/progress'
@@ -76,7 +77,7 @@ function Flashcards({
   /** Live: stars and the scope counters follow changes made during the session. */
   progress: Map<string, Progress>
 }) {
-  const navigate = useNavigate()
+  const back = useBack(`/deck/${deck.id}`)
   const toast = useToast()
   const deckId = deck.id
   const [shuffled, setShuffled] = useSetting('flash.shuffle', false)
@@ -274,7 +275,7 @@ function Flashcards({
   return (
     <div className="flex min-h-dvh flex-col">
       <StudyBar
-        onClose={() => navigate(`/deck/${deckId}`)}
+        onClose={back}
         progress={queue.length ? index / queue.length : 0}
         label={done ? undefined : t.study.progress(Math.min(index + 1, queue.length), queue.length)}
         menu={
@@ -365,7 +366,7 @@ function Flashcards({
               aria-label={t.scope.change(
                 t.scope.chip(scopeLabels[selection.scope], selection.ids.length),
               )}
-              className="inline-flex min-h-9 items-center gap-1 rounded-full bg-surface-2 px-3.5 text-[0.875rem] font-medium text-ink-2 transition-colors hover:bg-surface-3 hover:text-ink"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full bg-surface-2 px-3.5 text-[0.875rem] font-medium text-ink-2 transition-colors hover:bg-surface-3 hover:text-ink"
             >
               {t.scope.chip(scopeLabels[selection.scope], selection.ids.length)}
               <IconChevronDown size={14} />

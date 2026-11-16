@@ -107,9 +107,7 @@ export function Segmented<T extends string | number>({
             />
             {o.label}
             {o.detail !== undefined && (
-              <span className="text-[0.8125rem] font-normal text-ink-3 tabular-nums">
-                {o.detail}
-              </span>
+              <span className="text-[0.8125rem] font-normal text-ink-3">{o.detail}</span>
             )}
           </label>
         )

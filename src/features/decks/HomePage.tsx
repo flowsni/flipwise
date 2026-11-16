@@ -26,13 +26,17 @@ export function HomePage() {
   const navigate = useNavigate()
   const settings = useSettingsSheet()
 
+  // Render only once everything is loaded: a search icon or a «Трудные» pill that arrives
+  // later would shift the page.
+  if (!decks || hard === undefined) return null
+
   return (
     <>
       <TopBar
         left={<Logo />}
         right={
           <>
-            {!!decks?.length && (
+            {!!decks.length && (
               <IconButton label={t.search.open} onClick={() => navigate('/search')}>
                 <IconSearch />
               </IconButton>
@@ -51,7 +55,7 @@ export function HomePage() {
           <Button
             variant="primary"
             size="md"
-            className="hidden sm:inline-flex"
+            className="max-sm:hidden"
             onClick={() => navigate('/new')}
           >
             <IconPlus size={20} />
@@ -61,7 +65,7 @@ export function HomePage() {
 
         <InstallHint />
 
-        {!!hard?.length && (
+        {!!hard.length && (
           <Link
             to="/hard"
             className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-bad-soft px-4 text-[0.9375rem] font-semibold text-bad transition-opacity hover:opacity-85"
@@ -72,11 +76,11 @@ export function HomePage() {
           </Link>
         )}
 
-        {decks && decks.length === 0 && (
+        {decks.length === 0 && (
           <EmptyState onCreate={() => navigate('/new')} onImport={() => settings.open()} />
         )}
 
-        {decks && decks.length > 0 && (
+        {decks.length > 0 && (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {decks.map((summary, i) => (
               <motion.li
@@ -118,10 +122,9 @@ function DeckTile({ summary }: { summary: DeckSummary }) {
   return (
     <MotionLink
       to={`/deck/${deck.id}`}
-      whileHover={{ y: -3 }}
       whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
       transition={pressSpring}
-      className="raised relative flex min-h-40 flex-col justify-between overflow-hidden rounded-card p-5 outline-offset-4"
+      className="raised relative flex flex-col justify-between overflow-hidden rounded-card p-5 transition-[translate] outline-offset-4 hover:-translate-y-[3px] sm:min-h-40"
     >
       <span
         className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-coral/10 blur-2xl"
@@ -132,9 +135,7 @@ function DeckTile({ summary }: { summary: DeckSummary }) {
           {deck.title}
         </h2>
         <Ring value={pct} size={48} stroke={5}>
-          <span className="text-[0.75rem] font-semibold text-ink-2 tabular-nums">
-            {Math.round(pct * 100)}%
-          </span>
+          <span className="text-[0.75rem] font-semibold text-ink-2">{Math.round(pct * 100)}%</span>
         </Ring>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 text-[0.9375rem] text-ink-2">

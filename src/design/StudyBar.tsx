@@ -12,7 +12,7 @@ export function StudyBar({
   menu,
 }: {
   onClose: () => void
-  progress: number
+  progress?: number
   label?: string
   menu?: ReactNode
 }) {
@@ -23,10 +23,10 @@ export function StudyBar({
           <IconX />
         </IconButton>
         <div className="flex flex-1 flex-col gap-1">
-          <ProgressBar value={progress} label={label ?? ''} />
+          {progress !== undefined && <ProgressBar value={progress} label={label ?? ''} />}
         </div>
         {label && (
-          <span className="min-w-12 text-right text-[0.9375rem] font-medium text-ink-2 tabular-nums">
+          <span className="min-w-12 text-right text-[0.9375rem] font-medium text-ink-2">
             {label}
           </span>
         )}
