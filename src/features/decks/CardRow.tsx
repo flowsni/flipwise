@@ -62,7 +62,6 @@ export function CardRow({
   )
   return (
     <motion.li
-      layout
       data-card={card.id}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}

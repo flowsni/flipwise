@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
+import { useHardCards } from '../../db/hooks'
 import { clearSession, loadSession, saveSession } from '../../db/sessions'
 import type { StudyMode } from '../../db/types'
+import { useSessionProgress } from './useSessionProgress'
 
 export interface SavedSession<T> {
   /** The stored session was looked up (or skipped because of "?fresh=1"). */
@@ -21,6 +23,9 @@ export function useSavedSession<T>(
 ): SavedSession<T> {
   const [params, setParams] = useSearchParams()
   const [result, setResult] = useState<SavedSession<T>>({ ready: false })
+  // Keeps the deck page's cache fresh while studying, so going back shows no stale frame.
+  useSessionProgress(deckId, mode)
+  useHardCards(deckId)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: load once per deck and mode
   useEffect(() => {

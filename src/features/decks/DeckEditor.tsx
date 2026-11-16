@@ -2,6 +2,7 @@ import { AnimatePresence, motion, Reorder, useDragControls } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useBack } from '../../app/useBack'
 import { createDeck, getDeckCards, saveDeck } from '../../db/decks'
 import { useDeck } from '../../db/hooks'
 import { type Deck, LEVELS, type Level } from '../../db/types'
@@ -22,6 +23,7 @@ import { findDuplicates } from '../../lib/duplicates'
 import { newId } from '../../lib/ids'
 import type { ParsedCard } from '../../lib/importParser'
 import { LANGUAGES } from '../../lib/languages'
+import { MAX_CARDS } from '../../lib/limits'
 import { matchesQuery } from '../../lib/search'
 import { getSetting, setSetting } from '../../lib/storage'
 import { ImportSheet } from './ImportSheet'
@@ -48,6 +50,7 @@ export function DeckEditor() {
 
 function EditorForm({ deck }: { deck?: Deck }) {
   const navigate = useNavigate()
+  const back = useBack(deck ? `/deck/${deck.id}` : '/')
   const toast = useToast()
   const lastLangs = getSetting<{ termLang: string; defLang: string; level: Level }>(
     'lastDeckLangs',
@@ -112,7 +115,11 @@ function EditorForm({ deck }: { deck?: Deck }) {
     touch()
   }
 
+  const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
+  const full = rows.length >= MAX_CARDS
+
   const addRow = () => {
+    if (full) return
     // A new row would be hidden by an active filter.
     setQuery('')
     const row = emptyRow()
@@ -149,7 +156,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
 
   const goBack = () => {
     if (dirty && !window.confirm(t.editor.unsaved)) return
-    navigate(deck ? `/deck/${deck.id}` : '/')
+    back()
   }
 
   const onSave = async (e: React.FormEvent) => {
@@ -176,7 +183,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
     try {
       if (deck) {
         await saveDeck(deck.id, input, cards)
-        navigate(`/deck/${deck.id}`, { replace: true })
+        back()
       } else {
         const id = await createDeck(input, cards)
         navigate(`/deck/${id}`, { replace: true })
@@ -198,7 +205,6 @@ function EditorForm({ deck }: { deck?: Deck }) {
   // Counted from the live rows: deleting a match must update the number.
   const shownCount = rows.filter(isShown).length
   const lastShown = rows.findLastIndex(isShown)
-  const filled = rows.filter((r) => r.term.trim() || r.definition.trim()).length
   const duplicates = findDuplicates(
     rows.map((r) => r.term),
     termLang,
@@ -400,9 +406,9 @@ function EditorForm({ deck }: { deck?: Deck }) {
       {/* Sticky, not fixed: fixed bars jump around the iOS keyboard. */}
       <div className="sticky bottom-0 z-20 bg-bg/85 px-safe pt-3 pb-safe backdrop-blur-xl">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <Button variant="raised" size="lg" block onClick={addRow}>
+          <Button variant="raised" size="lg" block disabled={full} onClick={addRow}>
             <IconPlus size={20} />
-            {t.editor.addRow}
+            {full ? t.editor.rowsFull : t.editor.addRow}
           </Button>
         </div>
       </div>
@@ -412,6 +418,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
         initialText={importState.text}
         existingTerms={rows.map((r) => r.term)}
         lang={termLang}
+        room={MAX_CARDS - filled}
         onClose={() => setImportState((s) => ({ ...s, open: false }))}
         onImport={(cards) => importRows(cards, importState.rowKey)}
       />

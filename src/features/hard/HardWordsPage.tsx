@@ -1,4 +1,5 @@
-import { useNavigate, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
+import { useBack } from '../../app/useBack'
 import { useDeck, useHardCards } from '../../db/hooks'
 import { IconButton } from '../../design/Button'
 import { IconChevronLeft } from '../../design/icons'
@@ -8,17 +9,20 @@ import { HardList } from './HardList'
 
 /** «Трудные слова» across all decks, or of one deck with `?deck=<id>`. */
 export function HardWordsPage() {
-  const navigate = useNavigate()
   const [params] = useSearchParams()
   const deckId = params.get('deck') ?? undefined
+  const back = useBack(deckId ? `/deck/${deckId}` : '/')
   const deck = useDeck(deckId)
   const hard = useHardCards(deckId)
+
+  // Wait for both, so the subtitle doesn't change from the hint to the deck title.
+  if (deck === undefined || !hard) return null
 
   return (
     <>
       <TopBar
         left={
-          <IconButton label={t.app.back} onClick={() => navigate(deckId ? `/deck/${deckId}` : '/')}>
+          <IconButton label={t.app.back} onClick={back}>
             <IconChevronLeft />
           </IconButton>
         }

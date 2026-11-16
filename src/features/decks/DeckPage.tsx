@@ -1,12 +1,13 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { memo, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useBack } from '../../app/useBack'
 import { db } from '../../db/db'
 import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '../../db/decks'
 import { useDeck, useDeckCards, useDeckProgress, useHardCards } from '../../db/hooks'
 import { isMastered, toggleStar } from '../../db/progress'
-import type { Card, StudyMode } from '../../db/types'
+import type { Card, Deck, StudyMode } from '../../db/types'
 import { Button, IconButton } from '../../design/Button'
 import { cx } from '../../design/cx'
 import {
@@ -30,6 +31,7 @@ import { t } from '../../i18n/ru'
 import { backupFileName, exportDeck } from '../../lib/backup'
 import { shareOrDownloadJson } from '../../lib/files'
 import { languageName } from '../../lib/languages'
+import { MAX_CARDS } from '../../lib/limits'
 import { BulkExamplesSheet } from '../ai/BulkExamplesSheet'
 import { ExamplesSheet } from '../ai/ExamplesSheet'
 import { HardList } from '../hard/HardList'
@@ -41,6 +43,8 @@ import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'
 
 const MotionLink = motion.create(Link)
+/** CSS `translate` is its own property, so it doesn't fight motion's transform from `whileTap`. */
+const hoverLift = 'transition-[translate] hover:-translate-y-[3px]'
 /** Hard cards shown on the deck page; the rest are one tap away. */
 const HARD_PREVIEW = 5
 
@@ -50,6 +54,7 @@ export function DeckPage() {
   const cards = useDeckCards(deckId)
   const progress = useDeckProgress(deckId)
   const navigate = useNavigate()
+  const back = useBack('/')
   const toast = useToast()
   const [importOpen, setImportOpen] = useState(false)
   const [examplesFor, setExamplesFor] = useState<Card | null>(null)
@@ -60,11 +65,21 @@ export function DeckPage() {
   const [params, setParams] = useSearchParams()
   const [highlight, setHighlight] = useState<string | null>(null)
   const target = params.get('card')
+  // The page renders nothing until all of this has loaded: blocks that arrive one by one shift
+  // the list down.
+  const ready =
+    !!deck &&
+    !!cards &&
+    !!progress &&
+    hard !== undefined &&
+    learnSession !== undefined &&
+    testSession !== undefined
 
   // Arriving from search (?card=<id>): scroll to the card, flash it, and drop the parameter.
+  // Only once the list is on screen, otherwise there is nothing to scroll to.
   useEffect(() => {
-    if (!target || !cards) return
-    setParams({}, { replace: true })
+    if (!target || !ready || !cards) return
+    setParams({}, { replace: true, preventScrollReset: true })
     if (!cards.some((c) => c.id === target)) return
     setHighlight(target)
     requestAnimationFrame(() =>
@@ -72,7 +87,7 @@ export function DeckPage() {
         .querySelector(`#deck-cards [data-card="${CSS.escape(target)}"]`)
         ?.scrollIntoView({ block: 'center' }),
     )
-  }, [target, cards, setParams])
+  }, [target, ready, cards, setParams])
 
   // Its own effect: dropping the parameter above re-runs that one and would cancel the timer.
   useEffect(() => {
@@ -81,15 +96,26 @@ export function DeckPage() {
     return () => clearTimeout(timer)
   }, [highlight])
 
-  if (deck === null) return <NotFound />
-  if (!deck || !cards) return null
+  const onDeleteCard = useCallback(
+    async (card: Card) => {
+      const snapshot = await deleteCard(card.id)
+      toast.show({
+        message: t.deck.cardDeleted,
+        action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
+      })
+    },
+    [toast],
+  )
 
-  const mastered = cards.filter((c) => isMastered(progress?.get(c.id))).length
+  if (deck === null) return <NotFound />
+  if (!ready || !deck || !cards || !progress || !hard) return null
+
+  const mastered = cards.filter((c) => isMastered(progress.get(c.id))).length
   const enough = cards.length >= 2
 
   const onDelete = async () => {
     const snapshot = await deleteDeck(deck.id)
-    navigate('/', { replace: true })
+    back()
     toast.show({
       message: t.deck.deleted(deck.title),
       action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
@@ -101,19 +127,11 @@ export function DeckPage() {
     await shareOrDownloadJson(data, backupFileName(data), deck.title)
   }
 
-  const onDeleteCard = async (card: Card) => {
-    const snapshot = await deleteCard(card.id)
-    toast.show({
-      message: t.deck.cardDeleted,
-      action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
-    })
-  }
-
   return (
     <>
       <TopBar
         left={
-          <IconButton label={t.app.back} onClick={() => navigate('/')}>
+          <IconButton label={t.app.back} onClick={back}>
             <IconChevronLeft />
           </IconButton>
         }
@@ -172,7 +190,7 @@ export function DeckPage() {
             </p>
           </div>
           <Ring value={cards.length ? mastered / cards.length : 0} size={60} stroke={6}>
-            <span className="text-[0.8125rem] font-semibold tabular-nums">
+            <span className="text-[0.8125rem] font-semibold">
               {mastered}/{cards.length}
             </span>
           </Ring>
@@ -214,7 +232,7 @@ export function DeckPage() {
           />
         </div>
 
-        {!!hard?.length && (
+        {!!hard.length && (
           <section className="mt-10" aria-labelledby="hard-title">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 id="hard-title" className="text-lg font-semibold tracking-tight">
@@ -257,42 +275,18 @@ export function DeckPage() {
             </div>
           ) : (
             <ul id="deck-cards" className={cardListClass}>
-              <AnimatePresence initial={false}>
+              {/* Rows no longer use `layout`, so presence needn't re-render all of them on every update. */}
+              <AnimatePresence initial={false} presenceAffectsLayout={false}>
                 {cards.map((card) => (
-                  <CardRow
+                  <DeckCardItem
                     key={card.id}
                     card={card}
                     deck={deck}
-                    onSelect={() => setExamplesFor(card)}
+                    starred={!!progress.get(card.id)?.starred}
                     highlighted={highlight === card.id}
-                  >
-                    <StarButton
-                      term={card.term}
-                      starred={!!progress?.get(card.id)?.starred}
-                      onToggle={() => toggleStar(card.id, deck.id)}
-                    />
-                    <SpeakButton text={card.term} lang={deck.termLang} />
-                    <Menu
-                      label={`${t.app.more}: ${card.term}`}
-                      sections={[
-                        {
-                          items: [
-                            {
-                              label: t.examples.button,
-                              icon: <IconSparkles />,
-                              onSelect: () => setExamplesFor(card),
-                            },
-                            {
-                              label: t.deck.deleteCard,
-                              icon: <IconTrash />,
-                              danger: true,
-                              onSelect: () => onDeleteCard(card),
-                            },
-                          ],
-                        },
-                      ]}
-                    />
-                  </CardRow>
+                    onExamples={setExamplesFor}
+                    onDelete={onDeleteCard}
+                  />
                 ))}
               </AnimatePresence>
             </ul>
@@ -304,6 +298,7 @@ export function DeckPage() {
         open={importOpen}
         existingTerms={cards.map((c) => c.term)}
         lang={deck.termLang}
+        room={MAX_CARDS - cards.length}
         onClose={() => setImportOpen(false)}
         onImport={async (parsed) => {
           await appendCards(deck.id, parsed)
@@ -320,6 +315,54 @@ export function DeckPage() {
     </>
   )
 }
+
+/** Memoized: starring one card re-renders one row, not the whole list. */
+const DeckCardItem = memo(function DeckCardItem({
+  card,
+  deck,
+  starred,
+  highlighted,
+  onExamples,
+  onDelete,
+}: {
+  card: Card
+  deck: Deck
+  starred: boolean
+  highlighted: boolean
+  onExamples: (card: Card) => void
+  onDelete: (card: Card) => void
+}) {
+  return (
+    <CardRow card={card} deck={deck} onSelect={() => onExamples(card)} highlighted={highlighted}>
+      <StarButton
+        term={card.term}
+        starred={starred}
+        onToggle={() => toggleStar(card.id, deck.id)}
+      />
+      <SpeakButton text={card.term} lang={deck.termLang} />
+      <Menu
+        label={`${t.app.more}: ${card.term}`}
+        sections={[
+          {
+            items: [
+              {
+                label: t.examples.button,
+                icon: <IconSparkles />,
+                onSelect: () => onExamples(card),
+              },
+              {
+                label: t.deck.deleteCard,
+                icon: <IconTrash />,
+                danger: true,
+                onSelect: () => onDelete(card),
+              },
+            ],
+          },
+        ]}
+      />
+    </CardRow>
+  )
+})
 
 const tones = {
   coral: 'bg-coral/15 text-primary',
@@ -387,10 +430,9 @@ function ModeTile({
     return (
       <MotionLink
         to={`/deck/${deckId}/${to}`}
-        whileHover={{ y: -3 }}
         whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
         transition={pressSpring}
-        className={cx(base, 'outline-offset-4')}
+        className={cx(base, hoverLift, 'outline-offset-4')}
       >
         {iconBox}
         <span className="min-w-0 flex-1">
@@ -409,10 +451,9 @@ function ModeTile({
       // Motion makes press targets tabbable unless they have a tabindex; the links inside are
       // the real tab stops, the tile itself must not be a dead one.
       tabIndex={-1}
-      whileHover={{ y: -3 }}
       whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
       transition={pressSpring}
-      className={cx(base, 'relative flex-wrap sm:flex-nowrap')}
+      className={cx(base, hoverLift, 'relative flex-wrap sm:flex-nowrap')}
     >
       {iconBox}
       <span className="min-w-0 flex-1">

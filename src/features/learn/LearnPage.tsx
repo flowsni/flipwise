@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
+import { useBack } from '../../app/useBack'
 import { useDeckProgress } from '../../db/hooks'
 import { recordAnswer } from '../../db/progress'
 import type { AnswerSide, Card, Deck, Progress } from '../../db/types'
@@ -49,7 +50,7 @@ function Learn({
   cards: Card[]
   progress: Map<string, Progress>
 }) {
-  const navigate = useNavigate()
+  const back = useBack(`/deck/${deck.id}`)
   const [answerWith, setAnswerWith] = useSetting<AnswerSide>('learn.answerWith', 'definition')
   const [state, setState] = useState<LearnState | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
@@ -122,7 +123,7 @@ function Learn({
   if (!state) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <StudyBar onClose={() => navigate(`/deck/${deck.id}`)} progress={0} />
+        <StudyBar onClose={back} />
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-safe sm:pt-8">
           <LearnSetup cards={cards} progress={progress} onStart={start} />
         </main>
@@ -137,7 +138,7 @@ function Learn({
   return (
     <div className="flex min-h-dvh flex-col">
       <StudyBar
-        onClose={() => navigate(`/deck/${deck.id}`)}
+        onClose={back}
         progress={overallProgress(state)}
         label={`${Math.round(overallProgress(state) * 100)}%`}
         menu={
@@ -205,7 +206,7 @@ function Learn({
               key="done"
               count={state.order.length}
               onAgain={() => restart()}
-              onDeck={() => navigate(`/deck/${deck.id}`)}
+              onDeck={back}
             />
           )}
         </AnimatePresence>
