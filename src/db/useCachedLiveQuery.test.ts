@@ -17,4 +17,13 @@ describe('useCachedLiveQuery', () => {
     const other = renderHook(() => useCachedLiveQuery('other', async () => 1, []))
     expect(other.result.current).toBeUndefined()
   })
+
+  it('does not remember null when cacheNull is false', async () => {
+    const first = renderHook(() => useCachedLiveQuery('gone', async () => null, [], false))
+    await waitFor(() => expect(first.result.current).toBeNull())
+    first.unmount()
+
+    const second = renderHook(() => useCachedLiveQuery('gone', async () => null, [], false))
+    expect(second.result.current).toBeUndefined()
+  })
 })

@@ -37,6 +37,7 @@ export function useDeck(deckId: string | undefined): Deck | null | undefined {
     `deck:${deckId}`,
     async () => (deckId ? ((await db.decks.get(deckId)) ?? null) : null),
     [deckId],
+    false,
   )
 }
 
