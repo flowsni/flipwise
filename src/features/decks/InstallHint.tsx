@@ -22,7 +22,8 @@ export function InstallHint() {
   const [dismissed, setDismissed] = useSetting('installHintDismissed', false)
   const show = !dismissed && isIosBrowser()
   return (
-    <AnimatePresence>
+    // initial={false}: shown at once when the page mounts (no layout jump), animated on dismiss.
+    <AnimatePresence initial={false}>
       {show && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
