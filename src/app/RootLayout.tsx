@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useState } from 'react'
 import { ScrollRestoration, useLocation, useNavigationType, useOutlet } from 'react-router'
 import { softSpring } from '../design/motion'
 
@@ -12,8 +13,12 @@ export function RootLayout() {
   // POP = app start or the system's back/forward (iOS edge swipe), which already animated its own
   // snapshot. Swap pages in the same frame: `mode="wait"` would leave an empty frame between the
   // old page leaving and the new one mounting. `initial={false}` also skips in-page enter
-  // animations.
-  const pop = useNavigationType() === 'POP'
+  // animations. Latched per path: a REPLACE on the same page (search typing) must not switch
+  // branches and remount it.
+  const navType = useNavigationType()
+  const [page, setPage] = useState({ path: location.pathname, pop: navType === 'POP' })
+  if (page.path !== location.pathname) setPage({ path: location.pathname, pop: navType === 'POP' })
+  const pop = page.pop
 
   return (
     <>
