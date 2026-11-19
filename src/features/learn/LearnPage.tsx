@@ -4,9 +4,10 @@ import { useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { useBack } from '../../app/useBack'
 import { useDeckProgress } from '../../db/hooks'
-import { recordAnswer } from '../../db/progress'
+import { overrideWrong, recordAnswer } from '../../db/progress'
 import type { AnswerSide, Card, Deck, Progress } from '../../db/types'
 import { Button } from '../../design/Button'
+import { Segmented } from '../../design/Field'
 import { IconRefresh } from '../../design/icons'
 import { Menu } from '../../design/Menu'
 import { StudyBar } from '../../design/StudyBar'
@@ -14,13 +15,14 @@ import { t } from '../../i18n/ru'
 import { useSetting } from '../../lib/storage'
 import { StudyScopePicker, useStudyScope } from '../study/StudyScopePicker'
 import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
-import { persistSession, useSavedSession } from '../study/useSavedSession'
+import { persistSession, useRestartUndo, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { Finished, RoundSummary } from './LearnSummaries'
 import {
   acceptLearnSession,
   createLearnState,
   isFinished,
+  isLearned,
   type LearnState,
   MIN_CARDS,
   nextQuestion,
@@ -59,21 +61,6 @@ function Learn({
 
   const session = useSavedSession<LearnState>(deck.id, 'learn', acceptLearnSession)
 
-  // Resume the saved session once it is loaded; otherwise the scope picker is shown first.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once when loading finishes
-  useEffect(() => {
-    if (!session.ready || state) return
-    const saved = session.saved
-    if (saved) {
-      if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
-      // A session saved while feedback was showing already counted that answer: move on.
-      // Also re-ask when the pending card was deleted while the session was paused.
-      const pendingOk =
-        saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
-      setState(pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards))
-    }
-  }, [session.ready])
-
   const persist = useCallback(
     (s: LearnState) => {
       setState(s)
@@ -81,6 +68,27 @@ function Learn({
     },
     [deck.id],
   )
+
+  /** A stored session, made ready to continue. */
+  const revive = (saved: LearnState): LearnState => {
+    if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
+    // A session saved while feedback was showing already counted that answer: move on.
+    // Also re-ask when the pending card was deleted while the session was paused.
+    const pendingOk =
+      saved.current && !saved.answered && cards.some((c) => c.id === saved.current?.cardId)
+    return pendingOk || saved.roundOver ? saved : nextQuestion(saved, cards)
+  }
+  const offerUndo = useRestartUndo(session.discarded, (s) => {
+    setFeedback(null)
+    persist(revive(s))
+  })
+
+  // Resume the saved session once it is loaded; otherwise the scope picker is shown first.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once when loading finishes
+  useEffect(() => {
+    if (!session.ready || state) return
+    if (session.saved) setState(revive(session.saved))
+  }, [session.ready])
 
   const start = (options: ScopeOptions) => {
     const ids = selectStudyCards(cards, progress, options)
@@ -90,6 +98,7 @@ function Learn({
   /** Starts over with the same cards as the current session. */
   const restart = (side: AnswerSide = answerWith) => {
     if (!state) return
+    if (!isFinished(state)) offerUndo(state)
     setFeedback(null)
     persist(createLearnState(cards, side, Math.random, {}, state.order))
   }
@@ -107,7 +116,7 @@ function Learn({
     if (!feedback) return
     const s = overrideLastWrong(feedback.before)
     const id = feedback.before.current!.cardId
-    recordAnswer(id, deck.id, true, s.stage[id])
+    overrideWrong(id, deck.id, s.stage[id])
     setFeedback({ ...feedback, correct: true, match: { verdict: 'correct' } })
     persist(s)
   }
@@ -125,7 +134,13 @@ function Learn({
       <div className="flex min-h-dvh flex-col">
         <StudyBar onClose={back} />
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-4 pb-safe sm:pt-8">
-          <LearnSetup cards={cards} progress={progress} onStart={start} />
+          <LearnSetup
+            cards={cards}
+            progress={progress}
+            answerWith={answerWith}
+            onAnswerWith={setAnswerWith}
+            onStart={start}
+          />
         </main>
       </div>
     )
@@ -134,13 +149,21 @@ function Learn({
   const finished = isFinished(state)
   const phase = finished ? 'done' : state.roundOver && !feedback ? 'round' : 'question'
   const byId = new Map(cards.map((c) => [c.id, c]))
+  // The other side of a card, looked up by the answer text of an option that was picked.
+  const translate = (option: string) => {
+    const card = cards.find((c) => (answerWith === 'term' ? c.term : c.definition) === option)
+    return card && (answerWith === 'term' ? card.definition : card.term)
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
       <StudyBar
         onClose={back}
         progress={overallProgress(state)}
-        label={`${Math.round(overallProgress(state) * 100)}%`}
+        label={t.study.progress(
+          state.order.filter((id) => isLearned(state, id)).length,
+          state.order.length,
+        )}
         menu={
           <Menu
             label={t.study.options}
@@ -187,6 +210,7 @@ function Learn({
               promptLang={promptLang}
               answerLang={answerLang}
               feedback={feedback}
+              translate={translate}
               onAnswer={answer}
               onContinue={advance}
               onIWasRight={iWasRight}
@@ -218,10 +242,14 @@ function Learn({
 function LearnSetup({
   cards,
   progress,
+  answerWith,
+  onAnswerWith,
   onStart,
 }: {
   cards: Card[]
   progress: Map<string, Progress>
+  answerWith: AnswerSide
+  onAnswerWith: (side: AnswerSide) => void
   onStart: (options: ScopeOptions) => void
 }) {
   const { scope, setScope, limit, setLimit } = useStudyScope()
@@ -245,6 +273,18 @@ function LearnSetup({
         limit={limit}
         onLimit={setLimit}
       />
+      <div className="flex flex-col gap-2">
+        <span className="text-[0.9375rem] font-medium text-ink-2">{t.study.answerWith}</span>
+        <Segmented
+          label={t.study.answerWith}
+          value={answerWith}
+          onChange={onAnswerWith}
+          options={[
+            { value: 'definition', label: t.study.withDefinition },
+            { value: 'term', label: t.study.withTerm },
+          ]}
+        />
+      </div>
       <Button type="submit" variant="primary" size="lg" block>
         {t.scope.start}
       </Button>

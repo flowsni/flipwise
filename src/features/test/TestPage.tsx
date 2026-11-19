@@ -3,12 +3,12 @@ import { useParams } from 'react-router'
 import { NotFound } from '../../app/RouteError'
 import { useBack } from '../../app/useBack'
 import { useDeckProgress } from '../../db/hooks'
-import { recordAnswer } from '../../db/progress'
+import { overrideWrong, recordAnswer } from '../../db/progress'
 import type { Card, Deck, Progress } from '../../db/types'
 import { StudyBar } from '../../design/StudyBar'
 import { t } from '../../i18n/ru'
 import { MIN_CARDS } from '../learn/learnEngine'
-import { persistSession, useSavedSession } from '../study/useSavedSession'
+import { persistSession, useRestartUndo, useSavedSession } from '../study/useSavedSession'
 import { useStudyDeck } from '../study/useStudyDeck'
 import { TestForm } from './TestForm'
 import { TestResults } from './TestResults'
@@ -50,6 +50,8 @@ function TestRunner({
     setState(s)
     persistSession(deck.id, 'test', s, s?.phase === 'taking')
   }
+
+  useRestartUndo(session.discarded, (s) => update(s))
 
   const start = (config: TestConfig, onlyCardIds?: string[]) => {
     const questions = generateTest(cards, config, Math.random, onlyCardIds)
@@ -106,9 +108,12 @@ function TestRunner({
           <TestResults
             deck={deck}
             state={state}
-            onOverride={(id) =>
+            onOverride={(id) => {
+              if (state.overrides[id]) return
+              const q = state.questions.find((x) => x.id === id)
+              if (q) overrideWrong(q.cardId, deck.id)
               setState({ ...state, overrides: { ...state.overrides, [id]: true } })
-            }
+            }}
             onRetakeMistakes={(cardIds) => {
               start({ ...state.config, count: cardIds.length }, cardIds)
             }}

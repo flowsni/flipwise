@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useHardCards } from '../../db/hooks'
 import { clearSession, loadSession, saveSession } from '../../db/sessions'
 import type { StudyMode } from '../../db/types'
+import { useToast } from '../../design/Toast'
+import { t } from '../../i18n/ru'
 import { useSessionProgress } from './useSessionProgress'
 
 export interface SavedSession<T> {
@@ -10,6 +12,8 @@ export interface SavedSession<T> {
   ready: boolean
   /** A stored session that passed `accept`, or undefined to start fresh. */
   saved?: T
+  /** The unfinished session a "?fresh=1" start threw away: «Отменить» brings it back. */
+  discarded?: T
 }
 
 /**
@@ -32,12 +36,18 @@ export function useSavedSession<T>(
     let cancelled = false
     const fresh = params.get('fresh') === '1'
     ;(async () => {
+      const stored = await loadSession<T>(deckId, mode)
+      const usable = stored && accept(stored) ? stored : undefined
       if (fresh) {
         setParams({}, { replace: true })
         await clearSession(deckId, mode)
       }
-      const saved = fresh ? undefined : await loadSession<T>(deckId, mode)
-      if (!cancelled) setResult({ ready: true, saved: saved && accept(saved) ? saved : undefined })
+      if (!cancelled)
+        setResult({
+          ready: true,
+          saved: fresh ? undefined : usable,
+          discarded: fresh ? usable : undefined,
+        })
     })()
     return () => {
       cancelled = true
@@ -56,4 +66,25 @@ export function persistSession(
 ): void {
   if (unfinished) saveSession(deckId, mode, state)
   else clearSession(deckId, mode)
+}
+
+/**
+ * Offers «Отменить» after a restart threw away unfinished progress: on the "Заново" tile
+ * (`discarded` of `useSavedSession`) and on in-session restarts (`offer`).
+ */
+export function useRestartUndo<T>(discarded: T | undefined, restore: (session: T) => void) {
+  const toast = useToast()
+  const restoreRef = useRef(restore)
+  restoreRef.current = restore
+  const offer = (session: T) =>
+    toast.show({
+      message: t.study.restarted,
+      top: true,
+      action: { label: t.app.undo, onClick: () => restoreRef.current(session) },
+    })
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the tile discarded a session
+  useEffect(() => {
+    if (discarded) offer(discarded)
+  }, [discarded])
+  return offer
 }

@@ -208,6 +208,29 @@ function Flashcards({
     setEnterFrom(undefined)
   }
 
+  /** The menu's restart: «Отменить» brings back the cards, position and verdicts of the round. */
+  const restartWithUndo = () => {
+    const before = { picked, round, queue, index, history: historyRef.current }
+    const hadProgress = index > 0
+    restart(selection.ids)
+    if (!hadProgress) return
+    toast.show({
+      message: t.study.restarted,
+      top: true,
+      action: {
+        label: t.app.undo,
+        onClick: () => {
+          setPicked(before.picked)
+          setRound((r) => r + 1)
+          setQueue(before.queue)
+          setIndex(before.index)
+          setHistory(before.history)
+          setEnterFrom(undefined)
+        },
+      },
+    })
+  }
+
   // The remembered scope can be empty (e.g. «Избранные» without stars): say we show all cards.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only for the first selection
   useEffect(() => {
@@ -327,7 +350,7 @@ function Flashcards({
                   {
                     label: t.flash.restart,
                     icon: <IconRefresh />,
-                    onSelect: () => restart(selection.ids),
+                    onSelect: restartWithUndo,
                   },
                 ],
               },
@@ -576,7 +599,9 @@ function Summary({
         </span>
       </Ring>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t.flash.doneTitle}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {total && known / total >= 0.6 ? t.flash.doneTitle : t.flash.doneNeutralTitle}
+        </h1>
         <p className="mt-2 flex justify-center gap-4 text-ink-2">
           <span className="font-semibold text-good">{t.flash.knowCount(known)}</span>
           <span className="font-semibold text-bad">{t.flash.learningCount(learning)}</span>

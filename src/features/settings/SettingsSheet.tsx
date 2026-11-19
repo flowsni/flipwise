@@ -24,7 +24,7 @@ import {
   importBackup,
   parseBackup,
 } from '../../lib/backup'
-import { downloadFile, pickFile } from '../../lib/files'
+import { pickFile, shareOrDownloadJson } from '../../lib/files'
 import { languageName, speechSample } from '../../lib/languages'
 import { useSetting } from '../../lib/storage'
 import { aiErrorMessage } from '../ai/AiErrorBox'
@@ -132,7 +132,11 @@ function AiSection({ autoFocus }: { autoFocus: boolean }) {
 
   return (
     <Section title={t.settings.ai} id="settings-ai">
-      <Field id={ids.provider} label={t.settings.provider}>
+      <Field
+        id={ids.provider}
+        label={t.settings.provider}
+        hint={provider ? undefined : t.settings.providerHint}
+      >
         <Select
           ref={providerRef}
           id={ids.provider}
@@ -317,12 +321,9 @@ function DataSection() {
 
   const onExport = async () => {
     const backup = await exportAll(db)
-    downloadFile(
-      new File([JSON.stringify(backup, null, 2)], backupFileName(backup), {
-        type: 'application/json',
-      }),
-    )
-    toast.show({ message: t.settings.exported })
+    // The share sheet on phones: iOS PWAs download files poorly.
+    const result = await shareOrDownloadJson(backup, backupFileName(backup), t.settings.exportAll)
+    if (result !== 'cancelled') toast.show({ message: t.settings.exported })
   }
 
   const onImport = async () => {

@@ -186,7 +186,10 @@ export function DeckPage() {
             {deck.description && <p className="mt-1 text-ink-2">{deck.description}</p>}
             <p className="mt-2 text-[0.9375rem] text-ink-2">
               {t.plural.cards(cards.length)} · {languageName(deck.termLang)} →{' '}
-              {languageName(deck.defLang)} · {deck.level}
+              {/* One unit: «· B1» must not wrap onto a line of its own. */}
+              <span className="whitespace-nowrap">
+                {languageName(deck.defLang)} · {deck.level}
+              </span>
             </p>
           </div>
           <Ring value={cards.length ? mastered / cards.length : 0} size={60} stroke={6}>

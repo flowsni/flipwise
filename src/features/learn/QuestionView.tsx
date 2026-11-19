@@ -26,6 +26,7 @@ export function QuestionView({
   promptLang,
   answerLang,
   feedback,
+  translate,
   onAnswer,
   onContinue,
   onIWasRight,
@@ -34,6 +35,8 @@ export function QuestionView({
   promptLang: string
   answerLang: string
   feedback: Feedback | null
+  /** The other side of the card whose answer text is `option` (to explain a wrong pick). */
+  translate: (option: string) => string | undefined
   onAnswer: (response: string) => void
   onContinue: () => void
   onIWasRight: () => void
@@ -86,7 +89,13 @@ export function QuestionView({
       transition={enterSpring}
       className="flex flex-1 flex-col gap-6"
     >
-      <div className="raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7">
+      <div
+        className={cx(
+          'raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7',
+          // Phones: the question takes the top, the options sit in the thumb zone below.
+          question.kind === 'choice' && 'flex-1 sm:flex-none',
+        )}
+      >
         <div className="flex items-center justify-between">
           <span className="text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
             {question.kind === 'choice' ? t.learn.chooseAnswer : t.learn.typeAnswer}
@@ -102,6 +111,22 @@ export function QuestionView({
         >
           {question.prompt}
         </p>
+        {/* The verdict lives in the card, in a fixed slot: the options below never move. */}
+        {question.kind === 'choice' && (
+          <div className="flex min-h-16 flex-col items-center gap-1 text-center">
+            {feedback && (
+              <p
+                role="status"
+                className={cx('font-semibold', feedback.correct ? 'text-good' : 'text-bad')}
+              >
+                {feedback.correct ? t.learn.correct : t.learn.wrong}
+              </p>
+            )}
+            {feedback && !feedback.correct && (
+              <PickedMeaning picked={feedback.response} translate={translate} lang={answerLang} />
+            )}
+          </div>
+        )}
       </div>
 
       <div ref={scope}>
@@ -134,8 +159,11 @@ export function QuestionView({
                 >
                   <span
                     className={cx(
-                      'grid size-7 shrink-0 place-items-center rounded-lg text-[0.9375rem] font-semibold',
-                      state === 'right' ? 'bg-good text-white' : 'bg-surface-2 text-ink-2',
+                      'size-7 shrink-0 place-items-center rounded-lg text-[0.9375rem] font-semibold',
+                      // The 1–4 hints only make sense where there is a keyboard.
+                      state === 'right'
+                        ? 'grid bg-good text-white'
+                        : 'hidden bg-surface-2 text-ink-2 fine:grid',
                     )}
                   >
                     {state === 'right' ? <IconCheck size={16} strokeWidth={3} /> : i + 1}
@@ -191,7 +219,8 @@ export function QuestionView({
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      {/* Choice: room for «Продолжить» is reserved, so the options above don't jump up. */}
+      <div className={cx('flex flex-col gap-3', question.kind === 'choice' && 'min-h-14')}>
         {feedback && question.kind === 'written' && (
           <AnswerFeedback
             match={feedback.match}
@@ -199,14 +228,6 @@ export function QuestionView({
             answer={question.answer}
             lang={answerLang}
           />
-        )}
-        {feedback && question.kind === 'choice' && (
-          <p
-            role="status"
-            className={cx('text-center font-semibold', feedback.correct ? 'text-good' : 'text-bad')}
-          >
-            {feedback.correct ? t.learn.correct : t.learn.wrong}
-          </p>
         )}
         {feedback && !(feedback.correct && feedback.match.verdict === 'correct') && (
           <div className="flex flex-wrap gap-3">
@@ -233,5 +254,24 @@ export function QuestionView({
         )}
       </div>
     </motion.section>
+  )
+}
+
+/** «отправление, вылет — departure»: what the wrongly picked option actually means. */
+function PickedMeaning({
+  picked,
+  translate,
+  lang,
+}: {
+  picked: string
+  translate: (option: string) => string | undefined
+  lang: string
+}) {
+  const meaning = translate(picked)
+  if (!picked || !meaning) return null
+  return (
+    <p className="text-ink-2">
+      <span lang={lang}>{picked}</span> — {meaning}
+    </p>
   )
 }

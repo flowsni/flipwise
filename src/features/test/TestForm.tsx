@@ -1,4 +1,5 @@
 import { motion } from 'motion/react'
+import { useState } from 'react'
 import type { Deck } from '../../db/types'
 import { Button } from '../../design/Button'
 import { cx } from '../../design/cx'
@@ -23,12 +24,15 @@ export function TestForm({
   const promptLang = state.config.answerWith === 'term' ? deck.defLang : deck.termLang
   const set = (id: string, value: string) => onChange({ ...state.answers, [id]: value })
   const unanswered = state.questions.filter((q) => !isAnswered(q, state.answers)).length
+  // The first press only warns; it is armed for this exact number of unanswered questions.
+  const [armedFor, setArmedFor] = useState<number | null>(null)
+  const armed = unanswered > 0 && armedFor === unanswered
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        if (unanswered && !window.confirm(t.test.unanswered(unanswered))) return
+        if (unanswered && !armed) return setArmedFor(unanswered)
         onSubmit()
       }}
       className="flex flex-col gap-4"
@@ -130,9 +134,19 @@ export function TestForm({
           )}
         </motion.fieldset>
       ))}
-      <Button type="submit" variant="primary" size="lg" block className="my-4">
-        {t.test.submit}
-      </Button>
+      <div className="my-4 flex flex-col gap-2">
+        {unanswered > 0 && (
+          <p
+            role="status"
+            className={cx('text-center text-[0.9375rem]', armed ? 'text-bad' : 'text-ink-2')}
+          >
+            {t.test.unanswered(unanswered)}
+          </p>
+        )}
+        <Button type="submit" variant="primary" size="lg" block>
+          {armed ? t.test.submitAnyway : t.test.submit}
+        </Button>
+      </div>
     </form>
   )
 }
