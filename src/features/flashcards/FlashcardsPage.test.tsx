@@ -114,7 +114,7 @@ describe('FlashcardsPage', () => {
       await screen.findByRole('button', { name: cardLabel('Лают две собаки') }, { timeout: 3000 })
       await settle()
       fireEvent.click(screen.getByRole('button', { name: t.flash.learning }))
-      await screen.findByText(t.flash.doneTitle, undefined, { timeout: 3000 })
+      await screen.findByText(t.flash.doneNeutralTitle, undefined, { timeout: 3000 })
 
       await waitFor(async () => {
         const rows = await db.progress.toArray()

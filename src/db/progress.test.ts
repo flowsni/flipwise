@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { db } from './db'
 import { deleteCard } from './decks'
-import { toggleStar } from './progress'
+import { overrideWrong, recordAnswer, toggleStar } from './progress'
 
 beforeEach(async () => {
   await db.cards.add({
@@ -51,5 +51,18 @@ describe('toggleStar', () => {
     expect(await db.progress.get('c1')).toBeUndefined()
     expect(await toggleStar('c1', 'd1')).toBe(false)
     expect(await db.progress.get('c1')).toBeUndefined()
+  })
+})
+
+describe('overrideWrong', () => {
+  it('turns the recorded mistake into a correct answer', async () => {
+    await recordAnswer('c1', 'd1', false, 0)
+    const p = await overrideWrong('c1', 'd1', 1)
+    expect(p).toMatchObject({ correct: 1, wrong: 0, learnStage: 1 })
+  })
+
+  it('never makes wrong negative', async () => {
+    const p = await overrideWrong('c1', 'd1')
+    expect(p).toMatchObject({ correct: 1, wrong: 0 })
   })
 })

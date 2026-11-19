@@ -180,6 +180,30 @@ describe('DeckEditor filter', () => {
   })
 })
 
+describe('Enter key', () => {
+  it('moves term → definition → next term and never saves the deck', async () => {
+    const deckId = await renderEditor()
+    const term1 = screen.getByLabelText(`${t.editor.term} 1`)
+    const def1 = screen.getByLabelText(`${t.editor.definition} 1`)
+    term1.focus()
+    expect(fireEvent.keyDown(term1, { key: 'Enter' })).toBe(false)
+    expect(document.activeElement).toBe(def1)
+    expect(fireEvent.keyDown(def1, { key: 'Enter' })).toBe(false)
+    expect(document.activeElement).toBe(screen.getByLabelText(`${t.editor.term} 2`))
+    expect(screen.queryByText('deck page')).toBeNull()
+    expect(await getDeckCards(deckId)).toHaveLength(WORDS.length)
+  })
+
+  it('title → description → first term', async () => {
+    await renderEditor()
+    const title = screen.getByLabelText(t.editor.title)
+    fireEvent.keyDown(title, { key: 'Enter' })
+    expect(document.activeElement).toBe(screen.getByLabelText(t.editor.description))
+    fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+    expect(document.activeElement).toBe(screen.getByLabelText(`${t.editor.term} 1`))
+  })
+})
+
 describe('card limit', () => {
   it('disables adding rows once the deck has MAX_CARDS', async () => {
     const deckId = await createDeck(

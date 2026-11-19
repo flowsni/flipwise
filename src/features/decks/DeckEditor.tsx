@@ -154,6 +154,20 @@ function EditorForm({ deck }: { deck?: Deck }) {
     }
   }
 
+  // Enter must never submit the form (it would save and close the editor mid-typing):
+  // it moves to the next visible field instead. The last definition adds a row itself.
+  const onEnter = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    const el = e.target
+    // Only the editor's own fields: the import sheet sits inside the form too.
+    if (e.key !== 'Enter' || e.defaultPrevented || !(el instanceof HTMLInputElement)) return
+    if (el.type !== 'text' || !el.closest('main')) return
+    e.preventDefault()
+    const fields = [...e.currentTarget.querySelectorAll<HTMLInputElement>('main input')].filter(
+      (f) => f.type === 'text' && !f.closest('[hidden]'),
+    )
+    fields[fields.indexOf(el) + 1]?.focus()
+  }
+
   const goBack = () => {
     if (dirty && !window.confirm(t.editor.unsaved)) return
     back()
@@ -215,7 +229,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   return (
-    <form onSubmit={onSave} noValidate>
+    <form onSubmit={onSave} onKeyDown={onEnter} noValidate>
       <TopBar
         left={
           <IconButton label={t.app.back} onClick={goBack}>
@@ -249,6 +263,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
               autoFocus={!deck}
               aria-invalid={titleError}
               placeholder={t.editor.titlePlaceholder}
+              enterKeyHint="next"
               onChange={(e) => {
                 setTitle(e.target.value)
                 setTitleError(false)
@@ -262,6 +277,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
               id={ids.description}
               value={description}
               placeholder={t.editor.descriptionPlaceholder}
+              enterKeyHint="next"
               onChange={(e) => {
                 setDescription(e.target.value)
                 touch()
@@ -484,6 +500,7 @@ function EditorRow({
           aria-label={`${t.editor.term} ${index + 1}`}
           placeholder={t.editor.term}
           lang={termLang}
+          enterKeyHint="next"
           value={row.term}
           aria-describedby={duplicateOf ? hintId : undefined}
           onChange={(e) => onChange({ term: e.target.value })}
@@ -494,6 +511,7 @@ function EditorRow({
           aria-label={`${t.editor.definition} ${index + 1}`}
           placeholder={t.editor.definition}
           lang={defLang}
+          enterKeyHint="next"
           value={row.definition}
           onChange={(e) => onChange({ definition: e.target.value })}
           onPaste={onPaste}

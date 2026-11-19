@@ -51,6 +51,18 @@ export function recordAnswer(
   }))
 }
 
+/**
+ * «Я был прав»: an answer already recorded as wrong becomes a correct one. Recording a second
+ * answer (`recordAnswer(true)`) would leave the old mistake counted and the word in «Трудные».
+ */
+export function overrideWrong(cardId: string, deckId: string, learnStage?: 0 | 1 | 2) {
+  return updateProgress(cardId, deckId, (p) => ({
+    correct: p.correct + 1,
+    wrong: Math.max(0, p.wrong - 1),
+    ...(learnStage !== undefined ? { learnStage } : {}),
+  }))
+}
+
 export async function resetFlash(deckId: string): Promise<void> {
   await db.progress.where('deckId').equals(deckId).modify({ flash: 'new' })
 }
