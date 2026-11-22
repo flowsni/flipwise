@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router'
 import { SegmentedField } from '@/design'
 import { t } from '@/i18n/ru'
 import { useSetting } from '@/lib'
@@ -7,11 +8,26 @@ export const scopeLabels: Record<StudyScope, string> = {
   all: t.scope.all,
   unknown: t.scope.unknown,
   starred: t.scope.starred,
+  hard: t.scope.hard,
 }
 
+/** "?scope=" (the deck page's hard-words buttons) wins over the remembered scope, for this visit only. */
 export function useStudyScope() {
-  const [scope, setScope] = useSetting<StudyScope>('study.scope', 'all')
+  const [params, setParams] = useSearchParams()
+  const [saved, setSaved] = useSetting<StudyScope>('study.scope', 'all')
   const [limit, setLimit] = useSetting<StudyLimit>('study.limit', 0)
+  const scope = (params.get('scope') as StudyScope | null) ?? saved
+  const setScope = (s: StudyScope) => {
+    setSaved(s)
+    if (params.has('scope'))
+      setParams(
+        (p) => {
+          p.delete('scope')
+          return p
+        },
+        { replace: true, preventScrollReset: true },
+      )
+  }
   return {
     scope: STUDY_SCOPES.includes(scope) ? scope : 'all',
     setScope,
@@ -38,6 +54,7 @@ export function StudyScopePicker({
     <div className="flex flex-col gap-4">
       <SegmentedField
         label={t.scope.which}
+        grid
         value={scope}
         onChange={onScope}
         options={STUDY_SCOPES.map((s) => ({

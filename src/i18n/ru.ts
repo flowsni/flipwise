@@ -161,6 +161,7 @@ export const ru = {
     all: 'Все',
     unknown: 'Незнакомые',
     starred: 'Избранные',
+    hard: 'Трудные',
     size: 'Карточек за сессию',
     sizeAll: 'Все',
     chip: (label: string, n: number) => `${label} · ${n}`,

@@ -26,11 +26,13 @@ const progress = new Map([
   p('c1', { learnStage: 2 }),
   p('c2', { flash: 'learning', starred: true }),
   p('c3', { flash: 'known', starred: true }),
+  p('c4', { correct: 1, wrong: 3 }),
+  p('c5', { correct: 9, wrong: 2 }),
 ])
 
 describe('scopeCounts', () => {
   it('counts every scope', () => {
-    expect(scopeCounts(cards, progress)).toEqual({ all: 30, unknown: 27, starred: 2 })
+    expect(scopeCounts(cards, progress)).toEqual({ all: 30, unknown: 27, starred: 2, hard: 1 })
   })
 })
 
@@ -46,6 +48,10 @@ describe('selectStudyCards', () => {
   it('«Избранные» takes only starred cards, mastered or not', () => {
     const ids = selectStudyCards(cards, progress, { scope: 'starred', limit: 0 })
     expect(ids).toEqual(['c2', 'c3'])
+  })
+
+  it('«Трудные» takes only cards with many mistakes', () => {
+    expect(selectStudyCards(cards, progress, { scope: 'hard', limit: 0 })).toEqual(['c4'])
   })
 
   it('limits the session to a random sample in deck order', () => {
@@ -64,7 +70,7 @@ describe('selectStudyCards', () => {
 
 describe('usableScope', () => {
   it('falls back to «Все» for an empty scope', () => {
-    expect(usableScope('starred', { all: 5, unknown: 2, starred: 0 })).toBe('all')
-    expect(usableScope('unknown', { all: 5, unknown: 2, starred: 0 })).toBe('unknown')
+    expect(usableScope('starred', { all: 5, unknown: 2, starred: 0, hard: 0 })).toBe('all')
+    expect(usableScope('unknown', { all: 5, unknown: 2, starred: 0, hard: 0 })).toBe('unknown')
   })
 })

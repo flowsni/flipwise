@@ -70,18 +70,24 @@ export function Segmented<T extends string | number>({
   options,
   onChange,
   label,
+  grid,
 }: {
   value: T
   options: SegmentedOption<T>[]
   onChange: (v: T) => void
   label: string
+  /** 2×2 below `sm`: four Russian labels don't fit in a row on phones up to ~450px. */
+  grid?: boolean
 }) {
   const name = useId()
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex min-h-[3.25rem] rounded-xl bg-surface-2 p-1"
+      className={cx(
+        grid ? 'grid grid-cols-2 gap-1 sm:flex sm:gap-0' : 'flex',
+        'min-h-[3.25rem] rounded-xl bg-surface-2 p-1',
+      )}
     >
       {options.map((o) => {
         const active = o.value === value

@@ -1,10 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { createDeck, db, type ExampleItem } from '@/db'
 import { ToastProvider } from '@/design'
 import { t } from '@/i18n/ru'
-import { setSetting } from '@/lib'
+import { getSetting, setSetting } from '@/lib'
 import { FlashcardsPage } from '.'
 
 // happy-dom's Animation.cancel() rejects `finished` without marking it handled (browsers do, per
@@ -21,6 +21,7 @@ afterAll(() => {
 afterEach(async () => {
   setSetting('flash.content', 'words')
   setSetting('study.limit', 0)
+  setSetting('study.scope', 'all')
   await Promise.all([db.decks.clear(), db.cards.clear(), db.progress.clear()])
 })
 
@@ -35,6 +36,8 @@ async function renderDeck(
     examples?: Record<string, ExampleItem[]>
     defLang?: string
     cards?: { term: string; definition: string }[]
+    query?: string
+    hard?: string[]
   } = {},
 ) {
   const deckId = await createDeck(
@@ -48,10 +51,21 @@ async function renderDeck(
         examples: { items, provider: 'anthropic', model: 'test', createdAt: 1 },
       })
     }
+    if (options.hard?.includes(card.term)) {
+      await db.progress.put({
+        cardId: card.id,
+        deckId,
+        flash: 'learning',
+        learnStage: 0,
+        correct: 0,
+        wrong: 3,
+        lastSeenAt: 1,
+      })
+    }
   }
   render(
     <ToastProvider>
-      <MemoryRouter initialEntries={[`/deck/${deckId}/flashcards`]}>
+      <MemoryRouter initialEntries={[`/deck/${deckId}/flashcards${options.query ?? ''}`]}>
         <Routes>
           <Route path="/deck/:deckId/flashcards" element={<FlashcardsPage />} />
         </Routes>
@@ -71,6 +85,31 @@ const sentences = {
 }
 
 describe('FlashcardsPage', () => {
+  it('"?scope=hard" studies the hard words without changing the remembered scope', async () => {
+    setSetting('study.scope', 'all')
+    await renderDeck({ query: '?scope=hard', hard: ['two'] })
+    await screen.findByRole('button', { name: cardLabel('two') })
+    expect(screen.getByText(t.scope.chip(t.scope.hard, 1))).toBeTruthy()
+    expect(getSetting('study.scope', 'none')).toBe('all')
+  })
+
+  it('remembers a scope from "?scope=hard" only when the learner picks another one', async () => {
+    setSetting('study.scope', 'unknown')
+    await renderDeck({ query: '?scope=hard', hard: ['two'] })
+    const chip = await screen.findByRole('button', {
+      name: t.scope.change(t.scope.chip(t.scope.hard, 1)),
+    })
+    fireEvent.click(chip)
+    const size = await screen.findByRole('radiogroup', { name: t.scope.size })
+    fireEvent.click(within(size).getByRole('radio', { name: '10' }))
+    expect(getSetting('study.scope', 'none')).toBe('unknown')
+
+    const which = screen.getByRole('radiogroup', { name: t.scope.which })
+    fireEvent.click(within(which).getByRole('radio', { name: /^Все/ }))
+    await screen.findByText(t.scope.chip(t.scope.all, 3))
+    expect(getSetting('study.scope', 'none')).toBe('all')
+  })
+
   it('marks consecutive cards without flipping them, by button and by arrow key', async () => {
     await renderDeck()
     await screen.findByRole('button', { name: cardLabel('one') })

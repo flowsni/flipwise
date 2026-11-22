@@ -18,7 +18,7 @@ export {
 export { findDuplicates } from './duplicates'
 export { hasExamples } from './examples'
 export { downloadFile, pickFile, shareOrDownloadJson } from './files'
-export { errorRate, hardestCards } from './hardWords'
+export { errorRate, hardestCards, isHard } from './hardWords'
 export { newId } from './ids'
 export type {
   CardSeparator,

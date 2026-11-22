@@ -6,17 +6,17 @@ import { cx, IconBrain, IconCards, IconChevronRight, IconClipboard, pressSpring 
 import type { SessionProgress } from '@/features/study/sessionProgress'
 import { t } from '@/i18n/ru'
 
-const MotionLink = motion.create(Link)
+export const MotionLink = motion.create(Link)
 /** CSS `translate` is its own property, so it doesn't fight motion's transform from `whileTap`. */
 const hoverLift = 'transition-[translate] hover:-translate-y-[3px]'
 
-const tones = {
+export const tones = {
   coral: 'bg-coral/15 text-primary',
   plum: 'bg-plum-soft text-plum-ink',
   sun: 'bg-sun-soft text-sun-ink',
 }
 
-const pressProps = {
+export const pressProps = {
   whileTap: { scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' },
   transition: pressSpring,
 }
