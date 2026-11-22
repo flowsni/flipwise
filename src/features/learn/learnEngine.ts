@@ -150,6 +150,12 @@ export function overallProgress(state: LearnState): number {
   return sum / (state.order.length * 2)
 }
 
+/** Cards of the current round already answered correctly (a wrong answer puts a card back). */
+export function roundProgress(state: LearnState): { done: number; total: number } {
+  const { queue, total } = state.round
+  return { done: total - new Set(queue).size, total }
+}
+
 export function startRound(
   state: LearnState,
   cards: readonly LearnCard[],

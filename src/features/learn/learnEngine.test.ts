@@ -9,6 +9,7 @@ import {
   overrideLastWrong,
   pickDistractors,
   ROUND_SIZE,
+  roundProgress,
   startRound,
   submitAnswer,
 } from './learnEngine'
@@ -148,5 +149,16 @@ describe('answered flag', () => {
     const after = submitAnswer(s, 'nope').state
     expect(after.answered).toBe(true)
     expect(nextQuestion(after, cards, seededRng(13)).answered).toBe(false)
+  })
+})
+
+describe('roundProgress', () => {
+  it('counts correct answers in the round and un-counts a card answered wrong', () => {
+    let s = createLearnState(cards, 'definition', seededRng(3))
+    expect(roundProgress(s)).toEqual({ done: 0, total: ROUND_SIZE })
+    s = nextQuestion(answerCorrectly(s).state, cards)
+    expect(roundProgress(s)).toEqual({ done: 1, total: ROUND_SIZE })
+    s = nextQuestion(submitAnswer(s, 'nope').state, cards)
+    expect(roundProgress(s)).toEqual({ done: 1, total: ROUND_SIZE })
   })
 })

@@ -22,12 +22,12 @@ import {
   acceptLearnSession,
   createLearnState,
   isFinished,
-  isLearned,
   type LearnState,
   MIN_CARDS,
   nextQuestion,
   overallProgress,
   overrideLastWrong,
+  roundProgress,
   startRound,
   submitAnswer,
 } from './learnEngine'
@@ -147,6 +147,7 @@ function Learn({
   }
 
   const finished = isFinished(state)
+  const round = roundProgress(state)
   const phase = finished ? 'done' : state.roundOver && !feedback ? 'round' : 'question'
   const byId = new Map(cards.map((c) => [c.id, c]))
   // The other side of a card, looked up by the answer text of an option that was picked.
@@ -160,10 +161,7 @@ function Learn({
       <StudyBar
         onClose={back}
         progress={overallProgress(state)}
-        label={t.study.progress(
-          state.order.filter((id) => isLearned(state, id)).length,
-          state.order.length,
-        )}
+        label={t.study.roundProgress(state.round.number, round.done, round.total)}
         menu={
           <Menu
             label={t.study.options}
