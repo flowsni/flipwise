@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Progress } from '../../db/types'
-import { seededRng } from '../../lib/shuffle'
+import type { Progress } from '@/db/types'
+import { seededRng } from '@/lib/shuffle'
 import { scopeCounts, selectStudyCards, usableScope } from './scope'
 
 const cards = Array.from({ length: 30 }, (_, i) => ({ id: `c${i}` }))

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import type { Card, Deck } from '../../db/types'
-import { t } from '../../i18n/ru'
+import type { Card, Deck } from '@/db/types'
+import { t } from '@/i18n/ru'
 import { CardRow } from './CardRow'
 
 // See FlashcardsPage.test.tsx: run Motion's JS animations instead of happy-dom's native ones.

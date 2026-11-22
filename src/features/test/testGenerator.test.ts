@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { seededRng } from '../../lib/shuffle'
-import type { LearnCard } from '../learn/learnEngine'
+import type { LearnCard } from '@/features/learn/learnEngine'
+import { seededRng } from '@/lib/shuffle'
 import { defaultQuestionCount, generateTest, gradeTest } from './testGenerator'
 
 const cards: LearnCard[] = Array.from({ length: 8 }, (_, i) => ({

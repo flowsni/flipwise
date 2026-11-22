@@ -1,11 +1,11 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import type { Card, Deck } from '../../db/types'
-import { cx } from '../../design/cx'
-import { IconSparkles } from '../../design/icons'
-import { t } from '../../i18n/ru'
-import { hasExamples } from '../../lib/examples'
+import type { Card, Deck } from '@/db/types'
+import { cx } from '@/design/cx'
+import { IconSparkles } from '@/design/icons'
+import { t } from '@/i18n/ru'
+import { hasExamples } from '@/lib/examples'
 
 /** The block that holds a list of `CardRow`s; its corners must match the first/last row's. */
 export const cardListClass = 'flex flex-col rounded-2xl border border-line bg-surface'

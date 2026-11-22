@@ -8,16 +8,16 @@ import {
 } from 'motion/react'
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import type { Card } from '../../db/types'
-import { cx } from '../../design/cx'
-import { IconSparkles } from '../../design/icons'
-import { enterSpring, flipSpring, snappySpring } from '../../design/motion'
-import { t } from '../../i18n/ru'
-import { fitClass, fitSentenceClass } from '../../lib/textFit'
-import { Marked } from '../ai/Marked'
-import { stripMarks } from '../ai/prompt'
-import { StarButton } from '../decks/StarButton'
-import { SpeakButton } from '../tts/SpeakButton'
+import type { Card } from '@/db/types'
+import { cx } from '@/design/cx'
+import { IconSparkles } from '@/design/icons'
+import { enterSpring, flipSpring, snappySpring } from '@/design/motion'
+import { Marked } from '@/features/ai/Marked'
+import { stripMarks } from '@/features/ai/prompt'
+import { StarButton } from '@/features/decks/StarButton'
+import { SpeakButton } from '@/features/tts/SpeakButton'
+import { t } from '@/i18n/ru'
+import { fitClass, fitSentenceClass } from '@/lib/textFit'
 
 export type SwipeDir = 1 | -1 // 1 = know (right), -1 = still learning (left)
 

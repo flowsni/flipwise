@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { useSettingsSheet } from '../../app/SettingsContext'
-import { Button } from '../../design/Button'
-import { t } from '../../i18n/ru'
+import { useSettingsSheet } from '@/app/SettingsContext'
+import { Button } from '@/design/Button'
+import { t } from '@/i18n/ru'
 import type { AiErrorCode } from './errors'
 
 /** Errors the user fixes in the AI settings rather than by trying again. */

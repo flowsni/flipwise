@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { FlipwiseDB } from '../db/db'
-import { LEVELS } from '../db/types'
+import type { FlipwiseDB } from '@/db/db'
+import { LEVELS } from '@/db/types'
 import { newId } from './ids'
 
 const BACKUP_VERSION = 1

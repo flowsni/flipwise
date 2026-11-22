@@ -1,4 +1,4 @@
-import type { Card, Deck } from '../db/types'
+import type { Card, Deck } from '@/db/types'
 import { normalize } from './answerMatch'
 
 export interface SearchHit {

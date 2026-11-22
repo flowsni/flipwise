@@ -1,10 +1,10 @@
 import { useSearchParams } from 'react-router'
-import { useBack } from '../../app/useBack'
-import { useDeck, useHardCards } from '../../db/hooks'
-import { IconButton } from '../../design/Button'
-import { IconChevronLeft } from '../../design/icons'
-import { TopBar } from '../../design/TopBar'
-import { t } from '../../i18n/ru'
+import { useBack } from '@/app/useBack'
+import { useDeck, useHardCards } from '@/db/hooks'
+import { IconButton } from '@/design/Button'
+import { IconChevronLeft } from '@/design/icons'
+import { TopBar } from '@/design/TopBar'
+import { t } from '@/i18n/ru'
 import { HardList } from './HardList'
 
 /** «Трудные слова» across all decks, or of one deck with `?deck=<id>`. */

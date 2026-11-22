@@ -1,8 +1,8 @@
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
-import { useSettingsSheet } from '../../app/SettingsContext'
-import { type DeckSummary, useDeckSummaries, useHardCards } from '../../db/hooks'
-import { Button, IconButton } from '../../design/Button'
+import { useSettingsSheet } from '@/app/SettingsContext'
+import { type DeckSummary, useDeckSummaries, useHardCards } from '@/db/hooks'
+import { Button, IconButton } from '@/design/Button'
 import {
   IconChevronRight,
   IconFlame,
@@ -10,12 +10,12 @@ import {
   IconSearch,
   IconSettings,
   IconUpload,
-} from '../../design/icons'
-import { Logo, LogoMark } from '../../design/Logo'
-import { enterSpring, pressSpring } from '../../design/motion'
-import { Ring } from '../../design/Progress'
-import { TopBar } from '../../design/TopBar'
-import { t } from '../../i18n/ru'
+} from '@/design/icons'
+import { Logo, LogoMark } from '@/design/Logo'
+import { enterSpring, pressSpring } from '@/design/motion'
+import { Ring } from '@/design/Progress'
+import { TopBar } from '@/design/TopBar'
+import { t } from '@/i18n/ru'
 import { InstallHint } from './InstallHint'
 
 const MotionLink = motion.create(Link)

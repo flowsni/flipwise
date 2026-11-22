@@ -1,11 +1,11 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { db } from '../../db/db'
-import { createDeck, getDeckCards } from '../../db/decks'
-import type { Card, Deck } from '../../db/types'
-import { ToastProvider } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { setSetting } from '../../lib/storage'
+import { db } from '@/db/db'
+import { createDeck, getDeckCards } from '@/db/decks'
+import type { Card, Deck } from '@/db/types'
+import { ToastProvider } from '@/design/Toast'
+import { t } from '@/i18n/ru'
+import { setSetting } from '@/lib/storage'
 import { ExamplesSheet } from './ExamplesSheet'
 
 const generateExamples = vi.fn()

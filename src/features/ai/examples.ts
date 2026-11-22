@@ -1,4 +1,4 @@
-import type { ExampleItem } from '../../db/types'
+import type { ExampleItem } from '@/db/types'
 import type { ProviderId } from './catalog'
 import { AiError } from './errors'
 import { buildPrompt, type ExamplesInput, examplesJsonSchema, parseExamples } from './prompt'

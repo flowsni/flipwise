@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { ExampleItem, Level } from '../../db/types'
-import { englishLanguageName } from '../../lib/languages'
+import type { ExampleItem, Level } from '@/db/types'
+import { englishLanguageName } from '@/lib/languages'
 import { AiError } from './errors'
 
 export interface ExamplesInput {

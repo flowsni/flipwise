@@ -1,7 +1,7 @@
-import { db } from '../../db/db'
-import { sessionId } from '../../db/sessions'
-import type { StudyMode } from '../../db/types'
-import { useCachedLiveQuery } from '../../db/useCachedLiveQuery'
+import { db } from '@/db/db'
+import { sessionId } from '@/db/sessions'
+import type { StudyMode } from '@/db/types'
+import { useCachedLiveQuery } from '@/db/useCachedLiveQuery'
 import { type SessionProgress, sessionProgress } from './sessionProgress'
 
 /**

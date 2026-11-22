@@ -1,4 +1,4 @@
-import { getSetting, setSetting } from '../lib/storage'
+import { getSetting, setSetting } from '@/lib/storage'
 import { db } from './db'
 import { createDeck } from './decks'
 

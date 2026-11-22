@@ -1,22 +1,27 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
-import { NotFound } from '../../app/RouteError'
-import { useBack } from '../../app/useBack'
-import { useDeckProgress } from '../../db/hooks'
-import { overrideWrong, recordAnswer } from '../../db/progress'
-import type { AnswerSide, Card, Deck, Progress } from '../../db/types'
-import { Button } from '../../design/Button'
-import { Segmented } from '../../design/Field'
-import { IconRefresh } from '../../design/icons'
-import { Menu } from '../../design/Menu'
-import { StudyBar } from '../../design/StudyBar'
-import { t } from '../../i18n/ru'
-import { useSetting } from '../../lib/storage'
-import { StudyScopePicker, useStudyScope } from '../study/StudyScopePicker'
-import { type ScopeOptions, scopeCounts, selectStudyCards, usableScope } from '../study/scope'
-import { persistSession, useRestartUndo, useSavedSession } from '../study/useSavedSession'
-import { useStudyDeck } from '../study/useStudyDeck'
+import { NotFound } from '@/app/RouteError'
+import { useBack } from '@/app/useBack'
+import { useDeckProgress } from '@/db/hooks'
+import { overrideWrong, recordAnswer } from '@/db/progress'
+import type { AnswerSide, Card, Deck, Progress } from '@/db/types'
+import { Button } from '@/design/Button'
+import { Segmented } from '@/design/Field'
+import { IconRefresh } from '@/design/icons'
+import { Menu } from '@/design/Menu'
+import { StudyBar } from '@/design/StudyBar'
+import { StudyScopePicker, useStudyScope } from '@/features/study/StudyScopePicker'
+import {
+  type ScopeOptions,
+  scopeCounts,
+  selectStudyCards,
+  usableScope,
+} from '@/features/study/scope'
+import { persistSession, useRestartUndo, useSavedSession } from '@/features/study/useSavedSession'
+import { useStudyDeck } from '@/features/study/useStudyDeck'
+import { t } from '@/i18n/ru'
+import { useSetting } from '@/lib/storage'
 import { Finished, RoundSummary } from './LearnSummaries'
 import {
   acceptLearnSession,

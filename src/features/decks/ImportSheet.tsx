@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '../../design/Button'
-import { cx } from '../../design/cx'
-import { Checkbox, Input, inputClass, Segmented } from '../../design/Field'
-import { Sheet } from '../../design/Sheet'
-import { t } from '../../i18n/ru'
-import { findDuplicates } from '../../lib/duplicates'
+import { Button } from '@/design/Button'
+import { cx } from '@/design/cx'
+import { Checkbox, Input, inputClass, Segmented } from '@/design/Field'
+import { Sheet } from '@/design/Sheet'
+import { t } from '@/i18n/ru'
+import { findDuplicates } from '@/lib/duplicates'
 import {
   type CardSeparator,
   guessOptions,
   type ParsedCard,
   parseImport,
   type TermSeparator,
-} from '../../lib/importParser'
+} from '@/lib/importParser'
 
 type TermKind = 'tab' | 'comma' | 'custom'
 type CardKind = 'newline' | 'semicolon' | 'custom'

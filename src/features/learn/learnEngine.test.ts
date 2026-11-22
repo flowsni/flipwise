@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { seededRng } from '../../lib/shuffle'
+import { seededRng } from '@/lib/shuffle'
 import {
   createLearnState,
   isFinished,

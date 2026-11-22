@@ -1,4 +1,4 @@
-import { useSetting } from '../../lib/storage'
+import { useSetting } from '@/lib/storage'
 import { defaultModel, type ProviderId } from './catalog'
 
 export interface AiSettings {

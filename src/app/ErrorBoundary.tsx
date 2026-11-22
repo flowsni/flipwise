@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { Button } from '../design/Button'
-import { LogoMark } from '../design/Logo'
-import { t } from '../i18n/ru'
+import { Button } from '@/design/Button'
+import { LogoMark } from '@/design/Logo'
+import { t } from '@/i18n/ru'
 
 export function ErrorScreen({
   title,

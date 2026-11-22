@@ -1,4 +1,4 @@
-import type { AnswerSide, Deck } from '../../db/types'
+import type { AnswerSide, Deck } from '@/db/types'
 import type { TestConfig, TestQuestion } from './testGenerator'
 
 export interface TestState {

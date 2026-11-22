@@ -1,6 +1,6 @@
 import { createHashRouter } from 'react-router'
-import { DeckPage } from '../features/decks/DeckPage'
-import { HomePage } from '../features/decks/HomePage'
+import { DeckPage } from '@/features/decks/DeckPage'
+import { HomePage } from '@/features/decks/HomePage'
 import { RootLayout } from './RootLayout'
 import { NotFound, RouteError } from './RouteError'
 
@@ -15,41 +15,41 @@ export const router = createHashRouter([
       {
         path: '/new',
         lazy: async () => ({
-          Component: (await import('../features/decks/DeckEditor')).DeckEditor,
+          Component: (await import('@/features/decks/DeckEditor')).DeckEditor,
         }),
       },
       {
         path: '/search',
         lazy: async () => ({
-          Component: (await import('../features/search/SearchPage')).SearchPage,
+          Component: (await import('@/features/search/SearchPage')).SearchPage,
         }),
       },
       {
         path: '/hard',
         lazy: async () => ({
-          Component: (await import('../features/hard/HardWordsPage')).HardWordsPage,
+          Component: (await import('@/features/hard/HardWordsPage')).HardWordsPage,
         }),
       },
       { path: '/deck/:deckId', element: <DeckPage /> },
       {
         path: '/deck/:deckId/edit',
         lazy: async () => ({
-          Component: (await import('../features/decks/DeckEditor')).DeckEditor,
+          Component: (await import('@/features/decks/DeckEditor')).DeckEditor,
         }),
       },
       {
         path: '/deck/:deckId/flashcards',
         lazy: async () => ({
-          Component: (await import('../features/flashcards/FlashcardsPage')).FlashcardsPage,
+          Component: (await import('@/features/flashcards/FlashcardsPage')).FlashcardsPage,
         }),
       },
       {
         path: '/deck/:deckId/learn',
-        lazy: async () => ({ Component: (await import('../features/learn/LearnPage')).LearnPage }),
+        lazy: async () => ({ Component: (await import('@/features/learn/LearnPage')).LearnPage }),
       },
       {
         path: '/deck/:deckId/test',
-        lazy: async () => ({ Component: (await import('../features/test/TestPage')).TestPage }),
+        lazy: async () => ({ Component: (await import('@/features/test/TestPage')).TestPage }),
       },
       { path: '*', element: <NotFound /> },
     ],

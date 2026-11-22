@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useMediaQuery } from '../design/useMediaQuery'
-import { useSetting } from '../lib/storage'
+import { useMediaQuery } from '@/design/useMediaQuery'
+import { useSetting } from '@/lib/storage'
 
 export type ThemeSetting = 'system' | 'light' | 'dark'
 

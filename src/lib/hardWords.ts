@@ -1,4 +1,4 @@
-import type { Progress } from '../db/types'
+import type { Progress } from '@/db/types'
 
 const MIN_WRONG = 2
 const MIN_RATE = 0.3

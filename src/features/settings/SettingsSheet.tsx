@@ -1,21 +1,20 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { type ThemeSetting, useThemeSetting } from '../../app/theme'
-import { db } from '../../db/db'
-import { useDeckLanguages } from '../../db/hooks'
-import { clearQueryCache } from '../../db/useCachedLiveQuery'
-import { Button, IconButton } from '../../design/Button'
-import { Field, Input, Segmented, Select, useFieldId } from '../../design/Field'
-import {
-  IconCheck,
-  IconDownload,
-  IconEye,
-  IconEyeOff,
-  IconPlay,
-  IconUpload,
-} from '../../design/icons'
-import { Sheet } from '../../design/Sheet'
-import { useToast } from '../../design/Toast'
-import { t } from '../../i18n/ru'
+import { type ThemeSetting, useThemeSetting } from '@/app/theme'
+import { db } from '@/db/db'
+import { useDeckLanguages } from '@/db/hooks'
+import { clearQueryCache } from '@/db/useCachedLiveQuery'
+import { Button, IconButton } from '@/design/Button'
+import { Field, Input, Segmented, Select, useFieldId } from '@/design/Field'
+import { IconCheck, IconDownload, IconEye, IconEyeOff, IconPlay, IconUpload } from '@/design/icons'
+import { Sheet } from '@/design/Sheet'
+import { useToast } from '@/design/Toast'
+import { aiErrorMessage } from '@/features/ai/AiErrorBox'
+import { PROVIDERS, type ProviderId, providerInfo } from '@/features/ai/catalog'
+import { AiError } from '@/features/ai/errors'
+import { testConnection } from '@/features/ai/examples'
+import { useAiSettings } from '@/features/ai/settings'
+import { speak, ttsSupported, voicesFor } from '@/features/tts/speak'
+import { t } from '@/i18n/ru'
 import {
   type Backup,
   BackupError,
@@ -23,16 +22,10 @@ import {
   exportAll,
   importBackup,
   parseBackup,
-} from '../../lib/backup'
-import { pickFile, shareOrDownloadJson } from '../../lib/files'
-import { languageName, speechSample } from '../../lib/languages'
-import { useSetting } from '../../lib/storage'
-import { aiErrorMessage } from '../ai/AiErrorBox'
-import { PROVIDERS, type ProviderId, providerInfo } from '../ai/catalog'
-import { AiError } from '../ai/errors'
-import { testConnection } from '../ai/examples'
-import { useAiSettings } from '../ai/settings'
-import { speak, ttsSupported, voicesFor } from '../tts/speak'
+} from '@/lib/backup'
+import { pickFile, shareOrDownloadJson } from '@/lib/files'
+import { languageName, speechSample } from '@/lib/languages'
+import { useSetting } from '@/lib/storage'
 
 export function SettingsSheet({
   open,

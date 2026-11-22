@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { hardestCards } from '../lib/hardWords'
+import { hardestCards } from '@/lib/hardWords'
 import { db } from './db'
 import { getDeckCards } from './decks'
 import { isMastered } from './progress'

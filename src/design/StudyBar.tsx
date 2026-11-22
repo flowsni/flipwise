@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { t } from '../i18n/ru'
+import { t } from '@/i18n/ru'
 import { IconButton } from './Button'
 import { IconX } from './icons'
 import { ProgressBar } from './Progress'

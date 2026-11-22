@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useDeck, useDeckCards } from '../../db/hooks'
+import { useDeck, useDeckCards } from '@/db/hooks'
 
 /** Deck + cards for study screens. `cardsById` stays live (e.g. new AI examples). */
 export function useStudyDeck(deckId: string | undefined) {

@@ -1,4 +1,4 @@
-import { t } from '../i18n/ru'
+import { t } from '@/i18n/ru'
 
 export interface Language {
   code: string

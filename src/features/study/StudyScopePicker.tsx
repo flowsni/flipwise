@@ -1,6 +1,6 @@
-import { Segmented } from '../../design/Field'
-import { t } from '../../i18n/ru'
-import { useSetting } from '../../lib/storage'
+import { Segmented } from '@/design/Field'
+import { t } from '@/i18n/ru'
+import { useSetting } from '@/lib/storage'
 import { STUDY_LIMITS, STUDY_SCOPES, type StudyLimit, type StudyScope } from './scope'
 
 export const scopeLabels: Record<StudyScope, string> = {

@@ -1,4 +1,4 @@
-import { newId } from '../lib/ids'
+import { newId } from '@/lib/ids'
 import { db } from './db'
 import type { Card, Deck, Level, Progress, StudySession } from './types'
 

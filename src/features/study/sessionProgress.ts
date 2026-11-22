@@ -1,7 +1,7 @@
-import type { StudyMode } from '../../db/types'
-import { acceptLearnSession, isLearned, type LearnState } from '../learn/learnEngine'
-import { isAnswered } from '../test/testGenerator'
-import { acceptTestSession, type TestState } from '../test/testState'
+import type { StudyMode } from '@/db/types'
+import { acceptLearnSession, isLearned, type LearnState } from '@/features/learn/learnEngine'
+import { isAnswered } from '@/features/test/testGenerator'
+import { acceptTestSession, type TestState } from '@/features/test/testState'
 
 /** What the deck page shows on a tile with an unfinished session. */
 export interface SessionProgress {

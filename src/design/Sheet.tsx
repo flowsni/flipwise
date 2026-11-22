@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
 import { type ReactNode, useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { t } from '../i18n/ru'
+import { t } from '@/i18n/ru'
 import { IconButton } from './Button'
 import { cx } from './cx'
 import { IconX } from './icons'

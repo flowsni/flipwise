@@ -1,12 +1,12 @@
 import { motion } from 'motion/react'
 import { useState } from 'react'
-import type { AnswerSide, Card, Progress } from '../../db/types'
-import { Button } from '../../design/Button'
-import { Checkbox, Segmented } from '../../design/Field'
-import { t } from '../../i18n/ru'
-import { useSetting } from '../../lib/storage'
-import { StudyScopePicker, useStudyScope } from '../study/StudyScopePicker'
-import { scopeCounts, selectStudyCards, usableScope } from '../study/scope'
+import type { AnswerSide, Card, Progress } from '@/db/types'
+import { Button } from '@/design/Button'
+import { Checkbox, Segmented } from '@/design/Field'
+import { StudyScopePicker, useStudyScope } from '@/features/study/StudyScopePicker'
+import { scopeCounts, selectStudyCards, usableScope } from '@/features/study/scope'
+import { t } from '@/i18n/ru'
+import { useSetting } from '@/lib/storage'
 import {
   defaultQuestionCount,
   QUESTION_TYPES,
