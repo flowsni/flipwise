@@ -148,6 +148,8 @@ export const ru = {
     termSide: 'Термин',
     definitionSide: 'Определение',
     progress: (a: number, b: number) => `${a} из ${b}`,
+    roundProgress: (round: number, done: number, total: number) =>
+      `Раунд ${round} · ${done} из ${total}`,
     restarted: 'Начали заново',
   },
   scope: {
