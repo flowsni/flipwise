@@ -1,5 +1,5 @@
-import { LEVELS, type Level } from '@/db/types'
-import { Segmented } from '@/design/Field'
+import { LEVELS, type Level } from '@/db'
+import { Segmented } from '@/design'
 import { t } from '@/i18n/ru'
 
 /** A1–C2 for AI examples. */

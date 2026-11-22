@@ -1,7 +1,7 @@
 /** «Предложения» mode of Flashcards: the cached AI examples become the cards' faces. */
 
-import type { Card, ExampleItem } from '@/db/types'
-import type { Rng } from '@/lib/shuffle'
+import type { Card, ExampleItem } from '@/db'
+import type { Rng } from '@/lib'
 
 export type FlashContent = 'words' | 'sentences'
 

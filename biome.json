@@ -18,7 +18,14 @@
     "rules": {
       "preset": "recommended",
       "a11y": { "noAutofocus": "off" },
+      "performance": { "noBarrelFile": "error", "noReExportAll": "error" },
       "style": { "noNonNullAssertion": "off" }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/design/index.ts", "src/lib/index.ts", "src/db/index.ts"],
+      "linter": { "rules": { "performance": { "noBarrelFile": "off" } } }
+    }
+  ]
 }

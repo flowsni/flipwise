@@ -3,22 +3,35 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { createDeck, getDeckCards, saveDeck } from '@/db/decks'
-import { useDeck } from '@/db/hooks'
-import { type Deck, LEVELS, type Level } from '@/db/types'
-import { Button, IconButton } from '@/design/Button'
-import { Field, Input, inputClass, Select, useFieldId } from '@/design/Field'
-import { IconChevronLeft, IconGrip, IconPlus, IconSearch, IconUpload, IconX } from '@/design/icons'
-import { useToast } from '@/design/Toast'
-import { TopBar } from '@/design/TopBar'
+import { createDeck, type Deck, getDeckCards, LEVELS, type Level, saveDeck, useDeck } from '@/db'
+import {
+  Button,
+  Field,
+  IconButton,
+  IconChevronLeft,
+  IconGrip,
+  IconPlus,
+  IconSearch,
+  IconUpload,
+  IconX,
+  Input,
+  inputClass,
+  Select,
+  TopBar,
+  useFieldId,
+  useToast,
+} from '@/design'
 import { t } from '@/i18n/ru'
-import { findDuplicates } from '@/lib/duplicates'
-import { newId } from '@/lib/ids'
-import type { ParsedCard } from '@/lib/importParser'
-import { LANGUAGES } from '@/lib/languages'
-import { MAX_CARDS } from '@/lib/limits'
-import { matchesQuery } from '@/lib/search'
-import { getSetting, setSetting } from '@/lib/storage'
+import {
+  findDuplicates,
+  getSetting,
+  LANGUAGES,
+  MAX_CARDS,
+  matchesQuery,
+  newId,
+  type ParsedCard,
+  setSetting,
+} from '@/lib'
 import { ImportSheet } from './ImportSheet'
 
 interface Row {

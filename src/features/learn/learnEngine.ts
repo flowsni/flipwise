@@ -8,9 +8,8 @@
  * The state is plain JSON so it can be saved and resumed.
  */
 
-import type { AnswerSide } from '@/db/types'
-import { type MatchResult, matchAnswer } from '@/lib/answerMatch'
-import { type Rng, shuffle } from '@/lib/shuffle'
+import type { AnswerSide } from '@/db'
+import { type MatchResult, matchAnswer, type Rng, shuffle } from '@/lib'
 
 export const ROUND_SIZE = 7
 export const MIN_CARDS = 2

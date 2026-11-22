@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { useHardCards } from '@/db/hooks'
-import { clearSession, loadSession, saveSession } from '@/db/sessions'
-import type { StudyMode } from '@/db/types'
-import { useToast } from '@/design/Toast'
+import { clearSession, loadSession, type StudyMode, saveSession, useHardCards } from '@/db'
+import { useToast } from '@/design'
 import { t } from '@/i18n/ru'
 import { useSessionProgress } from './useSessionProgress'
 

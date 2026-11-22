@@ -1,4 +1,4 @@
-import type { StudyMode } from '@/db/types'
+import type { StudyMode } from '@/db'
 import { acceptLearnSession, isLearned, type LearnState } from '@/features/learn/learnEngine'
 import { isAnswered } from '@/features/test/testGenerator'
 import { acceptTestSession, type TestState } from '@/features/test/testState'

@@ -1,5 +1,4 @@
-import { IconButton } from '@/design/Button'
-import { IconVolume } from '@/design/icons'
+import { IconButton, IconVolume } from '@/design'
 import { t } from '@/i18n/ru'
 import { speak, ttsSupported } from './speak'
 

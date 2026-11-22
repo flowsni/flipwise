@@ -1,4 +1,4 @@
-import type { HardCard } from '@/db/hooks'
+import type { HardCard } from '@/db'
 import { CardRow, cardListClass } from '@/features/decks/CardRow'
 import { t } from '@/i18n/ru'
 

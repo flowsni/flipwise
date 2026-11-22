@@ -1,9 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { useBack } from '@/app/useBack'
-import { useDeck, useHardCards } from '@/db/hooks'
-import { IconButton } from '@/design/Button'
-import { IconChevronLeft } from '@/design/icons'
-import { TopBar } from '@/design/TopBar'
+import { useDeck, useHardCards } from '@/db'
+import { IconButton, IconChevronLeft, TopBar } from '@/design'
 import { t } from '@/i18n/ru'
 import { HardList } from './HardList'
 

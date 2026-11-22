@@ -3,14 +3,16 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { useDeckProgress } from '@/db/hooks'
-import { overrideWrong, recordAnswer } from '@/db/progress'
-import type { AnswerSide, Card, Deck, Progress } from '@/db/types'
-import { Button } from '@/design/Button'
-import { Segmented } from '@/design/Field'
-import { IconRefresh } from '@/design/icons'
-import { Menu } from '@/design/Menu'
-import { StudyBar } from '@/design/StudyBar'
+import {
+  type AnswerSide,
+  type Card,
+  type Deck,
+  overrideWrong,
+  type Progress,
+  recordAnswer,
+  useDeckProgress,
+} from '@/db'
+import { Button, IconRefresh, Menu, Segmented, StudyBar } from '@/design'
 import { StudyScopePicker, useStudyScope } from '@/features/study/StudyScopePicker'
 import {
   type ScopeOptions,
@@ -21,7 +23,7 @@ import {
 import { persistSession, useRestartUndo, useSavedSession } from '@/features/study/useSavedSession'
 import { useStudyDeck } from '@/features/study/useStudyDeck'
 import { t } from '@/i18n/ru'
-import { useSetting } from '@/lib/storage'
+import { useSetting } from '@/lib'
 import { Finished, RoundSummary } from './LearnSummaries'
 import {
   acceptLearnSession,

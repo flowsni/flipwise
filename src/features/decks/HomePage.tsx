@@ -1,20 +1,23 @@
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
 import { useSettingsSheet } from '@/app/SettingsContext'
-import { type DeckSummary, useDeckSummaries, useHardCards } from '@/db/hooks'
-import { Button, IconButton } from '@/design/Button'
+import { type DeckSummary, useDeckSummaries, useHardCards } from '@/db'
 import {
+  Button,
+  enterSpring,
+  IconButton,
   IconChevronRight,
   IconFlame,
   IconPlus,
   IconSearch,
   IconSettings,
   IconUpload,
-} from '@/design/icons'
-import { Logo, LogoMark } from '@/design/Logo'
-import { enterSpring, pressSpring } from '@/design/motion'
-import { Ring } from '@/design/Progress'
-import { TopBar } from '@/design/TopBar'
+  Logo,
+  LogoMark,
+  pressSpring,
+  Ring,
+  TopBar,
+} from '@/design'
 import { t } from '@/i18n/ru'
 import { InstallHint } from './InstallHint'
 

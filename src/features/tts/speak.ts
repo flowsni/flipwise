@@ -1,4 +1,4 @@
-import { getSetting } from '@/lib/storage'
+import { getSetting } from '@/lib'
 
 export function ttsSupported(): boolean {
   return typeof window !== 'undefined' && 'speechSynthesis' in window

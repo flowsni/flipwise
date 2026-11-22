@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { CardExamples } from '@/db/types'
-import { seededRng } from '@/lib/shuffle'
+import type { CardExamples } from '@/db'
+import { seededRng } from '@/lib'
 import { pickSentences, sentenceOf } from './sentences'
 
 function examples(n: number): CardExamples {

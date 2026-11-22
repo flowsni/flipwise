@@ -1,6 +1,5 @@
 import { useSettingsSheet } from '@/app/SettingsContext'
-import { Button } from '@/design/Button'
-import { IconSparkles } from '@/design/icons'
+import { Button, IconSparkles } from '@/design'
 import { t } from '@/i18n/ru'
 
 /** Shown instead of AI features until a provider key is set; leads to the AI settings. */

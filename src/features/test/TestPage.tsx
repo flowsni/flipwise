@@ -2,10 +2,15 @@ import { useState } from 'react'
 import { useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { useDeckProgress } from '@/db/hooks'
-import { overrideWrong, recordAnswer } from '@/db/progress'
-import type { Card, Deck, Progress } from '@/db/types'
-import { StudyBar } from '@/design/StudyBar'
+import {
+  type Card,
+  type Deck,
+  overrideWrong,
+  type Progress,
+  recordAnswer,
+  useDeckProgress,
+} from '@/db'
+import { StudyBar } from '@/design'
 import { MIN_CARDS } from '@/features/learn/learnEngine'
 import { persistSession, useRestartUndo, useSavedSession } from '@/features/study/useSavedSession'
 import { useStudyDeck } from '@/features/study/useStudyDeck'

@@ -3,19 +3,36 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { db } from '@/db/db'
-import { useDeckProgress } from '@/db/hooks'
-import { setFlash, toggleStar, updateProgress } from '@/db/progress'
-import type { Card, Deck, FlashStatus, Progress } from '@/db/types'
-import { Button, IconButton } from '@/design/Button'
-import { Segmented } from '@/design/Field'
-import { IconChevronDown, IconRefresh, IconShuffle, IconSparkles, IconUndo } from '@/design/icons'
-import { Menu } from '@/design/Menu'
-import { enterSpring, softSpring } from '@/design/motion'
-import { CountUp, Ring } from '@/design/Progress'
-import { Sheet } from '@/design/Sheet'
-import { StudyBar, shortcutsBlocked } from '@/design/StudyBar'
-import { useToast } from '@/design/Toast'
+import {
+  type Card,
+  type Deck,
+  db,
+  type FlashStatus,
+  type Progress,
+  setFlash,
+  toggleStar,
+  updateProgress,
+  useDeckProgress,
+} from '@/db'
+import {
+  Button,
+  CountUp,
+  enterSpring,
+  IconButton,
+  IconChevronDown,
+  IconRefresh,
+  IconShuffle,
+  IconSparkles,
+  IconUndo,
+  Menu,
+  Ring,
+  Segmented,
+  Sheet,
+  StudyBar,
+  shortcutsBlocked,
+  softSpring,
+  useToast,
+} from '@/design'
 import { BulkExamplesSheet } from '@/features/ai/BulkExamplesSheet'
 import { ExamplesSheet } from '@/features/ai/ExamplesSheet'
 import { isMonolingual } from '@/features/ai/prompt'
@@ -28,9 +45,7 @@ import {
 } from '@/features/study/scope'
 import { useStudyDeck } from '@/features/study/useStudyDeck'
 import { t } from '@/i18n/ru'
-import { hasExamples } from '@/lib/examples'
-import { shuffle } from '@/lib/shuffle'
-import { useSetting } from '@/lib/storage'
+import { hasExamples, shuffle, useSetting } from '@/lib'
 import { type CardSide, SwipeCard, type SwipeCardHandle, type SwipeDir } from './SwipeCard'
 import { type FlashContent, pickSentences, sentenceOf } from './sentences'
 

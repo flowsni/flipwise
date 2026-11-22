@@ -3,15 +3,27 @@ import { memo, type ReactNode, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { db } from '@/db/db'
-import { appendCards, deleteCard, deleteDeck, restoreSnapshot } from '@/db/decks'
-import { useDeck, useDeckCards, useDeckProgress, useHardCards } from '@/db/hooks'
-import { isMastered, toggleStar } from '@/db/progress'
-import type { Card, Deck, StudyMode } from '@/db/types'
-import { Button, IconButton } from '@/design/Button'
-import { cx } from '@/design/cx'
 import {
+  appendCards,
+  type Card,
+  type Deck,
+  db,
+  deleteCard,
+  deleteDeck,
+  isMastered,
+  restoreSnapshot,
+  type StudyMode,
+  toggleStar,
+  useDeck,
+  useDeckCards,
+  useDeckProgress,
+  useHardCards,
+} from '@/db'
+import {
+  Button,
+  cx,
   IconBrain,
+  IconButton,
   IconCards,
   IconChevronLeft,
   IconChevronRight,
@@ -21,12 +33,12 @@ import {
   IconSparkles,
   IconTrash,
   IconUpload,
-} from '@/design/icons'
-import { Menu } from '@/design/Menu'
-import { pressSpring } from '@/design/motion'
-import { Ring } from '@/design/Progress'
-import { useToast } from '@/design/Toast'
-import { TopBar } from '@/design/TopBar'
+  Menu,
+  pressSpring,
+  Ring,
+  TopBar,
+  useToast,
+} from '@/design'
 import { BulkExamplesSheet } from '@/features/ai/BulkExamplesSheet'
 import { ExamplesSheet } from '@/features/ai/ExamplesSheet'
 import { HardList } from '@/features/hard/HardList'
@@ -34,10 +46,7 @@ import type { SessionProgress } from '@/features/study/sessionProgress'
 import { useSessionProgress } from '@/features/study/useSessionProgress'
 import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
-import { backupFileName, exportDeck } from '@/lib/backup'
-import { shareOrDownloadJson } from '@/lib/files'
-import { languageName } from '@/lib/languages'
-import { MAX_CARDS } from '@/lib/limits'
+import { backupFileName, exportDeck, languageName, MAX_CARDS, shareOrDownloadJson } from '@/lib'
 import { CardRow, cardListClass } from './CardRow'
 import { ImportSheet } from './ImportSheet'
 import { StarButton } from './StarButton'

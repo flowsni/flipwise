@@ -1,13 +1,23 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { type ThemeSetting, useThemeSetting } from '@/app/theme'
-import { db } from '@/db/db'
-import { useDeckLanguages } from '@/db/hooks'
-import { clearQueryCache } from '@/db/useCachedLiveQuery'
-import { Button, IconButton } from '@/design/Button'
-import { Field, Input, Segmented, Select, useFieldId } from '@/design/Field'
-import { IconCheck, IconDownload, IconEye, IconEyeOff, IconPlay, IconUpload } from '@/design/icons'
-import { Sheet } from '@/design/Sheet'
-import { useToast } from '@/design/Toast'
+import { clearQueryCache, db, useDeckLanguages } from '@/db'
+import {
+  Button,
+  Field,
+  IconButton,
+  IconCheck,
+  IconDownload,
+  IconEye,
+  IconEyeOff,
+  IconPlay,
+  IconUpload,
+  Input,
+  Segmented,
+  Select,
+  Sheet,
+  useFieldId,
+  useToast,
+} from '@/design'
 import { aiErrorMessage } from '@/features/ai/AiErrorBox'
 import { PROVIDERS, type ProviderId, providerInfo } from '@/features/ai/catalog'
 import { AiError } from '@/features/ai/errors'
@@ -21,11 +31,13 @@ import {
   backupFileName,
   exportAll,
   importBackup,
+  languageName,
   parseBackup,
-} from '@/lib/backup'
-import { pickFile, shareOrDownloadJson } from '@/lib/files'
-import { languageName, speechSample } from '@/lib/languages'
-import { useSetting } from '@/lib/storage'
+  pickFile,
+  shareOrDownloadJson,
+  speechSample,
+  useSetting,
+} from '@/lib'
 
 export function SettingsSheet({
   open,

@@ -1,6 +1,4 @@
-import { IconButton } from '@/design/Button'
-import { cx } from '@/design/cx'
-import { IconStar } from '@/design/icons'
+import { cx, IconButton, IconStar } from '@/design'
 import { t } from '@/i18n/ru'
 
 export function StarButton({

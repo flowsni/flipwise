@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useBack } from '@/app/useBack'
-import { db } from '@/db/db'
-import { useCachedLiveQuery } from '@/db/useCachedLiveQuery'
-import { IconButton } from '@/design/Button'
-import { inputClass } from '@/design/Field'
-import { IconChevronLeft, IconSearch, IconX } from '@/design/icons'
-import { TopBar } from '@/design/TopBar'
+import { db, useCachedLiveQuery } from '@/db'
+import { IconButton, IconChevronLeft, IconSearch, IconX, inputClass, TopBar } from '@/design'
 import { CardRow, cardListClass } from '@/features/decks/CardRow'
 import { t } from '@/i18n/ru'
-import { groupByDeck, searchCards } from '@/lib/search'
+import { groupByDeck, searchCards } from '@/lib'
 
 export function SearchPage() {
   const back = useBack('/')

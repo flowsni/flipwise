@@ -1,6 +1,6 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useEffect } from 'react'
-import { useToast } from '@/design/Toast'
+import { useToast } from '@/design'
 import { t } from '@/i18n/ru'
 
 /** Shows «Доступна новая версия — Обновить» when a new service worker is waiting. */

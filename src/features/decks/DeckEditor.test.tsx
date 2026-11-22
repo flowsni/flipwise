@@ -1,11 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { db } from '@/db/db'
-import { createDeck, getDeckCards } from '@/db/decks'
-import { ToastProvider } from '@/design/Toast'
+import { createDeck, db, getDeckCards } from '@/db'
+import { ToastProvider } from '@/design'
 import { t } from '@/i18n/ru'
-import { MAX_CARDS } from '@/lib/limits'
+import { MAX_CARDS } from '@/lib'
 import { DeckEditor } from './DeckEditor'
 
 // See FlashcardsPage.test.tsx: run Motion's JS animations instead of happy-dom's native ones.

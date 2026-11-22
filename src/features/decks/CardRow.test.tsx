@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import type { Card, Deck } from '@/db/types'
+import type { Card, Deck } from '@/db'
 import { t } from '@/i18n/ru'
 import { CardRow } from './CardRow'
 

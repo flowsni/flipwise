@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useSettingsSheet } from '@/app/SettingsContext'
-import { Button } from '@/design/Button'
+import { Button } from '@/design'
 import { t } from '@/i18n/ru'
 import type { AiErrorCode } from './errors'
 

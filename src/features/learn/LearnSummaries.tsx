@@ -1,10 +1,7 @@
 import { motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
-import type { AnswerSide, Card } from '@/db/types'
-import { Button } from '@/design/Button'
-import { Confetti } from '@/design/Confetti'
-import { IconCheck } from '@/design/icons'
-import { bouncySpring, softSpring } from '@/design/motion'
+import type { AnswerSide, Card } from '@/db'
+import { Button, bouncySpring, Confetti, IconCheck, softSpring } from '@/design'
 import { t } from '@/i18n/ru'
 
 export function RoundSummary({

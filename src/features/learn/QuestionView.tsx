@@ -1,16 +1,10 @@
 import { motion, useAnimate, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
-import { Button } from '@/design/Button'
-import { cx } from '@/design/cx'
-import { Input } from '@/design/Field'
-import { IconCheck } from '@/design/icons'
-import { enterSpring } from '@/design/motion'
-import { shortcutsBlocked } from '@/design/StudyBar'
+import { Button, cx, enterSpring, IconCheck, Input, shortcutsBlocked } from '@/design'
 import { AnswerFeedback } from '@/features/study/AnswerFeedback'
 import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
-import type { MatchResult } from '@/lib/answerMatch'
-import { fitClass } from '@/lib/textFit'
+import { fitClass, type MatchResult } from '@/lib'
 import type { LearnState } from './learnEngine'
 
 export interface Feedback {

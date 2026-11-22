@@ -1,7 +1,6 @@
 /** «Примеры для всей колоды»: examples for many cards, several cards per request. */
 
-import { setExamplesIfUnchanged } from '@/db/decks'
-import type { Card, Deck, Level } from '@/db/types'
+import { type Card, type Deck, type Level, setExamplesIfUnchanged } from '@/db'
 import { AiError, type AiErrorCode } from './errors'
 import { call, type ProviderConfig } from './examples'
 import { type BatchResult, batchJsonSchema, buildBatchPrompt, parseBatchExamples } from './prompt'

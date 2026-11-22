@@ -3,10 +3,9 @@
  * Pure functions; the state is plain JSON so an unfinished test can be resumed.
  */
 
-import type { AnswerSide } from '@/db/types'
+import type { AnswerSide } from '@/db'
 import { type LearnCard, pickDistractors } from '@/features/learn/learnEngine'
-import { type MatchResult, matchAnswer } from '@/lib/answerMatch'
-import { type Rng, shuffle } from '@/lib/shuffle'
+import { type MatchResult, matchAnswer, type Rng, shuffle } from '@/lib'
 
 export type QuestionType = 'choice' | 'truefalse' | 'written'
 export const QUESTION_TYPES: readonly QuestionType[] = ['choice', 'truefalse', 'written']

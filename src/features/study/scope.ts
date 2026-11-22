@@ -1,8 +1,7 @@
 /** Which cards a study session covers. Pure helpers shared by Flashcards, Learn and Test. */
 
-import { isMastered } from '@/db/progress'
-import type { Progress } from '@/db/types'
-import { type Rng, shuffle } from '@/lib/shuffle'
+import { isMastered, type Progress } from '@/db'
+import { type Rng, shuffle } from '@/lib'
 
 export const STUDY_SCOPES = ['all', 'unknown', 'starred'] as const
 export type StudyScope = (typeof STUDY_SCOPES)[number]
