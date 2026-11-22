@@ -36,7 +36,13 @@ export function useSavedSession<T>(
       const stored = await loadSession<T>(deckId, mode)
       const usable = stored && accept(stored) ? stored : undefined
       if (fresh) {
-        setParams({}, { replace: true })
+        setParams(
+          (p) => {
+            p.delete('fresh')
+            return p
+          },
+          { replace: true },
+        )
         await clearSession(deckId, mode)
       }
       if (!cancelled)

@@ -105,3 +105,42 @@ test('switching types in the Learn menu keeps the session; «Заново» toas
   await page.locator('[aria-live]').getByRole('button', { name: 'Закрыть' }).click()
   await expect(page.getByText('Начали заново')).toBeHidden()
 })
+
+test('«Заучивание» of the hard words studies only them', async ({ page }) => {
+  await openApp(page)
+  await seedDeck(page, 'big', 30)
+  await page.goto('/#/deck/big')
+  await page
+    .locator('section[aria-labelledby="hard-title"]')
+    .getByRole('link', { name: 'Заучивание' })
+    .click()
+  // seedDeck makes every third card hard: 10 of 30.
+  const hard = page.getByRole('radio', { name: 'Трудные 10' })
+  await expect(hard).toBeChecked()
+  await page.getByRole('button', { name: 'Начать', exact: true }).click()
+  const prompt = page.locator('p[lang="en"]').first()
+  await prompt.waitFor()
+  expect(Number((await prompt.textContent())?.trim().split(' ').at(-1)) % 3).toBe(0)
+  expect(await page.evaluate(() => localStorage.getItem('flipwise.study.scope'))).toBeNull()
+})
+
+for (const width of [375, 430]) {
+  test(`the four-way scope filter fits a ${width}px screen`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await openApp(page)
+    await seedDeck(page, 'big', 30)
+    await page.goto('/#/deck/big/learn')
+    const group = page.getByRole('radiogroup', { name: 'Карточки' })
+    await group.waitFor()
+    // scrollWidth misses labels that overflow a flex-1 segment, so compare each label's text.
+    const clipped = await group.locator('label').evaluateAll(
+      (labels) =>
+        labels.filter((l) => {
+          const range = document.createRange()
+          range.selectNodeContents(l)
+          return range.getBoundingClientRect().width > l.clientWidth
+        }).length,
+    )
+    expect(clipped).toBe(0)
+  })
+}

@@ -2,7 +2,7 @@ import type { HardCard } from '@/db'
 import { CardRow, cardListClass } from '@/features/decks/CardRow'
 import { t } from '@/i18n/ru'
 
-export function HardList({ items, showDeck }: { items: HardCard[]; showDeck?: boolean }) {
+export function HardList({ items }: { items: HardCard[] }) {
   return (
     <ul className={cardListClass}>
       {items.map(({ card, deck, progress }) => (
@@ -12,12 +12,9 @@ export function HardList({ items, showDeck }: { items: HardCard[]; showDeck?: bo
           deck={deck}
           to={`/deck/${deck.id}?card=${encodeURIComponent(card.id)}`}
           meta={
-            <>
-              <span className="font-medium text-bad">
-                {t.hard.mistakes(progress.wrong, progress.wrong + progress.correct)}
-              </span>
-              {showDeck && <> · {deck.title}</>}
-            </>
+            <span className="font-medium text-bad">
+              {t.hard.mistakes(progress.wrong, progress.wrong + progress.correct)}
+            </span>
           }
         />
       ))}

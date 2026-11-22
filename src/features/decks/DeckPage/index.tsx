@@ -18,6 +18,7 @@ import { BulkExamplesSheet } from '@/features/ai/BulkExamplesSheet'
 import { ExamplesSheet } from '@/features/ai/ExamplesSheet'
 import { ImportSheet } from '@/features/decks/ImportSheet'
 import { HardList } from '@/features/hard/HardList'
+import { HardStudyButtons } from '@/features/hard/HardStudyButtons'
 import { useSessionProgress } from '@/features/study/useSessionProgress'
 import { t } from '@/i18n/ru'
 import { MAX_CARDS } from '@/lib'
@@ -113,6 +114,7 @@ export function DeckPage() {
                 )
               }
             />
+            <HardStudyButtons deckId={deck.id} cardCount={cards.length} />
             <HardList items={hard.slice(0, HARD_PREVIEW)} />
           </section>
         )}

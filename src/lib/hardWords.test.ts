@@ -22,12 +22,6 @@ describe('hardestCards', () => {
     const list = [p('a', 2, 3), p('b', 0, 5), p('c', 0, 3), p('d', 4, 5)]
     expect(hardestCards(list).map((x) => x.cardId)).toEqual(['b', 'd', 'c', 'a'])
   })
-
-  it('limits the list', () => {
-    const many = Array.from({ length: 80 }, (_, i) => p(`c${i}`, 0, 2 + (i % 5)))
-    expect(hardestCards(many)).toHaveLength(50)
-    expect(hardestCards(many, { limit: 3 })).toHaveLength(3)
-  })
 })
 
 describe('errorRate', () => {

@@ -93,7 +93,8 @@ function Flashcards({
   }, [])
 
   const changeScope = (options: ScopeOptions) => {
-    setScope(options.scope)
+    // Changing only the size must not remember a scope that came from "?scope=".
+    if (options.scope !== scope) setScope(options.scope)
     setLimit(options.limit)
     const next = select(pool, progress, options)
     setSelection(next)

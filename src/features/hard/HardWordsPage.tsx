@@ -1,9 +1,20 @@
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useBack } from '@/app/useBack'
-import { useDeck, useHardCards } from '@/db'
+import { type Deck, type HardCard, useDeck, useHardCards } from '@/db'
 import { EmptyState, IconButton, IconChevronLeft, TopBar } from '@/design'
 import { t } from '@/i18n/ru'
 import { HardList } from './HardList'
+import { HardStudyButtons } from './HardStudyButtons'
+
+function byDeck(hard: HardCard[]) {
+  const groups = new Map<string, { deck: Deck; items: HardCard[] }>()
+  for (const h of hard) {
+    const group = groups.get(h.deck.id)
+    if (group) group.items.push(h)
+    else groups.set(h.deck.id, { deck: h.deck, items: [h] })
+  }
+  return [...groups.values()].sort((a, b) => b.items.length - a.items.length)
+}
 
 export function HardWordsPage() {
   const [params] = useSearchParams()
@@ -29,8 +40,33 @@ export function HardWordsPage() {
           {t.hard.title}
         </h1>
         <p className="mt-1 mb-6 text-ink-2">{deck ? deck.title : t.hard.hint}</p>
-        {hard && hard.length === 0 && <EmptyState boxed text={t.hard.empty} />}
-        {hard && hard.length > 0 && <HardList items={hard} showDeck={!deckId} />}
+        {hard.length === 0 && <EmptyState boxed text={t.hard.empty} />}
+        {hard.length > 0 && deck && (
+          <>
+            <HardStudyButtons deckId={deck.id} />
+            <HardList items={hard} />
+          </>
+        )}
+        {hard.length > 0 && !deck && (
+          <div className="flex flex-col gap-10">
+            {byDeck(hard).map(({ deck: { id, title }, items }) => (
+              <section key={id} aria-labelledby={`hard-${id}`}>
+                <div className="mb-3 flex items-baseline justify-between gap-2">
+                  <h2 id={`hard-${id}`} className="min-w-0 text-lg font-semibold tracking-tight">
+                    <Link to={`/deck/${id}`} className="hover:underline">
+                      {title}
+                    </Link>
+                  </h2>
+                  <span className="shrink-0 text-[0.9375rem] text-ink-3">
+                    {t.plural.cards(items.length)}
+                  </span>
+                </div>
+                <HardStudyButtons deckId={id} />
+                <HardList items={items} />
+              </section>
+            ))}
+          </div>
+        )}
       </main>
     </>
   )

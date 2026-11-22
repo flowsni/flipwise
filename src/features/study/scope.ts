@@ -1,7 +1,7 @@
 import { isMastered, type Progress } from '@/db'
-import { type Rng, shuffle } from '@/lib'
+import { isHard, type Rng, shuffle } from '@/lib'
 
-export const STUDY_SCOPES = ['all', 'unknown', 'starred'] as const
+export const STUDY_SCOPES = ['all', 'unknown', 'starred', 'hard'] as const
 export type StudyScope = (typeof STUDY_SCOPES)[number]
 
 /** Session size; 0 means every card of the scope. */
@@ -18,6 +18,7 @@ type ProgressMap = ReadonlyMap<string, Progress>
 function inScope(scope: StudyScope, p: Progress | undefined): boolean {
   if (scope === 'unknown') return !isMastered(p)
   if (scope === 'starred') return !!p?.starred
+  if (scope === 'hard') return isHard(p)
   return true
 }
 
@@ -25,7 +26,7 @@ export function scopeCounts(
   cards: readonly { id: string }[],
   progress: ProgressMap,
 ): Record<StudyScope, number> {
-  const counts = { all: 0, unknown: 0, starred: 0 }
+  const counts = { all: 0, unknown: 0, starred: 0, hard: 0 }
   for (const c of cards) {
     for (const s of STUDY_SCOPES) if (inScope(s, progress.get(c.id))) counts[s]++
   }
