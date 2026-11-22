@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { cx } from './cx'
 
-/** Sticky translucent top bar with safe-area padding. */
 export function TopBar({
   left,
   center,

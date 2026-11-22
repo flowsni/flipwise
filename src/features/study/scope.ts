@@ -23,7 +23,6 @@ function inScope(scope: StudyScope, p: Progress | undefined): boolean {
   return true
 }
 
-/** Number of cards in each scope, for the picker's counters. */
 export function scopeCounts(
   cards: readonly { id: string }[],
   progress: ProgressMap,

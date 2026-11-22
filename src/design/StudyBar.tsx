@@ -4,7 +4,6 @@ import { IconButton } from './Button'
 import { IconX } from './icons'
 import { ProgressBar } from './Progress'
 
-/** Distraction-free header for study screens: close, thin progress, "…" menu. */
 export function StudyBar({
   onClose,
   progress,

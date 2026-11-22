@@ -67,7 +67,6 @@ export function Ring({
   )
 }
 
-/** Number that counts up on mount. */
 export function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
   const reduce = useReducedMotion()
   const mv = useMotionValue(reduce ? to : 0)

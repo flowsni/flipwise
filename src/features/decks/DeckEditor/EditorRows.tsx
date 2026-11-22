@@ -9,7 +9,6 @@ import type { Row } from './useDeckRows'
 /** The filter field appears once the set has this many cards. */
 const FILTER_FROM = 10
 
-/** The filter and the reorderable list of card rows. */
 export function EditorRows({
   rows,
   loaded,

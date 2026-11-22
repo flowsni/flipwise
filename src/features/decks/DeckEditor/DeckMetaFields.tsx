@@ -27,7 +27,6 @@ function LanguageSelect({
   )
 }
 
-/** Title, description, the two languages and the level of the deck. */
 export function DeckMetaFields({
   meta,
   onChange,

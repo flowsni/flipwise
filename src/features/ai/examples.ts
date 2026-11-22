@@ -27,7 +27,6 @@ export function call(provider: ProviderId, req: GenerateRequest): Promise<string
   }
 }
 
-/** Generates 3 example sentences with the studied word highlighted. */
 export async function generateExamples(
   input: ExamplesInput,
   config: ProviderConfig,

@@ -3,7 +3,6 @@ import { IconButton } from './Button'
 import { inputClass } from './Field'
 import { IconSearch, IconX } from './icons'
 
-/** A rounded search input with a magnifier and a clear button (shown while it has text). */
 export function SearchField({
   onChange,
   onClear,

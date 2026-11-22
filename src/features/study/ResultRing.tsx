@@ -1,6 +1,5 @@
 import { CountUp, Ring } from '@/design'
 
-/** The big percentage ring of a results screen; `value` is 0–1. */
 export function ResultRing({
   value,
   size,

@@ -1,7 +1,6 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 
-/** The card of a round's settings (Learn, Test): title, fields, a submit button. */
 export function SetupCard({
   title,
   onSubmit,

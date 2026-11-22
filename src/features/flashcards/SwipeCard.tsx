@@ -24,7 +24,6 @@ export interface SwipeCardHandle {
   swipe: (dir: SwipeDir) => void
 }
 
-/** One face of the card. */
 export interface CardSide {
   text: string
   lang: string

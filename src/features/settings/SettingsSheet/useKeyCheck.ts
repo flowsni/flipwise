@@ -4,7 +4,6 @@ import type { ProviderId } from '@/features/ai/catalog'
 import { AiError } from '@/features/ai/errors'
 import { testConnection } from '@/features/ai/examples'
 
-/** «Проверить ключ»: one test request with the current provider, key and model. */
 export function useKeyCheck(ai: { provider: ProviderId | null; key: string; model: string }) {
   const [status, setStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle')
   const [errorText, setErrorText] = useState('')

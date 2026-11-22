@@ -2,7 +2,6 @@ import { useSettingsSheet } from '@/app/SettingsContext'
 import { Button, EmptyState, IconSparkles } from '@/design'
 import { t } from '@/i18n/ru'
 
-/** Shown instead of AI features until a provider key is set; leads to the AI settings. */
 export function NoKey({ onClose }: { onClose: () => void }) {
   const settings = useSettingsSheet()
   return (

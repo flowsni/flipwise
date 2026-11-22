@@ -5,7 +5,6 @@ import { t } from '@/i18n/ru'
 
 type Counts = Parameters<typeof StudyScopePicker>[0]['counts']
 
-/** The chip above the card that shows the current scope and opens the sheet. */
 export function ScopeChip({
   scope,
   count,

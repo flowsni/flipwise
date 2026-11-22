@@ -63,7 +63,6 @@ function Learn({
   const answerLang = langOf(deck, answerWith)
   const promptLang = answerWith === 'term' ? deck.defLang : deck.termLang
 
-  /** A stored session, made ready to continue. */
   const revive = (saved: LearnState): LearnState => {
     if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)
     // A session saved while feedback was showing already counted that answer: move on.
@@ -87,7 +86,6 @@ function Learn({
     persist(createLearnState(cards, answerWith, Math.random, {}, ids))
   }
 
-  /** Starts over with the same cards as the current session. */
   const restart = (side: AnswerSide = answerWith) => {
     if (!state) return
     if (!isFinished(state)) offerUndo(state)

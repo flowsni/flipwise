@@ -21,7 +21,6 @@ export function useStudyScope() {
   }
 }
 
-/** «Все / Незнакомые / Избранные» with counters; empty scopes are disabled. */
 export function StudyScopePicker({
   counts,
   scope,

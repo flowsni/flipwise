@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { cx } from './cx'
 
-/** A section's `h2`, with an optional `action` (button or link) on the same line. */
 export function SectionHeader({
   title,
   id,

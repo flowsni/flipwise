@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { useToast } from '@/design'
 import { t } from '@/i18n/ru'
 
-/** Shows «Доступна новая версия — Обновить» when a new service worker is waiting. */
 export function UpdatePrompt() {
   const toast = useToast()
   const {

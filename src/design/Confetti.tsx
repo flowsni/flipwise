@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 
 const COLORS = ['var(--fw-coral)', 'var(--fw-plum)', 'var(--fw-sun)', 'var(--fw-good)']
 
-/** A light confetti burst for finishing Learn mode. */
 export function Confetti({ count = 46 }: { count?: number }) {
   const reduce = useReducedMotion()
   const pieces = useMemo(

@@ -18,6 +18,10 @@
     "rules": {
       "preset": "recommended",
       "a11y": { "noAutofocus": "off" },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "warn",
+        "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 200 } }
+      },
       "performance": { "noBarrelFile": "error", "noReExportAll": "error" },
       "style": { "noNonNullAssertion": "off" }
     }

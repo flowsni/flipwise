@@ -128,7 +128,6 @@ export function createLearnState(
   return startRound(state, cards, rng)
 }
 
-/** A card is learned once it reached the last stage. */
 export function isLearned(state: Pick<LearnState, 'stage'>, id: string): boolean {
   return state.stage[id] === 2
 }
@@ -259,7 +258,6 @@ export function overrideLastWrong(before: LearnState): LearnState {
   return applyResult(before, true)
 }
 
-/** Moves to the next question after feedback; marks the round as over when the queue is empty. */
 export function nextQuestion(
   state: LearnState,
   cards: readonly LearnCard[],

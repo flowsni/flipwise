@@ -2,7 +2,6 @@ import type { AnswerSide } from '@/db'
 import { SegmentedField } from '@/design'
 import { t } from '@/i18n/ru'
 
-/** «Отвечать: определением / термином». */
 export function AnswerWithPicker({
   value,
   onChange,

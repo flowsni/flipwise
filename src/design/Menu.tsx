@@ -10,7 +10,6 @@ export interface MenuItem {
   icon?: ReactNode
   onSelect: () => void
   danger?: boolean
-  /** Shows a check mark — for toggles like "Перемешать". */
   checked?: boolean
 }
 
