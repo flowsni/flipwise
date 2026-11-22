@@ -36,7 +36,7 @@ describe('sessionProgress', () => {
 
   it('returns null for sessions the study pages would not resume', () => {
     expect(sessionProgress('learn', null, ids)).toBeNull()
-    expect(sessionProgress('learn', learn({ version: 2 }), ids)).toBeNull()
+    expect(sessionProgress('learn', learn({ version: 3 as never }), ids)).toBeNull()
     expect(sessionProgress('learn', learn({ order: [] }), ids)).toBeNull()
     expect(sessionProgress('test', test({ phase: 'results' }), ids)).toBeNull()
     expect(sessionProgress('test', test({ questions: [] }), ids)).toBeNull()

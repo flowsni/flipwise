@@ -1,12 +1,14 @@
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef } from 'react'
 import type { Deck } from '@/db'
-import { Button, IconCheck, IconX, SectionHeader } from '@/design'
-import { AnswerFeedback } from '@/features/study/AnswerFeedback'
+import { Button, SectionHeader } from '@/design'
 import { ResultRing } from '@/features/study/ResultRing'
 import { t } from '@/i18n/ru'
+import { ResultRow, type Status } from './ResultRow'
 import { gradeTest } from './testGenerator'
 import { langOf, type TestState } from './testState'
+
+const ORDER: Record<Status, number> = { wrong: 0, almost: 1, right: 2 }
 
 export function TestResults({
   deck,
@@ -14,24 +16,31 @@ export function TestResults({
   onOverride,
   onRetakeMistakes,
   onNew,
-  onDeck,
 }: {
   deck: Deck
   state: TestState
   onOverride: (questionId: string) => void
   onRetakeMistakes: (cardIds: string[]) => void
   onNew: () => void
-  onDeck: () => void
 }) {
   const answerLang = langOf(deck, state.config.answerWith)
   const result = useMemo(
     () => gradeTest(state.questions, state.answers, answerLang, state.overrides),
     [state, answerLang],
   )
-  const mistakes = state.questions.filter(
-    (q) => !result.items.find((r) => r.questionId === q.id)?.correct,
-  )
-  const almost = result.items.filter((r) => r.match?.verdict === 'almost').map((r) => r.questionId)
+  const rows = state.questions
+    .map((q) => {
+      const item = result.items.find((r) => r.questionId === q.id)
+      const status: Status = !item?.correct
+        ? 'wrong'
+        : item.match?.verdict === 'almost'
+          ? 'almost'
+          : 'right'
+      return { q, status, matched: item?.match?.matched ?? q.answer }
+    })
+    .sort((x, y) => ORDER[x.status] - ORDER[y.status])
+  const count = (s: Status) => rows.filter((r) => r.status === s).length
+  const mistakes = rows.filter((r) => r.status === 'wrong').map((r) => r.q)
   const headingRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => headingRef.current?.focus(), [])
 
@@ -56,6 +65,11 @@ export function TestResults({
           color={result.percent >= 80 ? 'var(--fw-good)' : 'var(--fw-coral)'}
         />
         <p className="font-semibold">{t.test.correctOf(result.correct, result.total)}</p>
+        <p className="flex flex-wrap justify-center gap-x-4 text-[0.9375rem] text-ink-2">
+          <span className="text-good">{t.test.rightCount(count('right'))}</span>
+          <span className="text-sun-ink">{t.test.almostCount(count('almost'))}</span>
+          <span className="text-bad">{t.test.wrongCount(count('wrong'))}</span>
+        </p>
         <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row">
           {mistakes.length > 0 && (
             <Button
@@ -75,79 +89,24 @@ export function TestResults({
           >
             {t.test.newTest}
           </Button>
-          <Button variant="ghost" size="lg" onClick={onDeck}>
-            {t.test.toDeck}
-          </Button>
         </div>
       </div>
 
-      <section aria-labelledby="mistakes-title" className="flex flex-col gap-3">
-        <SectionHeader id="mistakes-title" title={t.test.mistakes} />
-        {mistakes.length === 0 && <p className="text-ink-2">{t.test.noMistakes}</p>}
-        {mistakes.map((q) => {
-          const given = state.answers[q.id] ?? ''
-          const shownGiven =
-            q.type === 'truefalse'
-              ? given === 'true'
-                ? t.test.true
-                : given === 'false'
-                  ? t.test.false
-                  : ''
-              : given
-          return (
-            <div
+      <section aria-labelledby="answers-title" className="flex flex-col gap-3">
+        <SectionHeader id="answers-title" title={t.test.answers} />
+        <ul className="flex flex-col gap-3">
+          {rows.map(({ q, status, matched }) => (
+            <ResultRow
               key={q.id}
-              className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4"
-            >
-              <p className="font-semibold break-words">
-                {q.prompt}
-                {q.type === 'truefalse' && (
-                  <span className="font-normal text-ink-2"> — {q.shown}</span>
-                )}
-              </p>
-              <p className="flex items-start gap-2 text-[0.9375rem]">
-                <IconX size={18} className="mt-0.5 shrink-0 text-bad" />
-                <span>
-                  <span className="text-ink-2">{t.test.yourAnswer}: </span>
-                  {shownGiven || <span className="text-ink-3 italic">{t.test.noAnswer}</span>}
-                </span>
-              </p>
-              <p className="flex items-start gap-2 text-[0.9375rem]">
-                <IconCheck size={18} className="mt-0.5 shrink-0 text-good" />
-                <span>
-                  <span className="text-ink-2">{t.test.correctAnswer}: </span>
-                  <span className="font-semibold" lang={answerLang}>
-                    {q.type === 'truefalse'
-                      ? `${q.isTrue ? t.test.true : t.test.false} (${q.answer})`
-                      : q.answer}
-                  </span>
-                </span>
-              </p>
-              {q.type === 'written' && given.trim() && (
-                <Button
-                  size="sm"
-                  variant="soft"
-                  className="self-start"
-                  onClick={() => onOverride(q.id)}
-                >
-                  {t.test.iWasRight}
-                </Button>
-              )}
-            </div>
-          )
-        })}
-        {almost.length > 0 &&
-          state.questions
-            .filter((q) => almost.includes(q.id))
-            .map((q) => (
-              <AnswerFeedback
-                key={`almost-${q.id}`}
-                match={result.items.find((r) => r.questionId === q.id)!.match!}
-                response={state.answers[q.id] ?? ''}
-                answer={q.answer}
-                lang={answerLang}
-              />
-            ))}
+              q={q}
+              status={status}
+              matched={matched}
+              given={state.answers[q.id] ?? ''}
+              answerLang={answerLang}
+              onOverride={() => onOverride(q.id)}
+            />
+          ))}
+        </ul>
       </section>
     </motion.section>
   )

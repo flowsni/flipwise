@@ -9,6 +9,9 @@ import {
   useState,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { t } from '@/i18n/ru'
+import { IconButton } from './Button'
+import { IconX } from './icons'
 import { spring } from './motion'
 
 export interface ToastOptions {
@@ -120,6 +123,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                         {item.action.label}
                       </button>
                     )}
+                    <IconButton
+                      label={t.app.close}
+                      size="sm"
+                      className="text-toast-ink hover:bg-white/10 dark:hover:bg-black/5"
+                      onClick={() => dismiss(item.id)}
+                    >
+                      <IconX size={18} />
+                    </IconButton>
                   </motion.div>
                 ))}
             </AnimatePresence>

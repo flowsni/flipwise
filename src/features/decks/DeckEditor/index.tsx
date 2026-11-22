@@ -18,6 +18,7 @@ import { t } from '@/i18n/ru'
 import { MAX_CARDS, type ParsedCard, setSetting } from '@/lib'
 import { DeckMetaFields } from './DeckMetaFields'
 import { EditorRows } from './EditorRows'
+import { UnsavedSheet } from './UnsavedSheet'
 import { useDeckMeta } from './useDeckMeta'
 import { useDeckRows } from './useDeckRows'
 
@@ -40,6 +41,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
     text: '',
   })
   const [saving, setSaving] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const [query, setQuery] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
   const dirty = meta.dirty || rows.dirty
@@ -72,12 +74,11 @@ function EditorForm({ deck }: { deck?: Deck }) {
   }
 
   const goBack = () => {
-    if (dirty && !window.confirm(t.editor.unsaved)) return
-    back()
+    if (dirty) setLeaving(true)
+    else back()
   }
 
-  const onSave = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const save = async () => {
     if (!rows.loaded || saving) return
     if (!meta.title.trim()) {
       flagMissingTitle()
@@ -108,6 +109,11 @@ function EditorForm({ deck }: { deck?: Deck }) {
     } finally {
       setSaving(false)
     }
+  }
+
+  const onSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    save()
   }
 
   return (
@@ -181,6 +187,16 @@ function EditorForm({ deck }: { deck?: Deck }) {
         room={MAX_CARDS - rows.filled}
         onClose={() => setImportState((s) => ({ ...s, open: false }))}
         onImport={(cards) => importRows(cards, importState.rowKey)}
+      />
+      <UnsavedSheet
+        open={leaving}
+        canSave={!!meta.title.trim()}
+        onClose={() => setLeaving(false)}
+        onSave={save}
+        onDiscard={() => {
+          setLeaving(false)
+          back()
+        }}
       />
     </form>
   )

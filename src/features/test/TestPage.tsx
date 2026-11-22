@@ -104,7 +104,6 @@ function TestRunner({
             start({ ...state.config, count: cardIds.length }, cardIds)
           }}
           onNew={() => update(null)}
-          onDeck={back}
         />
       )}
     </StudyShell>

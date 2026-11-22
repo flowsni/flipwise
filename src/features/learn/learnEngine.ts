@@ -1,8 +1,9 @@
 /**
  * Learn mode as a pure state machine.
  *
- * Cards are studied in rounds of up to 7. Each card climbs stages:
- *   0 → multiple choice, 1 → typed answer, 2 → learned.
+ * Cards are studied in rounds of up to 7. Each card climbs a ladder of the enabled question
+ * types (flashcard → choice → written; a single type is asked twice). Stage = index in the
+ * ladder, and a card is learned once the stage reaches the ladder's length.
  * A correct answer moves the card one stage up and out of the current round.
  * A wrong answer resets the card to stage 0 and re-queues it 2–3 positions later in the same round.
  * The state is plain JSON so it can be saved and resumed.
@@ -21,11 +22,15 @@ export interface LearnCard {
   definition: string
 }
 
-export type Stage = 0 | 1 | 2
+export type Stage = number
+
+export type LearnType = 'flashcard' | 'choice' | 'written'
+export const LEARN_TYPES: readonly LearnType[] = ['flashcard', 'choice', 'written']
+const DEFAULT_TYPES: LearnType[] = ['choice', 'written']
 
 export interface LearnQuestion {
   cardId: string
-  kind: 'choice' | 'written'
+  kind: LearnType
   prompt: string
   /** Expected answer (original spelling). */
   answer: string
@@ -33,7 +38,9 @@ export interface LearnQuestion {
 }
 
 export interface LearnState {
-  version: 1
+  /** 1 = saved before question types existed (no `types`). */
+  version: 1 | 2
+  types?: LearnType[]
   answerWith: AnswerSide
   order: string[]
   stage: Record<string, Stage>
@@ -54,6 +61,21 @@ export interface AnswerOutcome {
   state: LearnState
   correct: boolean
   match: MatchResult
+}
+
+export function typesOf(state: Pick<LearnState, 'types'>): LearnType[] {
+  return state.types ?? DEFAULT_TYPES
+}
+
+function ladderOf(state: Pick<LearnState, 'types'>): LearnType[] {
+  const enabled = LEARN_TYPES.filter((t) => typesOf(state).includes(t))
+  return enabled.length === 1 ? [...enabled, ...enabled] : enabled
+}
+
+/** Stage as stored in card progress, which stays 0 / 1 / 2 whatever the ladder. */
+export function persistedStage(state: LearnState, id: string): 0 | 1 | 2 {
+  const stage = state.stage[id] ?? 0
+  return isLearned(state, id) ? 2 : stage > 0 ? 1 : 0
 }
 
 function answerOf(card: LearnCard, side: AnswerSide): string {
@@ -100,6 +122,7 @@ export function pickDistractors(
 export function createLearnState(
   cards: readonly LearnCard[],
   answerWith: AnswerSide,
+  types: LearnType[],
   rng: Rng = Math.random,
   initialStage: Record<string, Stage> = {},
   onlyCardIds?: readonly string[],
@@ -112,7 +135,8 @@ export function createLearnState(
   const stage: Record<string, Stage> = {}
   for (const id of order) stage[id] = initialStage[id] ?? 0
   const state: LearnState = {
-    version: 1,
+    version: 2,
+    types,
     answerWith,
     order,
     stage,
@@ -123,8 +147,8 @@ export function createLearnState(
   return startRound(state, cards, rng)
 }
 
-export function isLearned(state: Pick<LearnState, 'stage'>, id: string): boolean {
-  return state.stage[id] === 2
+export function isLearned(state: Pick<LearnState, 'stage' | 'types'>, id: string): boolean {
+  return (state.stage[id] ?? 0) >= ladderOf(state).length
 }
 
 export function isFinished(state: LearnState): boolean {
@@ -132,14 +156,15 @@ export function isFinished(state: LearnState): boolean {
 }
 
 export function acceptLearnSession(s: Partial<LearnState>): boolean {
-  return s.version === 1 && !!s.order?.length
+  return (s.version === 1 || s.version === 2) && !!s.order?.length
 }
 
-/** Overall progress 0..1: every card needs two correct answers. */
+/** Overall progress 0..1: every card needs one correct answer per ladder step. */
 export function overallProgress(state: LearnState): number {
   if (!state.order.length) return 1
-  const sum = state.order.reduce((acc, id) => acc + (state.stage[id] ?? 0), 0)
-  return sum / (state.order.length * 2)
+  const steps = ladderOf(state).length
+  const sum = state.order.reduce((acc, id) => acc + Math.min(state.stage[id] ?? 0, steps), 0)
+  return sum / (state.order.length * steps)
 }
 
 /** Cards of the current round already answered correctly (a wrong answer puts a card back). */
@@ -155,8 +180,8 @@ export function startRound(
 ): LearnState {
   // Cards already in progress go first so a batch is finished before new cards appear.
   const pending = state.order.filter((id) => !isLearned(state, id))
-  const inProgress = pending.filter((id) => state.stage[id] === 1)
-  const fresh = pending.filter((id) => state.stage[id] === 0)
+  const inProgress = pending.filter((id) => (state.stage[id] ?? 0) > 0)
+  const fresh = pending.filter((id) => !state.stage[id])
   const queue = [...inProgress, ...fresh].slice(0, ROUND_SIZE)
   const next: LearnState = {
     ...state,
@@ -194,7 +219,7 @@ function withQuestion(state: LearnState, cards: readonly LearnCard[], rng: Rng):
   }
   const side = state.answerWith
   const answer = answerOf(card, side)
-  const kind = (state.stage[cardId] ?? 0) === 0 ? 'choice' : 'written'
+  const kind = ladderOf(state)[state.stage[cardId] ?? 0] ?? 'written'
   const question: LearnQuestion = { cardId, kind, prompt: promptOf(card, side), answer }
   if (kind === 'choice') {
     const pool = cards.filter((c) => c.id !== cardId).map((c) => answerOf(c, side))
@@ -211,11 +236,11 @@ export function submitAnswer(state: LearnState, response: string, lang?: string)
   const q = state.current
   if (!q) throw new Error('No active question')
   const match: MatchResult =
-    q.kind === 'choice'
-      ? response === q.answer
+    q.kind === 'written'
+      ? matchAnswer(response, q.answer, lang)
+      : (q.kind === 'flashcard' ? response === 'know' : response === q.answer)
         ? { verdict: 'correct', matched: q.answer }
         : { verdict: 'wrong' }
-      : matchAnswer(response, q.answer, lang)
   const correct = match.verdict !== 'wrong'
   return { state: applyResult(state, correct), correct, match }
 }
@@ -229,9 +254,8 @@ function applyResult(state: LearnState, correct: boolean): LearnState {
   const stage = { ...state.stage }
   const learned = state.round.learned.slice()
   if (correct) {
-    const nextStage = Math.min(2, (stage[id] ?? 0) + 1) as Stage
-    stage[id] = nextStage
-    if (nextStage === 2) learned.push(id)
+    stage[id] = (stage[id] ?? 0) + 1
+    if (isLearned({ stage, types: state.types }, id)) learned.push(id)
   } else {
     stage[id] = 0
     // Show the card again 2–3 positions later (or at the end of a short queue).
@@ -250,6 +274,41 @@ function applyResult(state: LearnState, correct: boolean): LearnState {
 /** Overrides the last wrong verdict («Я был прав»). Call on the state returned by submitAnswer. */
 export function overrideLastWrong(before: LearnState): LearnState {
   return applyResult(before, true)
+}
+
+/**
+ * Switches the question types mid-session without a restart. A card keeps the steps of the new
+ * ladder it has already passed (by type); steps of a removed type are dropped. Learned cards stay
+ * learned, but no card becomes learned here: that needs a real answer, which is what records it
+ * in the card's saved progress.
+ * shortcut: progress is a count, not a set, so a type added in front of passed steps is not asked
+ * for them again and the card may repeat a type once; upgrade by storing passed types per card.
+ */
+export function changeTypes(
+  state: LearnState,
+  types: LearnType[],
+  cards: readonly LearnCard[],
+  rng: Rng = Math.random,
+): LearnState {
+  const from = ladderOf(state)
+  const next: LearnState = { ...state, version: 2, types }
+  const to = ladderOf(next)
+  const stage: Record<string, Stage> = {}
+  for (const id of state.order) {
+    const s = state.stage[id] ?? 0
+    if (s >= from.length) {
+      stage[id] = to.length
+      continue
+    }
+    const left = from.slice(0, s)
+    const passed = to.filter((k) => {
+      const i = left.indexOf(k)
+      if (i >= 0) left.splice(i, 1)
+      return i >= 0
+    }).length
+    stage[id] = Math.min(passed, to.length - 1)
+  }
+  return withQuestion({ ...next, stage }, cards, rng)
 }
 
 export function nextQuestion(

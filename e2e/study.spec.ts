@@ -37,3 +37,71 @@ test('«Заново» on the deck tile can be undone', async ({ page }) => {
   await page.getByRole('button', { name: 'Отменить' }).click()
   await expect(page.getByText('Без ответа: 19')).toBeVisible()
 })
+
+test('test results list every answer with a mark, wrong ones first', async ({ page }) => {
+  await openApp(page)
+  await seedDeck(page, 'big', 6)
+  await page.goto('/#/deck/big/test')
+  await page.getByLabel('Выбор из вариантов').uncheck()
+  await page.getByLabel('Верно / неверно').uncheck()
+  await page.getByRole('button', { name: 'Начать тест' }).click()
+
+  const inputs = page.locator('fieldset input[type="text"], form input:not([type])')
+  await inputs.first().waitFor()
+  const n = await inputs.count()
+  expect(n).toBeGreaterThan(2)
+  // Answer the first one correctly, the rest wrongly.
+  const prompt = (await page.locator('form p[lang="en"]').first().textContent())?.trim() ?? ''
+  await inputs.first().fill(`перевод слова ${prompt.split(' ').at(-1)}`)
+  for (let i = 1; i < n; i++) await inputs.nth(i).fill('zzz')
+  await page.getByRole('button', { name: 'Завершить тест' }).click()
+
+  const rows = page.locator('section[aria-labelledby="answers-title"] li')
+  await expect(rows).toHaveCount(n)
+  // Wrong answers sort before the correct one, which shows no «Правильно» line.
+  await expect(rows.first()).toContainText('Правильно:')
+  await expect(rows.last()).not.toContainText('Правильно:')
+})
+
+test('Learn with flashcards only: reveal, then «Знаю» advances', async ({ page }) => {
+  await openApp(page)
+  await seedDeck(page, 'big', 10)
+  await page.goto('/#/deck/big/learn')
+  await page.getByRole('checkbox', { name: 'Карточки' }).check()
+  await page.getByLabel('Выбор ответа').uncheck()
+  await page.getByLabel('Письменный ответ').uncheck()
+  await page.getByRole('button', { name: 'Начать', exact: true }).click()
+  const card = page.getByRole('button', { name: /Перевернуть карточку/ })
+  await expect(page.getByRole('button', { name: 'Знаю', exact: true })).toBeHidden()
+  await card.click()
+  await page.getByRole('button', { name: 'Знаю', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Знаю', exact: true })).toBeHidden()
+  await expect(card).toBeVisible()
+})
+
+test('switching types in the Learn menu keeps the session; «Заново» toast can be closed', async ({
+  page,
+}) => {
+  await openApp(page)
+  await seedDeck(page, 'big', 10)
+  await page.goto('/#/deck/big/learn')
+  await page.getByRole('button', { name: 'Начать', exact: true }).click()
+  // The menu stays open between toggles.
+  await page.getByRole('button', { name: 'Параметры' }).click()
+  const toggle = (name: string) => page.getByRole('menuitemcheckbox', { name }).click()
+  await toggle('Карточки')
+  await toggle('Выбор ответа')
+  await toggle('Письменный ответ')
+  await expect(page.getByRole('button', { name: /Перевернуть карточку/ })).toBeVisible()
+  await expect(page.getByText('Начали заново')).toBeHidden()
+
+  // The last type cannot be removed, and the user is told why.
+  await toggle('Карточки')
+  await expect(page.getByText('Выберите хотя бы один тип')).toBeVisible()
+  await expect(page.getByText('Выберите хотя бы один тип')).toBeHidden({ timeout: 10_000 })
+
+  await page.getByRole('menuitem', { name: 'Начать заново' }).click()
+  await expect(page.getByText('Начали заново')).toBeVisible()
+  await page.locator('[aria-live]').getByRole('button', { name: 'Закрыть' }).click()
+  await expect(page.getByText('Начали заново')).toBeHidden()
+})
