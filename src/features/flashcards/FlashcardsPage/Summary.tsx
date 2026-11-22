@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
-import { Button, CountUp, IconUndo, Ring, softSpring } from '@/design'
+import { Button, IconUndo, softSpring } from '@/design'
+import { ResultRing } from '@/features/study/ResultRing'
 import { t } from '@/i18n/ru'
 
 export function Summary({
@@ -23,20 +24,13 @@ export function Summary({
       transition={softSpring}
       className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 px-6 pb-safe text-center"
     >
-      <Ring
+      <ResultRing
         value={total ? known / total : 0}
         size={168}
         stroke={14}
         color="var(--fw-good)"
         track="var(--fw-bad-soft)"
-        animateFromZero
-      >
-        <span className="flex flex-col items-center">
-          <span className="text-4xl font-bold">
-            <CountUp to={total ? Math.round((known / total) * 100) : 0} suffix="%" />
-          </span>
-        </span>
-      </Ring>
+      />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
           {total && known / total >= 0.6 ? t.flash.doneTitle : t.flash.doneNeutralTitle}

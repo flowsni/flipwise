@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { useBack } from '@/app/useBack'
 import { useDeck, useHardCards } from '@/db'
-import { IconButton, IconChevronLeft, TopBar } from '@/design'
+import { EmptyState, IconButton, IconChevronLeft, TopBar } from '@/design'
 import { t } from '@/i18n/ru'
 import { HardList } from './HardList'
 
@@ -30,11 +30,7 @@ export function HardWordsPage() {
           {t.hard.title}
         </h1>
         <p className="mt-1 mb-6 text-ink-2">{deck ? deck.title : t.hard.hint}</p>
-        {hard && hard.length === 0 && (
-          <p className="rounded-card border border-dashed border-line p-8 text-center text-ink-2">
-            {t.hard.empty}
-          </p>
-        )}
+        {hard && hard.length === 0 && <EmptyState boxed text={t.hard.empty} />}
         {hard && hard.length > 0 && <HardList items={hard} showDeck={!deckId} />}
       </main>
     </>

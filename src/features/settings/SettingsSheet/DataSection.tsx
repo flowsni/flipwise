@@ -25,6 +25,13 @@ export function DataSection() {
     if (result !== 'cancelled') toast.show({ message: t.settings.exported })
   }
 
+  const apply = async (backup: Backup, mode: 'replace' | 'merge') => {
+    const n = await importBackup(db, backup, mode)
+    // Forms copy their first value from the cache into state: it must not predate the restore.
+    clearQueryCache()
+    toast.show({ message: t.settings.imported(n) })
+  }
+
   const onImport = async () => {
     const file = await pickFile('application/json,.json')
     if (!file) return
@@ -32,9 +39,7 @@ export function DataSection() {
       const backup = parseBackup(await file.text())
       // A shared single deck is simply added; a full backup asks how to import.
       if (backup.kind === 'deck') {
-        const n = await importBackup(db, backup, 'merge')
-        clearQueryCache()
-        toast.show({ message: t.settings.imported(n) })
+        await apply(backup, 'merge')
       } else {
         setPending(backup)
       }
@@ -46,11 +51,8 @@ export function DataSection() {
 
   const finish = async (mode: 'replace' | 'merge') => {
     if (!pending) return
-    const n = await importBackup(db, pending, mode)
-    // Forms copy their first value from the cache into state: it must not predate the restore.
-    clearQueryCache()
+    await apply(pending, mode)
     setPending(null)
-    toast.show({ message: t.settings.imported(n) })
   }
 
   return (

@@ -7,13 +7,12 @@ import {
   type Card,
   deleteCard,
   isMastered,
-  restoreSnapshot,
   useDeck,
   useDeckCards,
   useDeckProgress,
   useHardCards,
 } from '@/db'
-import { IconButton, IconChevronLeft, TopBar, useToast } from '@/design'
+import { IconButton, IconChevronLeft, SectionHeader, TopBar, useToast } from '@/design'
 import { BulkExamplesSheet } from '@/features/ai/BulkExamplesSheet'
 import { ExamplesSheet } from '@/features/ai/ExamplesSheet'
 import { ImportSheet } from '@/features/decks/ImportSheet'
@@ -26,6 +25,7 @@ import { DeckHeader } from './DeckHeader'
 import { DeckMenu } from './DeckMenu'
 import { ModeTiles } from './ModeTiles'
 import { useCardHighlight } from './useCardHighlight'
+import { useUndoableDelete } from './useUndoableDelete'
 
 /** Hard cards shown on the deck page; the rest are one tap away. */
 const HARD_PREVIEW = 5
@@ -54,15 +54,10 @@ export function DeckPage() {
     testSession !== undefined
   const highlight = useCardHighlight(cards, ready)
 
+  const deleteWithUndo = useUndoableDelete()
   const onDeleteCard = useCallback(
-    async (card: Card) => {
-      const snapshot = await deleteCard(card.id)
-      toast.show({
-        message: t.deck.cardDeleted,
-        action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
-      })
-    },
-    [toast],
+    (card: Card) => deleteWithUndo(() => deleteCard(card.id), t.deck.cardDeleted),
+    [deleteWithUndo],
   )
 
   if (deck === null) return <NotFound />
@@ -99,19 +94,21 @@ export function DeckPage() {
 
         {!!hard.length && (
           <section className="mt-10" aria-labelledby="hard-title">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 id="hard-title" className="text-lg font-semibold tracking-tight">
-                {t.hard.title}
-              </h2>
-              {hard.length > HARD_PREVIEW && (
-                <Link
-                  to={`/hard?deck=${deck.id}`}
-                  className="inline-flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
-                >
-                  {t.hard.showAll(hard.length)}
-                </Link>
-              )}
-            </div>
+            <SectionHeader
+              id="hard-title"
+              className="mb-3"
+              title={t.hard.title}
+              action={
+                hard.length > HARD_PREVIEW && (
+                  <Link
+                    to={`/hard?deck=${deck.id}`}
+                    className="inline-flex min-h-11 items-center rounded-xl px-3 text-[0.9375rem] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+                  >
+                    {t.hard.showAll(hard.length)}
+                  </Link>
+                )
+              }
+            />
             <HardList items={hard.slice(0, HARD_PREVIEW)} />
           </section>
         )}

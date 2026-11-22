@@ -1,6 +1,6 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
 import { type Card, type Deck, type Level, setExamplesIfUnchanged } from '@/db'
-import { Button, IconSparkles, ProgressBar, Segmented, Sheet, useToast } from '@/design'
+import { Button, IconSparkles, ProgressBar, SegmentedField, Sheet, useToast } from '@/design'
 import { t } from '@/i18n/ru'
 import { hasExamples } from '@/lib'
 import { AiErrorBox } from './AiErrorBox'
@@ -162,26 +162,23 @@ function BulkBody({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <span className="text-[0.9375rem] font-medium text-ink-2">{t.bulk.which}</span>
-        <Segmented
-          label={t.bulk.which}
-          value={which}
-          onChange={(v) => {
-            setWhich(v)
-            setError(null)
-          }}
-          options={[
-            {
-              value: 'missing',
-              label: t.bulk.missing,
-              detail: String(missingCount),
-              disabled: !missingCount,
-            },
-            { value: 'all', label: t.bulk.all, detail: String(cards.length) },
-          ]}
-        />
-      </div>
+      <SegmentedField
+        label={t.bulk.which}
+        value={which}
+        onChange={(v) => {
+          setWhich(v)
+          setError(null)
+        }}
+        options={[
+          {
+            value: 'missing',
+            label: t.bulk.missing,
+            detail: String(missingCount),
+            disabled: !missingCount,
+          },
+          { value: 'all', label: t.bulk.all, detail: String(cards.length) },
+        ]}
+      />
 
       <LevelPicker
         value={level}

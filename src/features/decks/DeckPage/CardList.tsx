@@ -2,7 +2,15 @@ import { AnimatePresence } from 'motion/react'
 import { memo } from 'react'
 import { useNavigate } from 'react-router'
 import { type Card, type Deck, type Progress, toggleStar } from '@/db'
-import { Button, IconEdit, IconSparkles, IconTrash, Menu } from '@/design'
+import {
+  Button,
+  EmptyState,
+  IconEdit,
+  IconSparkles,
+  IconTrash,
+  Menu,
+  SectionHeader,
+} from '@/design'
 import { CardRow, cardListClass } from '@/features/decks/CardRow'
 import { StarButton } from '@/features/decks/StarButton'
 import { SpeakButton } from '@/features/tts/SpeakButton'
@@ -29,27 +37,32 @@ export function CardList({
   const edit = () => navigate(`/deck/${deck.id}/edit`)
   return (
     <section className="mt-10" aria-labelledby="cards-title">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 id="cards-title" className="text-lg font-semibold tracking-tight">
-          {t.deck.cardsTitle}
-        </h2>
-        <Button size="sm" variant="ghost" onClick={edit}>
-          <IconEdit size={16} />
-          {t.deck.edit}
-        </Button>
-      </div>
+      <SectionHeader
+        id="cards-title"
+        className="mb-3"
+        title={t.deck.cardsTitle}
+        action={
+          <Button size="sm" variant="ghost" onClick={edit}>
+            <IconEdit size={16} />
+            {t.deck.edit}
+          </Button>
+        }
+      />
       {cards.length === 0 ? (
-        <div className="rounded-card border border-dashed border-line p-8 text-center text-ink-2">
-          <p>{t.deck.noCards}</p>
-          <div className="mt-4 flex justify-center gap-2">
-            <Button variant="primary" onClick={edit}>
-              {t.deck.addCards}
-            </Button>
-            <Button variant="soft" onClick={onImport}>
-              {t.deck.import}
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          boxed
+          text={t.deck.noCards}
+          actions={
+            <>
+              <Button variant="primary" onClick={edit}>
+                {t.deck.addCards}
+              </Button>
+              <Button variant="soft" onClick={onImport}>
+                {t.deck.import}
+              </Button>
+            </>
+          }
+        />
       ) : (
         <ul id="deck-cards" className={cardListClass}>
           {/* Rows no longer use `layout`, so presence needn't re-render all of them on every update. */}

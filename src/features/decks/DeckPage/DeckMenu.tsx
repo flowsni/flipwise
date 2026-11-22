@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router'
 import { useBack } from '@/app/useBack'
-import { type Deck, db, deleteDeck, restoreSnapshot } from '@/db'
-import { IconEdit, IconShare, IconSparkles, IconTrash, IconUpload, Menu, useToast } from '@/design'
+import { type Deck, db, deleteDeck } from '@/db'
+import { IconEdit, IconShare, IconSparkles, IconTrash, IconUpload, Menu } from '@/design'
 import { t } from '@/i18n/ru'
 import { backupFileName, exportDeck, shareOrDownloadJson } from '@/lib'
+import { useUndoableDelete } from './useUndoableDelete'
 
 export function DeckMenu({
   deck,
@@ -18,16 +19,9 @@ export function DeckMenu({
 }) {
   const navigate = useNavigate()
   const back = useBack('/')
-  const toast = useToast()
+  const deleteWithUndo = useUndoableDelete()
 
-  const onDelete = async () => {
-    const snapshot = await deleteDeck(deck.id)
-    back()
-    toast.show({
-      message: t.deck.deleted(deck.title),
-      action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
-    })
-  }
+  const onDelete = () => deleteWithUndo(() => deleteDeck(deck.id), t.deck.deleted(deck.title), back)
 
   const onShare = async () => {
     const data = await exportDeck(db, deck.id)

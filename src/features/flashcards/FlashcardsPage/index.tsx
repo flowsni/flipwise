@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
-import { type Card, type Deck, type Progress, toggleStar, useDeckProgress } from '@/db'
+import { type Card, type Deck, type Progress, toggleStar } from '@/db'
 import { StudyBar, useToast } from '@/design'
 import { BulkExamplesSheet } from '@/features/ai/BulkExamplesSheet'
 import { ExamplesSheet } from '@/features/ai/ExamplesSheet'
@@ -15,7 +14,7 @@ import {
   selectStudyCards,
   usableScope,
 } from '@/features/study/scope'
-import { useStudyDeck } from '@/features/study/useStudyDeck'
+import { useStudyRoute } from '@/features/study/useStudyRoute'
 import { t } from '@/i18n/ru'
 import { hasExamples, useSetting } from '@/lib'
 import { CardStack, useCardHandle } from './CardStack'
@@ -30,11 +29,10 @@ import { useFlashKeys } from './useFlashKeys'
 import { useFlashSession } from './useFlashSession'
 
 export function FlashcardsPage() {
-  const { deckId } = useParams()
-  const { deck, cards, cardsById, loading } = useStudyDeck(deckId)
-  const progress = useDeckProgress(deckId)
-  if (!loading && (!deck || !cards?.length)) return <NotFound />
-  if (loading || !deck || !cards || !progress) return null
+  const route = useStudyRoute({ minCards: 1 })
+  if (route.status === 'missing') return <NotFound />
+  if (route.status === 'loading') return null
+  const { deck, cards, cardsById, progress } = route
   return (
     <Flashcards key={deck.id} deck={deck} cards={cards} cardsById={cardsById} progress={progress} />
   )

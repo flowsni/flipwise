@@ -11,11 +11,12 @@ import {
   IconChevronLeft,
   IconGrip,
   IconPlus,
-  IconSearch,
   IconUpload,
   IconX,
   Input,
   inputClass,
+  SearchField,
+  SectionHeader,
   Select,
   TopBar,
   useFieldId,
@@ -344,46 +345,36 @@ function EditorForm({ deck }: { deck?: Deck }) {
           </div>
         </section>
 
-        <div className="mt-8 mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">{t.plural.cards(filled)}</h2>
-          <Button size="sm" variant="soft" onClick={() => setImportState({ open: true, text: '' })}>
-            <IconUpload size={16} />
-            {t.editor.import}
-          </Button>
-        </div>
+        <SectionHeader
+          title={t.plural.cards(filled)}
+          className="mt-8 mb-3"
+          action={
+            <Button
+              size="sm"
+              variant="soft"
+              onClick={() => setImportState({ open: true, text: '' })}
+            >
+              <IconUpload size={16} />
+              {t.editor.import}
+            </Button>
+          }
+        />
 
         {loaded && (filled >= FILTER_FROM || query !== '') && (
           <div className="mb-3">
-            <div className="relative">
-              <IconSearch
-                size={18}
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-3"
-              />
-              <input
-                type="search"
-                enterKeyHint="search"
-                aria-label={t.editor.filterPlaceholder}
-                placeholder={t.editor.filterPlaceholder}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  // The field lives inside the form: Enter must not save it.
-                  if (e.key === 'Enter') e.preventDefault()
-                  if (e.key === 'Escape') setQuery('')
-                }}
-                className={`${inputClass} min-h-11 rounded-full py-2 pr-11 pl-10 [&::-webkit-search-cancel-button]:hidden`}
-              />
-              {query && (
-                <IconButton
-                  size="sm"
-                  label={t.editor.filterClear}
-                  onClick={() => setQuery('')}
-                  className="absolute top-1/2 right-0 -translate-y-1/2"
-                >
-                  <IconX size={16} />
-                </IconButton>
-              )}
-            </div>
+            <SearchField
+              aria-label={t.editor.filterPlaceholder}
+              placeholder={t.editor.filterPlaceholder}
+              value={query}
+              onChange={setQuery}
+              onKeyDown={(e) => {
+                // The field lives inside the form: Enter must not save it.
+                if (e.key === 'Enter') e.preventDefault()
+                if (e.key === 'Escape') setQuery('')
+              }}
+              clearLabel={t.editor.filterClear}
+              onClear={() => setQuery('')}
+            />
             {filtering && (
               <p className="mt-2 px-1 text-[0.9375rem] text-ink-2" aria-live="polite">
                 {shownCount ? t.editor.filterFound(shownCount) : t.editor.filterEmpty(query.trim())}

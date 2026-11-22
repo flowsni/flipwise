@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { type Card, db, setFlash, updateProgress } from '@/db'
-import { useToast } from '@/design'
 import type { SwipeDir } from '@/features/flashcards/SwipeCard'
 import { type FlashContent, pickSentences } from '@/features/flashcards/sentences'
+import { useRestartUndo } from '@/features/study/useSavedSession'
 import { t } from '@/i18n/ru'
 import { hasExamples, shuffle } from '@/lib'
-import { createSession, flashSessionReducer, sortByPosition } from './flashSession'
+import {
+  createSession,
+  flashSessionReducer,
+  type RoundSnapshot,
+  sortByPosition,
+} from './flashSession'
 
 /**
  * The round: the pure reducer plus the database writes around it. Swipe and undo share one lock
@@ -26,7 +31,6 @@ export function useFlashSession({
   content: FlashContent
   shuffled: boolean
 }) {
-  const toast = useToast()
   const pickFor = (list: string[], c: FlashContent) =>
     c === 'sentences' ? pickSentences(list, cardsById) : new Map<string, number>()
   const order = (list: string[]) => (shuffled ? shuffle(list) : list)
@@ -95,16 +99,15 @@ export function useFlashSession({
   const restart = (list: string[], c: FlashContent = content) =>
     dispatch({ type: 'restarted', queue: order(list), picked: pickFor(list, c) })
 
+  const offerUndo = useRestartUndo<RoundSnapshot>(undefined, (before) =>
+    dispatch({ type: 'restored', before }),
+  )
+
   /** The menu's restart: «Отменить» brings back the cards, position and verdicts of the round. */
   const restartWithUndo = (list: string[]) => {
     const before = { picked: session.picked, queue, index, history: historyRef.current }
     restart(list)
-    if (index === 0) return
-    toast.show({
-      message: t.study.restarted,
-      top: true,
-      action: { label: t.app.undo, onClick: () => dispatch({ type: 'restored', before }) },
-    })
+    if (index > 0) offerUndo(before)
   }
 
   /** Reorder the rest of the round without touching cards already seen. */

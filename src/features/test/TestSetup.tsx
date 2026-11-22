@@ -1,7 +1,8 @@
-import { motion } from 'motion/react'
 import { useState } from 'react'
 import type { AnswerSide, Card, Progress } from '@/db'
-import { Button, Checkbox, Segmented } from '@/design'
+import { Button, Checkbox } from '@/design'
+import { AnswerWithPicker } from '@/features/study/AnswerWithPicker'
+import { SetupCard } from '@/features/study/SetupCard'
 import { StudyScopePicker, useStudyScope } from '@/features/study/StudyScopePicker'
 import { scopeCounts, selectStudyCards, usableScope } from '@/features/study/scope'
 import { t } from '@/i18n/ru'
@@ -40,20 +41,16 @@ export function TestSetup({
   }
 
   return (
-    <motion.form
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      onSubmit={(e) => {
-        e.preventDefault()
+    <SetupCard
+      title={t.test.setupTitle}
+      onSubmit={() => {
         if (!types.length) return
         onStart(
           { count, types, answerWith },
           selectStudyCards(cards, progress, { scope, limit: 0 }),
         )
       }}
-      className="raised mx-auto flex max-w-lg flex-col gap-6 rounded-[1.75rem] p-6"
     >
-      <h1 className="text-2xl font-bold tracking-tight">{t.test.setupTitle}</h1>
       <StudyScopePicker
         counts={counts}
         scope={scope}
@@ -89,21 +86,10 @@ export function TestSetup({
         ))}
         {!types.length && <p className="text-[0.9375rem] text-bad">{t.test.needType}</p>}
       </fieldset>
-      <div className="flex flex-col gap-2">
-        <span className="text-[0.9375rem] font-medium text-ink-2">{t.study.answerWith}</span>
-        <Segmented
-          label={t.study.answerWith}
-          value={answerWith}
-          onChange={setAnswerWith}
-          options={[
-            { value: 'definition', label: t.study.withDefinition },
-            { value: 'term', label: t.study.withTerm },
-          ]}
-        />
-      </div>
+      <AnswerWithPicker value={answerWith} onChange={setAnswerWith} />
       <Button type="submit" variant="primary" size="lg" block disabled={!types.length}>
         {t.test.start}
       </Button>
-    </motion.form>
+    </SetupCard>
   )
 }

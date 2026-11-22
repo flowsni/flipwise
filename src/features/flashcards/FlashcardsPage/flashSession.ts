@@ -21,6 +21,9 @@ export interface FlashSession {
   enterFrom: SwipeDir | undefined
 }
 
+/** What «Отменить» after a restart brings back. */
+export type RoundSnapshot = Pick<FlashSession, 'queue' | 'index' | 'history' | 'picked'>
+
 export type FlashAction =
   | { type: 'swiped'; entry: HistoryEntry }
   | { type: 'undone' }
@@ -28,7 +31,7 @@ export type FlashAction =
   | { type: 'skipped' }
   | { type: 'reordered'; queue: string[] }
   | { type: 'restarted'; queue: string[]; picked: Map<string, number> }
-  | { type: 'restored'; before: Pick<FlashSession, 'queue' | 'index' | 'history' | 'picked'> }
+  | { type: 'restored'; before: RoundSnapshot }
 
 export function createSession(queue: string[], picked: Map<string, number>): FlashSession {
   return { queue, index: 0, history: [], picked, round: 0, enterFrom: undefined }

@@ -1,19 +1,14 @@
 import { motion, useAnimate, useReducedMotion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
-import { Button, cx, enterSpring, IconCheck, Input, shortcutsBlocked } from '@/design'
+import { useEffect, useRef } from 'react'
+import { Button, cx, enterSpring, shortcutsBlocked, useWindowKeydown } from '@/design'
+import type { LearnState } from '@/features/learn/learnEngine'
 import { AnswerFeedback } from '@/features/study/AnswerFeedback'
 import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
-import { fitClass, type MatchResult } from '@/lib'
-import type { LearnState } from './learnEngine'
-
-export interface Feedback {
-  correct: boolean
-  match: MatchResult
-  response: string
-  /** State before the answer, for «Я был прав». */
-  before: LearnState
-}
+import { fitClass } from '@/lib'
+import { ChoiceOptions } from './ChoiceOptions'
+import type { Feedback } from './types'
+import { WrittenAnswer } from './WrittenAnswer'
 
 export function QuestionView({
   question,
@@ -37,8 +32,6 @@ export function QuestionView({
 }) {
   const [scope, animate] = useAnimate()
   const reduce = useReducedMotion()
-  const [text, setText] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
   const continueRef = useRef<HTMLButtonElement>(null)
 
   // Wrong → shake; correct choice → quick auto-advance.
@@ -54,26 +47,18 @@ export function QuestionView({
     continueRef.current?.focus()
   }, [feedback, animate, scope, reduce, onContinue, question.kind])
 
-  useEffect(() => {
-    if (question.kind === 'written') inputRef.current?.focus()
-  }, [question.kind])
-
   // 1–4 pick an option; Enter continues after feedback.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (feedback && e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
-        e.preventDefault()
-        onContinue()
-        return
-      }
-      if (shortcutsBlocked(e) || feedback || question.kind !== 'choice') return
-      const n = Number(e.key)
-      const option = question.options?.[n - 1]
-      if (option) onAnswer(option)
+  useWindowKeydown((e) => {
+    if (feedback && e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
+      e.preventDefault()
+      onContinue()
+      return
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [feedback, question, onAnswer, onContinue])
+    if (shortcutsBlocked(e) || feedback || question.kind !== 'choice') return
+    const n = Number(e.key)
+    const option = question.options?.[n - 1]
+    if (option) onAnswer(option)
+  })
 
   return (
     <motion.section
@@ -125,91 +110,14 @@ export function QuestionView({
 
       <div ref={scope}>
         {question.kind === 'choice' ? (
-          <fieldset className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <legend className="sr-only">{t.learn.chooseAnswer}</legend>
-            {question.options?.map((option, i) => {
-              const isAnswer = option === question.answer
-              const chosen = feedback?.response === option
-              const state = !feedback ? 'idle' : isAnswer ? 'right' : chosen ? 'wrong' : 'dim'
-              return (
-                <motion.button
-                  key={option}
-                  type="button"
-                  disabled={!!feedback}
-                  onClick={() => onAnswer(option)}
-                  whileTap={{ scale: 0.97 }}
-                  animate={
-                    state === 'right' && chosen && !reduce ? { scale: [1, 1.04, 1] } : { scale: 1 }
-                  }
-                  transition={{ duration: 0.35 }}
-                  lang={answerLang}
-                  className={cx(
-                    'flex min-h-16 items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left text-[1.05rem] font-medium transition-colors',
-                    state === 'idle' && 'raised border-transparent hover:border-line',
-                    state === 'right' && 'border-good bg-good-soft',
-                    state === 'wrong' && 'border-bad bg-bad-soft',
-                    state === 'dim' && 'border-transparent bg-surface opacity-50',
-                  )}
-                >
-                  <span
-                    className={cx(
-                      'size-7 shrink-0 place-items-center rounded-lg text-[0.9375rem] font-semibold',
-                      // The 1–4 hints only make sense where there is a keyboard.
-                      state === 'right'
-                        ? 'grid bg-good text-white'
-                        : 'hidden bg-surface-2 text-ink-2 fine:grid',
-                    )}
-                  >
-                    {state === 'right' ? <IconCheck size={16} strokeWidth={3} /> : i + 1}
-                  </span>
-                  <span className="break-words">{option}</span>
-                </motion.button>
-              )
-            })}
-          </fieldset>
+          <ChoiceOptions
+            question={question}
+            feedback={feedback}
+            answerLang={answerLang}
+            onAnswer={onAnswer}
+          />
         ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!feedback && text.trim()) onAnswer(text)
-            }}
-            className="flex flex-col gap-3"
-          >
-            <Input
-              ref={inputRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              disabled={!!feedback}
-              lang={answerLang}
-              placeholder={t.learn.answerPlaceholder}
-              aria-label={t.learn.typeAnswer}
-              autoComplete="off"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              className={cx(
-                'h-14 text-lg',
-                feedback?.correct && 'border-good bg-good-soft',
-                feedback && !feedback.correct && 'border-bad bg-bad-soft',
-              )}
-            />
-            {!feedback && (
-              <div className="flex gap-3">
-                <Button variant="ghost" size="lg" onClick={() => onAnswer('')}>
-                  {t.learn.dontKnow}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className="flex-1"
-                  disabled={!text.trim()}
-                >
-                  {t.learn.check}
-                </Button>
-              </div>
-            )}
-          </form>
+          <WrittenAnswer feedback={feedback} answerLang={answerLang} onAnswer={onAnswer} />
         )}
       </div>
 
