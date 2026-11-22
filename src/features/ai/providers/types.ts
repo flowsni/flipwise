@@ -13,5 +13,4 @@ export interface GenerateRequest {
   signal?: AbortSignal
 }
 
-/** Every adapter returns the model's raw JSON text; parsing and validation are shared. */
 export type Generate = (req: GenerateRequest) => Promise<string>

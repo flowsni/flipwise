@@ -9,7 +9,6 @@ export const scopeLabels: Record<StudyScope, string> = {
   starred: t.scope.starred,
 }
 
-/** The remembered scope and session size, shared by all study modes. */
 export function useStudyScope() {
   const [scope, setScope] = useSetting<StudyScope>('study.scope', 'all')
   const [limit, setLimit] = useSetting<StudyLimit>('study.limit', 0)

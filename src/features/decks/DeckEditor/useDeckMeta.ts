@@ -9,7 +9,6 @@ export interface DeckMeta {
   defLang: string
   level: Level
   titleError: boolean
-  /** Any field was changed since the editor opened. */
   dirty: boolean
 }
 

@@ -2,7 +2,6 @@ import { Segmented } from '@/design'
 import type { FlashContent } from '@/features/flashcards/sentences'
 import { t } from '@/i18n/ru'
 
-/** «Слова / Предложения»; disabled with the reason for monolingual decks. */
 export function ContentSwitch({
   value,
   onChange,

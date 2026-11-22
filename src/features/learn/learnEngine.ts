@@ -26,30 +26,25 @@ export type Stage = 0 | 1 | 2
 export interface LearnQuestion {
   cardId: string
   kind: 'choice' | 'written'
-  /** Shown side. */
   prompt: string
   /** Expected answer (original spelling). */
   answer: string
-  /** Choice options, includes the answer. */
   options?: string[]
 }
 
 export interface LearnState {
   version: 1
   answerWith: AnswerSide
-  /** Study order of all cards. */
   order: string[]
   stage: Record<string, Stage>
   round: {
     number: number
     queue: string[]
-    /** Cards that reached stage 2 during this round. */
     learned: string[]
     total: number
     answered: number
   }
   current: LearnQuestion | null
-  /** Round is over and the summary screen should be shown. */
   roundOver: boolean
   /** The current question was answered; feedback is showing and `nextQuestion` must run next. */
   answered?: boolean
@@ -136,7 +131,6 @@ export function isFinished(state: LearnState): boolean {
   return state.order.every((id) => isLearned(state, id))
 }
 
-/** Whether a stored session can be resumed; `LearnPage` and the deck tile share this. */
 export function acceptLearnSession(s: Partial<LearnState>): boolean {
   return s.version === 1 && !!s.order?.length
 }

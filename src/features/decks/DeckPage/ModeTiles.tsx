@@ -21,7 +21,6 @@ const pressProps = {
   transition: pressSpring,
 }
 
-/** The three ways to study a deck; an unfinished Learn/Test session gets «Продолжить / Заново». */
 export function ModeTiles({
   deckId,
   cardCount,

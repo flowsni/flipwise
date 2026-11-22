@@ -26,7 +26,6 @@ export function useFlashSession({
 }: {
   deckId: string
   cardsById: Map<string, Card>
-  /** The cards the round starts with. */
   ids: string[]
   content: FlashContent
   shuffled: boolean
@@ -103,14 +102,12 @@ export function useFlashSession({
     dispatch({ type: 'restored', before }),
   )
 
-  /** The menu's restart: «Отменить» brings back the cards, position and verdicts of the round. */
   const restartWithUndo = (list: string[]) => {
     const before = { picked: session.picked, queue, index, history: historyRef.current }
     restart(list)
     if (index > 0) offerUndo(before)
   }
 
-  /** Reorder the rest of the round without touching cards already seen. */
   const reorderRest = (on: boolean) => {
     const rest = queue.slice(index)
     dispatch({

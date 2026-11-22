@@ -1,13 +1,11 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cx, StudyBar } from '@/design'
 
-/** The page of a study mode: the sticky `StudyBar` above a centered column. */
 export function StudyShell({
   roomy,
   children,
   ...bar
 }: ComponentProps<typeof StudyBar> & {
-  /** A column with more air at the top, for the question screen. */
   roomy?: boolean
   children: ReactNode
 }) {

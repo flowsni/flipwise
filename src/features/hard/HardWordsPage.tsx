@@ -5,7 +5,6 @@ import { EmptyState, IconButton, IconChevronLeft, TopBar } from '@/design'
 import { t } from '@/i18n/ru'
 import { HardList } from './HardList'
 
-/** «Трудные слова» across all decks, or of one deck with `?deck=<id>`. */
 export function HardWordsPage() {
   const [params] = useSearchParams()
   const deckId = params.get('deck') ?? undefined

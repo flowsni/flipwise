@@ -25,7 +25,6 @@ export function EditorRows({
 }: {
   rows: Row[]
   loaded: boolean
-  /** Rows that have text; decides whether the filter is worth showing. */
   filled: number
   query: string
   onQuery: (q: string) => void
@@ -35,7 +34,6 @@ export function EditorRows({
   onRemove: (key: string) => void
   onReorder: (rows: Row[]) => void
   onAdd: () => void
-  /** Several lines were pasted into a field: offer to import them (replacing `rowKey` if blank). */
   onPasteImport: (text: string, rowKey?: string) => void
 }) {
   const filtering = query.trim() !== ''

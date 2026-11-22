@@ -41,7 +41,6 @@ export const SwipeCard = forwardRef<
     /** For the star; the faces come from `sides`. */
     card: Card
     sides: { front: CardSide; back: CardSide }
-    /** Card comes back from this side (undo). */
     enterFrom?: SwipeDir
     starred: boolean
     onSwiped: (dir: SwipeDir) => void

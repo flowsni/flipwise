@@ -14,7 +14,6 @@ type Which = 'missing' | 'all'
 
 const STOP_GUARD_MS = 600
 
-/** «Примеры для всей колоды»: generates examples for many cards at once. */
 export function BulkExamplesSheet({
   open,
   deck,
@@ -23,7 +22,6 @@ export function BulkExamplesSheet({
 }: {
   open: boolean
   deck: Deck
-  /** Live cards of the deck. */
   cards: Card[]
   onClose: () => void
 }) {

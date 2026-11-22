@@ -38,7 +38,6 @@ function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
   )
 }
 
-/** Speaks text with a voice matching the language (Web Speech API). */
 export function speak(text: string, lang: string): void {
   if (!ttsSupported() || !text.trim()) return
   speechSynthesis.cancel()

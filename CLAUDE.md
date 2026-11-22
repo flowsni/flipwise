@@ -34,7 +34,7 @@ All four (check, typecheck, test, build) must pass before every commit; CI runs 
 - **Imports.** `@/` is the alias for `src`; use it for everything outside the current folder, `./` for neighbours, never `../`.
 - **Barrels.** Only `@/design`, `@/lib` and `@/db` have an `index.ts` (explicit `export { … }`, Biome forbids barrels elsewhere). Import from them **only in `features` and `app`**; inside those three layers (and between `lib` and `db`) use direct paths, otherwise `lib/backup.ts` ↔ `db/*` becomes a cycle. Features import each other by direct path, so lazy routes and the `ai-*` chunks stay separate.
 - **Folders.** `Foo/index.tsx` (the component itself) exists only for a component split into parts (hooks, sub-components, a pure reducer). Small components stay `Foo.tsx`; there is no `components/` folder.
-- **Limits.** A component is ~200 lines, any file ~300 (`ru.ts` excepted). Biome errors on a function over 200 lines and warns on cognitive complexity; a warning is a hint to split, not a blocker.
+- **Limits.** A component is ~200 lines, any file ~300 (`ru.ts` excepted). Biome errors on a function over 200 lines.
 - **Comments.** Only the _why_ that the code can't show (a browser quirk, a race, a rule from the product). No comments that retell the code, no JSDoc on obvious functions; keep every `biome-ignore` with its reason.
 
 ## Conventions

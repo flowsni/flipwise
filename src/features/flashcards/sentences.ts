@@ -1,5 +1,3 @@
-/** «Предложения» mode of Flashcards: the cached AI examples become the cards' faces. */
-
 import type { Card, Deck, ExampleItem } from '@/db'
 import { t } from '@/i18n/ru'
 import type { Rng } from '@/lib'
@@ -37,7 +35,6 @@ export function sentenceOf(
   return items[index ?? 0] ?? items[0]
 }
 
-/** The two faces of a card: a picked sentence (translation first), or the term and definition. */
 export function sidesOf(
   card: Card,
   opts: {

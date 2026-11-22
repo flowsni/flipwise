@@ -21,7 +21,6 @@ export function TestSetup({
 }: {
   cards: Card[]
   progress: Map<string, Progress>
-  /** `cardIds`: the cards to ask about (the chosen scope). */
   onStart: (c: TestConfig, cardIds: string[]) => void
 }) {
   const [savedTypes, setSavedTypes] = useSetting<QuestionType[]>('test.types', [...QUESTION_TYPES])

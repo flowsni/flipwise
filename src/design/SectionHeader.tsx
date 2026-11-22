@@ -10,7 +10,6 @@ export function SectionHeader({
   title: string
   id?: string
   action?: ReactNode
-  /** Spacing around the row, e.g. `mb-3`. */
   className?: string
 }) {
   return (

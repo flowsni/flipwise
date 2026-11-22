@@ -17,7 +17,6 @@ const DEMO = [
   ['currency exchange', 'обмен валюты'],
 ] as const
 
-/** Creates a demo deck on the very first launch so the app is never empty. */
 export async function seedDemoDeck(): Promise<void> {
   if (getSetting('seeded', false)) return
   setSetting('seeded', true)

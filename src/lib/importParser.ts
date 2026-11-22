@@ -13,7 +13,6 @@ export interface ParsedCard {
 
 export interface ParseResult {
   cards: ParsedCard[]
-  /** Non-empty chunks that had no term/definition separator. */
   skipped: string[]
 }
 
@@ -32,7 +31,6 @@ function splitCards(text: string, sep: CardSeparator): string[] {
   return normalized.split(sep.custom.replace(/\\n/g, '\n'))
 }
 
-/** Parses text exported from Quizlet (or typed by hand) into cards. */
 export function parseImport(text: string, options: ImportOptions): ParseResult {
   const sep = termSepString(options.termSep).replace(/\\t/g, '\t')
   const cards: ParsedCard[] = []

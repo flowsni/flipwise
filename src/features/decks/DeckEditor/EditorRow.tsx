@@ -20,7 +20,6 @@ export function EditorRow({
   index: number
   termLang: string
   defLang: string
-  /** Warning when an earlier row has the same term; saving is not blocked. */
   duplicateOf?: string
   onChange: (patch: Partial<Row>) => void
   onRemove: () => void
@@ -28,7 +27,6 @@ export function EditorRow({
   onEnterLast?: () => void
   /** Filtered out: kept mounted (focus and typed text survive) but not shown. */
   hidden?: boolean
-  /** The drag handle is hidden while a filter is active. */
   draggable?: boolean
 }) {
   const controls = useDragControls()

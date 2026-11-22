@@ -1,5 +1,3 @@
-/** Which cards a study session covers. Pure helpers shared by Flashcards, Learn and Test. */
-
 import { isMastered, type Progress } from '@/db'
 import { type Rng, shuffle } from '@/lib'
 

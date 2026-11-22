@@ -14,7 +14,6 @@ import { NoKey } from './NoKey'
 import { isMonolingual, stripMarks } from './prompt'
 import { useAiSettings } from './settings'
 
-/** Bottom sheet with AI example sentences for one card; results are cached on the card. */
 export function ExamplesSheet({
   card,
   deck,

@@ -23,9 +23,7 @@ export interface TestQuestion {
   prompt: string
   answer: string
   options?: string[]
-  /** For true/false: the pairing shown to the learner. */
   shown?: string
-  /** For true/false: whether `shown` is the real answer. */
   isTrue?: boolean
 }
 

@@ -9,7 +9,6 @@ export interface HistoryEntry {
   prev: FlashStatus
 }
 
-/** The synchronous part of a round: what is queued, where we are, what was answered. */
 export interface FlashSession {
   queue: string[]
   index: number
@@ -21,13 +20,11 @@ export interface FlashSession {
   enterFrom: SwipeDir | undefined
 }
 
-/** What «Отменить» after a restart brings back. */
 export type RoundSnapshot = Pick<FlashSession, 'queue' | 'index' | 'history' | 'picked'>
 
 export type FlashAction =
   | { type: 'swiped'; entry: HistoryEntry }
   | { type: 'undone' }
-  /** The current card is gone (deleted mid-session, or lost its examples): move on. */
   | { type: 'skipped' }
   | { type: 'reordered'; queue: string[] }
   | { type: 'restarted'; queue: string[]; picked: Map<string, number> }
@@ -69,7 +66,6 @@ export function sortByPosition(ids: string[], byId: Map<string, Card>): string[]
   return ids.slice().sort((a, b) => (byId.get(a)?.position ?? 0) - (byId.get(b)?.position ?? 0))
 }
 
-/** Results of the round: the latest verdict per card. */
 export function roundResults(history: HistoryEntry[], queue: string[]) {
   const verdicts = new Map(history.map((h) => [h.cardId, h.dir]))
   return {

@@ -33,9 +33,7 @@ export function ImportSheet({
   onClose: () => void
   onImport: (cards: ParsedCard[]) => void
   initialText?: string
-  /** Terms already in the deck, to warn about and optionally skip duplicates. */
   existingTerms?: readonly string[]
-  /** Term language, for article-aware duplicate matching. */
   lang?: string
   /** How many more cards the deck can take (see `MAX_CARDS`); the rest of the import is dropped. */
   room?: number

@@ -1,4 +1,3 @@
-/** Shares a JSON file via the Web Share API on phones, downloads it elsewhere. */
 export async function shareOrDownloadJson(
   data: unknown,
   fileName: string,

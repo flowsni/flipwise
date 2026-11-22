@@ -1,6 +1,5 @@
 export type Rng = () => number
 
-/** Returns a shuffled copy (Fisher–Yates). */
 export function shuffle<T>(items: readonly T[], rng: Rng = Math.random): T[] {
   const out = items.slice()
   for (let i = out.length - 1; i > 0; i--) {
@@ -10,7 +9,6 @@ export function shuffle<T>(items: readonly T[], rng: Rng = Math.random): T[] {
   return out
 }
 
-/** Small deterministic PRNG for tests and reproducible sessions. */
 export function seededRng(seed: number): Rng {
   let a = seed >>> 0
   return () => {

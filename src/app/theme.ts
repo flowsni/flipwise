@@ -8,7 +8,6 @@ export function useThemeSetting() {
   return useSetting<ThemeSetting>('theme', 'system')
 }
 
-/** Applies the theme to <html data-theme> and the browser chrome colour. */
 export function useApplyTheme() {
   const [theme] = useThemeSetting()
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')

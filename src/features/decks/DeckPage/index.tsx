@@ -7,6 +7,7 @@ import {
   type Card,
   deleteCard,
   isMastered,
+  restoreSnapshot,
   useDeck,
   useDeckCards,
   useDeckProgress,
@@ -25,9 +26,7 @@ import { DeckHeader } from './DeckHeader'
 import { DeckMenu } from './DeckMenu'
 import { ModeTiles } from './ModeTiles'
 import { useCardHighlight } from './useCardHighlight'
-import { useUndoableDelete } from './useUndoableDelete'
 
-/** Hard cards shown on the deck page; the rest are one tap away. */
 const HARD_PREVIEW = 5
 
 export function DeckPage() {
@@ -54,10 +53,15 @@ export function DeckPage() {
     testSession !== undefined
   const highlight = useCardHighlight(cards, ready)
 
-  const deleteWithUndo = useUndoableDelete()
   const onDeleteCard = useCallback(
-    (card: Card) => deleteWithUndo(() => deleteCard(card.id), t.deck.cardDeleted),
-    [deleteWithUndo],
+    async (card: Card) => {
+      const snapshot = await deleteCard(card.id)
+      toast.show({
+        message: t.deck.cardDeleted,
+        action: { label: t.app.undo, onClick: () => restoreSnapshot(snapshot) },
+      })
+    },
+    [toast],
   )
 
   if (deck === null) return <NotFound />

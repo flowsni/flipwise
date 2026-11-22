@@ -13,7 +13,6 @@ export function aiErrorMessage(code: AiErrorCode): string {
   return t.examples.errors[code as keyof typeof t.examples.errors] ?? t.examples.errors.unknown
 }
 
-/** An AI error with what to do about it: retry and, for key or model problems, the settings. */
 export function AiErrorBox({
   code,
   onRetry,

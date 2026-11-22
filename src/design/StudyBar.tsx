@@ -35,7 +35,6 @@ export function StudyBar({
   )
 }
 
-/** True when a keyboard shortcut should not fire (typing or a dialog is open). */
 export function shortcutsBlocked(e: KeyboardEvent): boolean {
   const el = e.target as HTMLElement | null
   if (e.defaultPrevented) return true

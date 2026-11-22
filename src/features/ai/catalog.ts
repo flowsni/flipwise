@@ -2,7 +2,6 @@ export type ProviderId = 'openai' | 'anthropic' | 'gemini' | 'deepseek' | 'openr
 
 export interface ModelOption {
   id: string
-  /** Short Russian note shown next to the id. */
   note: 'cheap' | 'strong'
 }
 

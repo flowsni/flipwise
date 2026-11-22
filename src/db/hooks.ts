@@ -68,7 +68,6 @@ export interface HardCard {
   progress: Progress
 }
 
-/** «Трудные слова» of one deck, or of all decks when `deckId` is omitted. */
 export function useHardCards(deckId?: string): HardCard[] | undefined {
   return useCachedLiveQuery(`hard:${deckId ?? '*'}`, async () => {
     const rows = deckId

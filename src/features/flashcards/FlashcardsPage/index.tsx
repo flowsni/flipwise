@@ -38,7 +38,6 @@ export function FlashcardsPage() {
   )
 }
 
-/** The cards of one session: a scope of the deck, picked when the session starts. */
 interface Selection {
   scope: ScopeOptions['scope']
   ids: string[]

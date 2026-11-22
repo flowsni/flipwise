@@ -4,7 +4,6 @@ import { isAnswered } from '@/features/test/testGenerator'
 import { acceptTestSession, type TestState } from '@/features/test/testState'
 
 export interface SessionProgress {
-  /** Learn only: the round the learner is in. */
   round?: number
   done: number
   total: number

@@ -15,10 +15,8 @@ export function useStudySession<T>(
     unfinished,
     revive = (saved) => saved,
   }: {
-    /** Whether a stored session can be resumed. */
     accept: (saved: T) => boolean
     unfinished: (state: T | null) => boolean
-    /** Makes a stored session ready to continue. */
     revive?: (saved: T) => T
   },
 ) {

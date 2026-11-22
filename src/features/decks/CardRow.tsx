@@ -26,15 +26,10 @@ export function CardRow({
 }: {
   card: Card
   deck: Deck
-  /** Makes the text a link, e.g. from search to the card in its deck. */
   to?: string
-  /** Makes the text a button, e.g. to open the card's examples. */
   onSelect?: () => void
-  /** Briefly marks the row the user came to find. */
   highlighted?: boolean
-  /** Extra line under the definition, e.g. a mistakes counter. */
   meta?: ReactNode
-  /** Action buttons on the right. */
   children?: ReactNode
 }) {
   const has = hasExamples(card)

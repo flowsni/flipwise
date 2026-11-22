@@ -1,4 +1,3 @@
-/** Font size class that keeps a term or definition readable inside a card, by length. */
 export function fitClass(text: string): string {
   const n = text.length
   if (n <= 14) return 'text-[2.6rem] sm:text-5xl'

@@ -57,7 +57,6 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-/** The card rows of the editor: loaded from the deck (or three blank ones for a new deck). */
 export function useDeckRows(deck?: Deck) {
   const [state, dispatch] = useReducer(
     reducer,

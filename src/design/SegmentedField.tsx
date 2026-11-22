@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Segmented } from './Field'
 
-/** A `Segmented` with its visible caption; `children` (e.g. a custom-value input) go below it. */
 export function SegmentedField<T extends string | number>({
   label,
   children,
