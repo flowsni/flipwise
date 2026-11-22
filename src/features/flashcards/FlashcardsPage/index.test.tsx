@@ -5,7 +5,7 @@ import { createDeck, db, type ExampleItem } from '@/db'
 import { ToastProvider } from '@/design'
 import { t } from '@/i18n/ru'
 import { setSetting } from '@/lib'
-import { FlashcardsPage } from './FlashcardsPage'
+import { FlashcardsPage } from '.'
 
 // happy-dom's Animation.cancel() rejects `finished` without marking it handled (browsers do, per
 // the Web Animations spec), so Motion stopping a native animation shows up as an unhandled
