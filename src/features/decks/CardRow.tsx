@@ -1,11 +1,10 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
-import type { Card, Deck } from '../../db/types'
-import { cx } from '../../design/cx'
-import { IconSparkles } from '../../design/icons'
-import { t } from '../../i18n/ru'
-import { hasExamples } from '../../lib/examples'
+import type { Card, Deck } from '@/db'
+import { cx, IconSparkles } from '@/design'
+import { t } from '@/i18n/ru'
+import { hasExamples } from '@/lib'
 
 /** The block that holds a list of `CardRow`s; its corners must match the first/last row's. */
 export const cardListClass = 'flex flex-col rounded-2xl border border-line bg-surface'
@@ -27,15 +26,10 @@ export function CardRow({
 }: {
   card: Card
   deck: Deck
-  /** Makes the text a link, e.g. from search to the card in its deck. */
   to?: string
-  /** Makes the text a button, e.g. to open the card's examples. */
   onSelect?: () => void
-  /** Briefly marks the row the user came to find. */
   highlighted?: boolean
-  /** Extra line under the definition, e.g. a mistakes counter. */
   meta?: ReactNode
-  /** Action buttons on the right. */
   children?: ReactNode
 }) {
   const has = hasExamples(card)

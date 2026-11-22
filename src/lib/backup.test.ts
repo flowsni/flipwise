@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { FlipwiseDB } from '../db/db'
+import { FlipwiseDB } from '@/db/db'
 import { exportAll, exportDeck, importBackup, parseBackup } from './backup'
 
 let db: FlipwiseDB

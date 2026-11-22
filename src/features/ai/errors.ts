@@ -20,7 +20,6 @@ export class AiError extends Error {
   }
 }
 
-/** Maps an HTTP status from any provider to an error code. */
 export function codeForStatus(status: number | undefined): AiErrorCode {
   if (status === 401 || status === 403) return 'auth'
   if (status === 429 || status === 402) return 'rate'

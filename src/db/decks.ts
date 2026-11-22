@@ -1,4 +1,4 @@
-import { newId } from '../lib/ids'
+import { newId } from '@/lib/ids'
 import { db } from './db'
 import type { Card, Deck, Level, Progress, StudySession } from './types'
 
@@ -43,7 +43,6 @@ export async function createDeck(input: DeckInput, cards: CardInput[] = []): Pro
   return deck.id
 }
 
-/** Saves the editor state: updates the deck, upserts cards in order, removes deleted ones. */
 export async function saveDeck(
   deckId: string,
   input: DeckInput,

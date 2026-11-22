@@ -1,12 +1,11 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { db } from '../../db/db'
-import { createDeck, getDeckCards } from '../../db/decks'
-import { ToastProvider } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { MAX_CARDS } from '../../lib/limits'
-import { DeckEditor } from './DeckEditor'
+import { createDeck, db, getDeckCards } from '@/db'
+import { ToastProvider } from '@/design'
+import { t } from '@/i18n/ru'
+import { MAX_CARDS } from '@/lib'
+import { DeckEditor } from '.'
 
 // See FlashcardsPage.test.tsx: run Motion's JS animations instead of happy-dom's native ones.
 const nativeAnimate = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')
@@ -177,6 +176,37 @@ describe('DeckEditor filter', () => {
     )
     await screen.findByLabelText(`${t.editor.term} 1`)
     expect(screen.queryByLabelText(t.editor.filterPlaceholder)).toBeNull()
+  })
+})
+
+describe('saving an existing deck', () => {
+  it('keeps the card ids and their progress', async () => {
+    const deckId = await renderEditor()
+    const before = await getDeckCards(deckId)
+    await db.progress.bulkPut(
+      before.map((c) => ({
+        cardId: c.id,
+        deckId,
+        flash: 'known' as const,
+        learnStage: 1 as const,
+        correct: 2,
+        wrong: 1,
+        lastSeenAt: 1,
+        starred: c.term === 'apple',
+      })),
+    )
+
+    fireEvent.change(screen.getByLabelText(t.editor.title), { target: { value: 'Fruit 2' } })
+    fireEvent.change(screen.getByLabelText(`${t.editor.term} 1`), { target: { value: 'apples' } })
+    fireEvent.click(screen.getByRole('button', { name: t.editor.save }))
+    await waitFor(() => expect(screen.getByText('deck page')).toBeTruthy())
+
+    const after = await getDeckCards(deckId)
+    expect(after.map((c) => c.id)).toEqual(before.map((c) => c.id))
+    expect(after[0]!.term).toBe('apples')
+    expect(await db.progress.count()).toBe(before.length)
+    expect((await db.progress.get(before[0]!.id))?.starred).toBe(true)
+    expect((await db.decks.get(deckId))?.title).toBe('Fruit 2')
   })
 })
 

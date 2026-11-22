@@ -1,4 +1,4 @@
-import { AiError, codeForStatus, isNetworkError } from '../errors'
+import { AiError, codeForStatus, isNetworkError } from '@/features/ai/errors'
 import type { GenerateRequest } from './types'
 
 /** Models that support server-side refusal fallbacks (`fallbacks: "default"`). */

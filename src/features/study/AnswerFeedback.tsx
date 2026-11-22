@@ -1,10 +1,8 @@
 import { motion } from 'motion/react'
-import { cx } from '../../design/cx'
-import { t } from '../../i18n/ru'
-import type { MatchResult } from '../../lib/answerMatch'
-import { typoSegments } from '../../lib/answerMatch'
+import { cx } from '@/design'
+import { t } from '@/i18n/ru'
+import { type MatchResult, typoSegments } from '@/lib'
 
-/** Shows the verdict for a typed answer, highlighting a typo when it was "almost" right. */
 export function AnswerFeedback({
   match,
   response,

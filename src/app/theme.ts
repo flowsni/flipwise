@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useMediaQuery } from '../design/useMediaQuery'
-import { useSetting } from '../lib/storage'
+import { useMediaQuery } from '@/design'
+import { useSetting } from '@/lib'
 
 export type ThemeSetting = 'system' | 'light' | 'dark'
 
@@ -8,7 +8,6 @@ export function useThemeSetting() {
   return useSetting<ThemeSetting>('theme', 'system')
 }
 
-/** Applies the theme to <html data-theme> and the browser chrome colour. */
 export function useApplyTheme() {
   const [theme] = useThemeSetting()
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')

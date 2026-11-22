@@ -1,17 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { db } from '../../db/db'
-import { updateCardExamples } from '../../db/decks'
-import type { Card, Deck, ExampleItem, Level } from '../../db/types'
-import { Button } from '../../design/Button'
-import { cx } from '../../design/cx'
-import { IconRefresh, IconTrash } from '../../design/icons'
-import { enterSpring } from '../../design/motion'
-import { Sheet } from '../../design/Sheet'
-import { useToast } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { SpeakButton } from '../tts/SpeakButton'
+import { type Card, type Deck, db, type ExampleItem, type Level, updateCardExamples } from '@/db'
+import { Button, cx, enterSpring, IconRefresh, IconTrash, Sheet, useToast } from '@/design'
+import { SpeakButton } from '@/features/tts/SpeakButton'
+import { t } from '@/i18n/ru'
 import { AiErrorBox } from './AiErrorBox'
 import { AiError, type AiErrorCode } from './errors'
 import { generateExamples } from './examples'
@@ -21,7 +14,6 @@ import { NoKey } from './NoKey'
 import { isMonolingual, stripMarks } from './prompt'
 import { useAiSettings } from './settings'
 
-/** Bottom sheet with AI example sentences for one card; results are cached on the card. */
 export function ExamplesSheet({
   card,
   deck,

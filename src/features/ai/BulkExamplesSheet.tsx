@@ -1,14 +1,8 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
-import { setExamplesIfUnchanged } from '../../db/decks'
-import type { Card, Deck, Level } from '../../db/types'
-import { Button } from '../../design/Button'
-import { Segmented } from '../../design/Field'
-import { IconSparkles } from '../../design/icons'
-import { ProgressBar } from '../../design/Progress'
-import { Sheet } from '../../design/Sheet'
-import { useToast } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { hasExamples } from '../../lib/examples'
+import { type Card, type Deck, type Level, setExamplesIfUnchanged } from '@/db'
+import { Button, IconSparkles, ProgressBar, SegmentedField, Sheet, useToast } from '@/design'
+import { t } from '@/i18n/ru'
+import { hasExamples } from '@/lib'
 import { AiErrorBox } from './AiErrorBox'
 import { type BulkProgress, batchCount, generateDeckExamples } from './bulk'
 import type { AiErrorCode } from './errors'
@@ -20,7 +14,6 @@ type Which = 'missing' | 'all'
 
 const STOP_GUARD_MS = 600
 
-/** «Примеры для всей колоды»: generates examples for many cards at once. */
 export function BulkExamplesSheet({
   open,
   deck,
@@ -29,7 +22,6 @@ export function BulkExamplesSheet({
 }: {
   open: boolean
   deck: Deck
-  /** Live cards of the deck. */
   cards: Card[]
   onClose: () => void
 }) {
@@ -168,26 +160,23 @@ function BulkBody({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <span className="text-[0.9375rem] font-medium text-ink-2">{t.bulk.which}</span>
-        <Segmented
-          label={t.bulk.which}
-          value={which}
-          onChange={(v) => {
-            setWhich(v)
-            setError(null)
-          }}
-          options={[
-            {
-              value: 'missing',
-              label: t.bulk.missing,
-              detail: String(missingCount),
-              disabled: !missingCount,
-            },
-            { value: 'all', label: t.bulk.all, detail: String(cards.length) },
-          ]}
-        />
-      </div>
+      <SegmentedField
+        label={t.bulk.which}
+        value={which}
+        onChange={(v) => {
+          setWhich(v)
+          setError(null)
+        }}
+        options={[
+          {
+            value: 'missing',
+            label: t.bulk.missing,
+            detail: String(missingCount),
+            disabled: !missingCount,
+          },
+          { value: 'all', label: t.bulk.all, detail: String(cards.length) },
+        ]}
+      />
 
       <LevelPicker
         value={level}

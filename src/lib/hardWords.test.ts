@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Progress } from '../db/types'
+import type { Progress } from '@/db/types'
 import { errorRate, hardestCards } from './hardWords'
 
 const p = (cardId: string, correct: number, wrong: number): Progress => ({

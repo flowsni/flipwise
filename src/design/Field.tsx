@@ -61,12 +61,10 @@ export function useFieldId(prefix: string) {
 export interface SegmentedOption<T extends string | number> {
   value: T
   label: string
-  /** Small second line, e.g. a counter. */
   detail?: string
   disabled?: boolean
 }
 
-/** iOS-style segmented control (radio group). */
 export function Segmented<T extends string | number>({
   value,
   options,

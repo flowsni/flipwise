@@ -18,7 +18,17 @@
     "rules": {
       "preset": "recommended",
       "a11y": { "noAutofocus": "off" },
+      "complexity": {
+        "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 200 } }
+      },
+      "performance": { "noBarrelFile": "error", "noReExportAll": "error" },
       "style": { "noNonNullAssertion": "off" }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/design/index.ts", "src/lib/index.ts", "src/db/index.ts"],
+      "linter": { "rules": { "performance": { "noBarrelFile": "off" } } }
+    }
+  ]
 }

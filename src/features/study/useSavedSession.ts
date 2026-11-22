@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { useHardCards } from '../../db/hooks'
-import { clearSession, loadSession, saveSession } from '../../db/sessions'
-import type { StudyMode } from '../../db/types'
-import { useToast } from '../../design/Toast'
-import { t } from '../../i18n/ru'
+import { clearSession, loadSession, type StudyMode, saveSession, useHardCards } from '@/db'
+import { useToast } from '@/design'
+import { t } from '@/i18n/ru'
 import { useSessionProgress } from './useSessionProgress'
 
 export interface SavedSession<T> {
   /** The stored session was looked up (or skipped because of "?fresh=1"). */
   ready: boolean
-  /** A stored session that passed `accept`, or undefined to start fresh. */
   saved?: T
   /** The unfinished session a "?fresh=1" start threw away: «Отменить» brings it back. */
   discarded?: T
@@ -57,7 +54,6 @@ export function useSavedSession<T>(
   return result
 }
 
-/** Saves an unfinished session, or removes it once the session is over. */
 export function persistSession(
   deckId: string,
   mode: StudyMode,

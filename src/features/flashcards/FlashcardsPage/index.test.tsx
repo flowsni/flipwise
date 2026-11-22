@@ -1,13 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { db } from '../../db/db'
-import { createDeck } from '../../db/decks'
-import type { ExampleItem } from '../../db/types'
-import { ToastProvider } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { setSetting } from '../../lib/storage'
-import { FlashcardsPage } from './FlashcardsPage'
+import { createDeck, db, type ExampleItem } from '@/db'
+import { ToastProvider } from '@/design'
+import { t } from '@/i18n/ru'
+import { setSetting } from '@/lib'
+import { FlashcardsPage } from '.'
 
 // happy-dom's Animation.cancel() rejects `finished` without marking it handled (browsers do, per
 // the Web Animations spec), so Motion stopping a native animation shows up as an unhandled

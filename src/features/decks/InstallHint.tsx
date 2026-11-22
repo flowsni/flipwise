@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { Button } from '../../design/Button'
-import { IconShare } from '../../design/icons'
-import { t } from '../../i18n/ru'
-import { useSetting } from '../../lib/storage'
+import { Button, IconShare } from '@/design'
+import { t } from '@/i18n/ru'
+import { useSetting } from '@/lib'
 
 function isIosBrowser(): boolean {
   const ua = navigator.userAgent

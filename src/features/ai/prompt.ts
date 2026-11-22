@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { ExampleItem, Level } from '../../db/types'
-import { englishLanguageName } from '../../lib/languages'
+import type { ExampleItem, Level } from '@/db'
+import { englishLanguageName } from '@/lib'
 import { AiError } from './errors'
 
 export interface ExamplesInput {
@@ -16,7 +16,6 @@ const EXAMPLE_COUNT = 3
 interface LevelGuide {
   length: string
   grammar: string
-  /** What else besides the studied item may appear. */
   vocabulary: string
 }
 
@@ -57,7 +56,6 @@ export const LEVEL_GUIDE: Record<Level, LevelGuide> = {
   },
 }
 
-/** Prompt lines that pin the sentences to the learner's level. */
 function levelRules(level: Level): string[] {
   const g = LEVEL_GUIDE[level]
   return [
@@ -91,7 +89,6 @@ function sampleItem(mono: boolean) {
   }
 }
 
-/** JSON schema shared by every provider's structured-output mode. */
 export const examplesJsonSchema = {
   type: 'object',
   properties: {
@@ -146,7 +143,6 @@ export function buildPrompt(input: ExamplesInput): { system: string; user: strin
   return { system: SYSTEM, user }
 }
 
-/** Finds the json object in a model answer; tolerant to code fences and surrounding prose. */
 function extractJson(raw: string | null | undefined): unknown {
   if (!raw?.trim()) throw new AiError('invalid', 'empty')
   let text = raw
@@ -171,7 +167,6 @@ function toItems(items: { text: string; translation: string }[], term: string): 
   }))
 }
 
-/** Parses and validates the model's json for one card. */
 export function parseExamples(raw: string | null | undefined, term: string): ExampleItem[] {
   const parsed = responseSchema.safeParse(extractJson(raw))
   if (!parsed.success) throw new AiError('invalid', 'schema')
@@ -243,7 +238,6 @@ const batchEntrySchema = z.object({ n: z.coerce.number().int(), items: z.unknown
 const batchSchema = z.object({ cards: z.array(z.unknown()) })
 
 export interface BatchResult {
-  /** Index in the batch → examples. */
   results: Map<number, ExampleItem[]>
   /** Indexes the answer left out or got wrong; worth one more try. */
   missing: number[]
@@ -273,7 +267,6 @@ export function parseBatchExamples(
   return { results, missing }
 }
 
-/** If the model forgot the [[ ]] markers, mark the first case-insensitive occurrence of the term. */
 export function ensureMarked(text: string, term: string): string {
   if (text.includes('[[') && text.includes(']]')) return text
   const needle = term.trim().toLowerCase()

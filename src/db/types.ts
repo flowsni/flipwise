@@ -5,9 +5,7 @@ export interface Deck {
   id: string
   title: string
   description?: string
-  /** BCP 47 language code of the term side, e.g. "en". */
   termLang: string
-  /** BCP 47 language code of the definition side, e.g. "ru". */
   defLang: string
   level: Level
   createdAt: number
@@ -15,9 +13,7 @@ export interface Deck {
 }
 
 export interface ExampleItem {
-  /** Sentence with the studied word wrapped in [[…]]. */
   text: string
-  /** Translation into the definition language, or a same-language explanation. */
   translation: string
 }
 
@@ -71,5 +67,4 @@ export interface StudySession {
   updatedAt: number
 }
 
-/** Which side the learner has to produce. */
 export type AnswerSide = 'term' | 'definition'

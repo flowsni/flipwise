@@ -1,6 +1,6 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
-import { Button } from '../design/Button'
-import { t } from '../i18n/ru'
+import { Button } from '@/design'
+import { t } from '@/i18n/ru'
 import { ErrorScreen } from './ErrorBoundary'
 
 export function NotFound() {

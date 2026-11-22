@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { useSettingsSheet } from '../../app/SettingsContext'
-import { Button } from '../../design/Button'
-import { t } from '../../i18n/ru'
+import { useSettingsSheet } from '@/app/SettingsContext'
+import { Button } from '@/design'
+import { t } from '@/i18n/ru'
 import type { AiErrorCode } from './errors'
 
 /** Errors the user fixes in the AI settings rather than by trying again. */
@@ -13,7 +13,6 @@ export function aiErrorMessage(code: AiErrorCode): string {
   return t.examples.errors[code as keyof typeof t.examples.errors] ?? t.examples.errors.unknown
 }
 
-/** An AI error with what to do about it: retry and, for key or model problems, the settings. */
 export function AiErrorBox({
   code,
   onRetry,

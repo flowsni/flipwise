@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Card, Deck } from '../db/types'
+import type { Card, Deck } from '@/db/types'
 import { groupByDeck, matchesQuery, searchCards } from './search'
 
 const deck = (id: string): Deck => ({

@@ -1,11 +1,10 @@
-import { t } from '../i18n/ru'
+import { t } from '@/i18n/ru'
 
 export interface Language {
   code: string
   name: string
 }
 
-/** Languages offered for decks; display names live in i18n. */
 export const LANGUAGES: Language[] = (Object.keys(t.languages) as (keyof typeof t.languages)[]).map(
   (code) => ({
     code,
@@ -45,7 +44,6 @@ export function englishLanguageName(code: string): string {
   return ENGLISH[code] ?? code
 }
 
-/** Short phrases in each language to preview a speech voice. */
 const SPEECH_SAMPLES: Record<string, string> = {
   en: 'Hello! Nice to meet you.',
   ru: 'Привет! Рад знакомству.',

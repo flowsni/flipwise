@@ -59,7 +59,7 @@ vi.mock('@google/genai', () => {
   return { GoogleGenAI, ApiError }
 })
 
-import { generateExamples } from '../examples'
+import { generateExamples } from '@/features/ai/examples'
 
 const input = {
   term: 'luggage',

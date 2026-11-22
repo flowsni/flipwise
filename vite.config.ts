@@ -9,6 +9,7 @@ const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
   base,
+  resolve: { tsconfigPaths: true },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),

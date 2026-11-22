@@ -1,11 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { db } from '../../db/db'
-import { createDeck, getDeckCards } from '../../db/decks'
-import type { Level } from '../../db/types'
-import { ToastProvider } from '../../design/Toast'
-import { t } from '../../i18n/ru'
-import { setSetting } from '../../lib/storage'
+import { createDeck, db, getDeckCards, type Level } from '@/db'
+import { ToastProvider } from '@/design'
+import { t } from '@/i18n/ru'
+import { setSetting } from '@/lib'
 import { BulkExamplesSheet } from './BulkExamplesSheet'
 
 const call = vi.fn()

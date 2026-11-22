@@ -8,9 +8,8 @@
  * The state is plain JSON so it can be saved and resumed.
  */
 
-import type { AnswerSide } from '../../db/types'
-import { type MatchResult, matchAnswer } from '../../lib/answerMatch'
-import { type Rng, shuffle } from '../../lib/shuffle'
+import type { AnswerSide } from '@/db'
+import { type MatchResult, matchAnswer, type Rng, shuffle } from '@/lib'
 
 export const ROUND_SIZE = 7
 export const MIN_CARDS = 2
@@ -27,30 +26,25 @@ export type Stage = 0 | 1 | 2
 export interface LearnQuestion {
   cardId: string
   kind: 'choice' | 'written'
-  /** Shown side. */
   prompt: string
   /** Expected answer (original spelling). */
   answer: string
-  /** Choice options, includes the answer. */
   options?: string[]
 }
 
 export interface LearnState {
   version: 1
   answerWith: AnswerSide
-  /** Study order of all cards. */
   order: string[]
   stage: Record<string, Stage>
   round: {
     number: number
     queue: string[]
-    /** Cards that reached stage 2 during this round. */
     learned: string[]
     total: number
     answered: number
   }
   current: LearnQuestion | null
-  /** Round is over and the summary screen should be shown. */
   roundOver: boolean
   /** The current question was answered; feedback is showing and `nextQuestion` must run next. */
   answered?: boolean
@@ -129,7 +123,6 @@ export function createLearnState(
   return startRound(state, cards, rng)
 }
 
-/** A card is learned once it reached the last stage. */
 export function isLearned(state: Pick<LearnState, 'stage'>, id: string): boolean {
   return state.stage[id] === 2
 }
@@ -138,7 +131,6 @@ export function isFinished(state: LearnState): boolean {
   return state.order.every((id) => isLearned(state, id))
 }
 
-/** Whether a stored session can be resumed; `LearnPage` and the deck tile share this. */
 export function acceptLearnSession(s: Partial<LearnState>): boolean {
   return s.version === 1 && !!s.order?.length
 }
@@ -260,7 +252,6 @@ export function overrideLastWrong(before: LearnState): LearnState {
   return applyResult(before, true)
 }
 
-/** Moves to the next question after feedback; marks the round as over when the queue is empty. */
 export function nextQuestion(
   state: LearnState,
   cards: readonly LearnCard[],

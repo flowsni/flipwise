@@ -1,6 +1,5 @@
 import { useId } from 'react'
 
-/** The Flipwise mark: two tilted cards (coral in front, plum behind) and a sun-yellow spark. */
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
   const id = useId()
   return (

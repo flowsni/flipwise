@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { useBack } from '../../app/useBack'
-import { db } from '../../db/db'
-import { useCachedLiveQuery } from '../../db/useCachedLiveQuery'
-import { IconButton } from '../../design/Button'
-import { inputClass } from '../../design/Field'
-import { IconChevronLeft, IconSearch, IconX } from '../../design/icons'
-import { TopBar } from '../../design/TopBar'
-import { t } from '../../i18n/ru'
-import { groupByDeck, searchCards } from '../../lib/search'
-import { CardRow, cardListClass } from '../decks/CardRow'
+import { useBack } from '@/app/useBack'
+import { db, useCachedLiveQuery } from '@/db'
+import { IconButton, IconChevronLeft, SearchField, TopBar } from '@/design'
+import { CardRow, cardListClass } from '@/features/decks/CardRow'
+import { t } from '@/i18n/ru'
+import { groupByDeck, searchCards } from '@/lib'
 
 export function SearchPage() {
   const back = useBack('/')
@@ -50,35 +46,18 @@ export function SearchPage() {
           </IconButton>
         }
         center={
-          <div className="relative">
-            <IconSearch
-              size={18}
-              className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-3"
-            />
-            <input
-              type="search"
-              autoFocus
-              enterKeyHint="search"
-              aria-label={t.search.label}
-              placeholder={t.search.placeholder}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className={`${inputClass} min-h-11 rounded-full py-2 pr-11 pl-10 [&::-webkit-search-cancel-button]:hidden`}
-            />
-            {text && (
-              <IconButton
-                size="sm"
-                label={t.search.clear}
-                onClick={() => {
-                  setText('')
-                  setQuery('')
-                }}
-                className="absolute top-1/2 right-0 -translate-y-1/2"
-              >
-                <IconX size={16} />
-              </IconButton>
-            )}
-          </div>
+          <SearchField
+            autoFocus
+            aria-label={t.search.label}
+            placeholder={t.search.placeholder}
+            value={text}
+            onChange={setText}
+            clearLabel={t.search.clear}
+            onClear={() => {
+              setText('')
+              setQuery('')
+            }}
+          />
         }
       />
       <main className="mx-auto max-w-3xl px-4 pt-3 pb-16 sm:px-6">

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { hardestCards } from '../lib/hardWords'
+import { hardestCards } from '@/lib/hardWords'
 import { db } from './db'
 import { getDeckCards } from './decks'
 import { isMastered } from './progress'
@@ -68,7 +68,6 @@ export interface HardCard {
   progress: Progress
 }
 
-/** «Трудные слова» of one deck, or of all decks when `deckId` is omitted. */
 export function useHardCards(deckId?: string): HardCard[] | undefined {
   return useCachedLiveQuery(`hard:${deckId ?? '*'}`, async () => {
     const rows = deckId

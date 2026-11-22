@@ -1,4 +1,4 @@
-import type { Card, Deck } from '../db/types'
+import type { Card, Deck } from '@/db/types'
 import { normalize } from './answerMatch'
 
 export interface SearchHit {
@@ -51,7 +51,6 @@ export function searchCards(
   )
 }
 
-/** Groups ranked hits by deck; the deck with the best hit comes first. */
 export function groupByDeck(hits: readonly SearchHit[]): SearchGroup[] {
   const groups = new Map<string, SearchGroup>()
   for (const hit of hits) {
@@ -62,7 +61,6 @@ export function groupByDeck(hits: readonly SearchHit[]): SearchGroup[] {
   return [...groups.values()]
 }
 
-/** Whether a card's term or definition contains the query (same normalization as `searchCards`). */
 export function matchesQuery(term: string, definition: string, query: string): boolean {
   const q = normalize(query)
   if (!q) return true

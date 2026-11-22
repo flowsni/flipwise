@@ -1,10 +1,9 @@
-import type { Progress } from '../db/types'
+import type { Progress } from '@/db/types'
 
 const MIN_WRONG = 2
 const MIN_RATE = 0.3
 const LIMIT = 50
 
-/** Share of wrong answers, 0..1. */
 export function errorRate(p: Pick<Progress, 'correct' | 'wrong'>): number {
   const total = p.correct + p.wrong
   return total ? p.wrong / total : 0

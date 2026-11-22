@@ -1,4 +1,4 @@
-import { MAX_CARDS } from '../lib/limits'
+import { MAX_CARDS } from '@/lib/limits'
 import { plural } from './plural'
 
 /** All UI strings. Add another locale by mirroring this object. */

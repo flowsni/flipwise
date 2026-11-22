@@ -12,7 +12,6 @@ export type Verdict = 'correct' | 'almost' | 'wrong'
 
 export interface MatchResult {
   verdict: Verdict
-  /** The variant of the stored answer that matched (original spelling). */
   matched?: string
 }
 
@@ -80,7 +79,6 @@ export function answerVariants(answer: string): string[] {
   return [...all].filter(Boolean)
 }
 
-/** Optimal string alignment distance (Damerau–Levenshtein with adjacent transpositions). */
 export function damerauLevenshtein(a: string, b: string): number {
   const al = a.length
   const bl = b.length

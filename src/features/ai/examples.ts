@@ -1,4 +1,4 @@
-import type { ExampleItem } from '../../db/types'
+import type { ExampleItem } from '@/db'
 import type { ProviderId } from './catalog'
 import { AiError } from './errors'
 import { buildPrompt, type ExamplesInput, examplesJsonSchema, parseExamples } from './prompt'
@@ -13,7 +13,6 @@ export interface ProviderConfig {
   model: string
 }
 
-/** Sends one request to the configured provider; returns the model's raw json text. */
 export function call(provider: ProviderId, req: GenerateRequest): Promise<string> {
   switch (provider) {
     case 'anthropic':
@@ -27,7 +26,6 @@ export function call(provider: ProviderId, req: GenerateRequest): Promise<string
   }
 }
 
-/** Generates 3 example sentences with the studied word highlighted. */
 export async function generateExamples(
   input: ExamplesInput,
   config: ProviderConfig,

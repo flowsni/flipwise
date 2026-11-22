@@ -1,4 +1,4 @@
-import { useSetting } from '../../lib/storage'
+import { useSetting } from '@/lib'
 import { defaultModel, type ProviderId } from './catalog'
 
 export interface AiSettings {
@@ -20,7 +20,6 @@ export function useAiSettings() {
     setKey: (p: ProviderId, value: string) => setKeys({ ...keys, [p]: value.trim() }),
     models,
     setModel: (p: ProviderId, value: string) => setModels({ ...models, [p]: value.trim() }),
-    /** Active provider has a key. */
     ready: !!provider && !!key,
     key,
     model,

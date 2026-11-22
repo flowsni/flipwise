@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useContext, useMemo, useState } from 'react'
-import { SettingsSheet } from '../features/settings/SettingsSheet'
+import { SettingsSheet } from '@/features/settings/SettingsSheet'
 
 interface SettingsApi {
   open: (section?: 'ai') => void

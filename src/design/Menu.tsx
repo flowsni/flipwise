@@ -10,7 +10,6 @@ export interface MenuItem {
   icon?: ReactNode
   onSelect: () => void
   danger?: boolean
-  /** Shows a check mark — for toggles like "Перемешать". */
   checked?: boolean
 }
 
@@ -23,7 +22,6 @@ export interface MenuSection {
 // shortcut: fits menus of up to ~2 items, measure the list if a longer menu lands near the bottom
 const MENU_ROOM = 160
 
-/** "…" button with a popover list. Secondary actions live here (Apple style). */
 export function Menu({
   label,
   sections,

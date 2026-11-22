@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '../../design/Button'
-import { cx } from '../../design/cx'
-import { Checkbox, Input, inputClass, Segmented } from '../../design/Field'
-import { Sheet } from '../../design/Sheet'
-import { t } from '../../i18n/ru'
-import { findDuplicates } from '../../lib/duplicates'
+import { Button, Checkbox, cx, Input, inputClass, SegmentedField, Sheet } from '@/design'
+import { t } from '@/i18n/ru'
 import {
   type CardSeparator,
+  findDuplicates,
   guessOptions,
   type ParsedCard,
   parseImport,
   type TermSeparator,
-} from '../../lib/importParser'
+} from '@/lib'
 
 type TermKind = 'tab' | 'comma' | 'custom'
 type CardKind = 'newline' | 'semicolon' | 'custom'
@@ -36,9 +33,7 @@ export function ImportSheet({
   onClose: () => void
   onImport: (cards: ParsedCard[]) => void
   initialText?: string
-  /** Terms already in the deck, to warn about and optionally skip duplicates. */
   existingTerms?: readonly string[]
-  /** Term language, for article-aware duplicate matching. */
   lang?: string
   /** How many more cards the deck can take (see `MAX_CARDS`); the rest of the import is dropped. */
   room?: number
@@ -135,18 +130,16 @@ export function ImportSheet({
           }}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <span className="text-[0.9375rem] font-medium text-ink-2">{t.import.termSep}</span>
-            <Segmented
-              label={t.import.termSep}
-              value={termSep}
-              onChange={setTermSep}
-              options={[
-                { value: 'tab', label: t.import.tab },
-                { value: 'comma', label: t.import.comma },
-                { value: 'custom', label: t.import.custom },
-              ]}
-            />
+          <SegmentedField
+            label={t.import.termSep}
+            value={termSep}
+            onChange={setTermSep}
+            options={[
+              { value: 'tab', label: t.import.tab },
+              { value: 'comma', label: t.import.comma },
+              { value: 'custom', label: t.import.custom },
+            ]}
+          >
             {termSep === 'custom' && (
               <Input
                 aria-label={t.import.termSep}
@@ -155,19 +148,17 @@ export function ImportSheet({
                 placeholder={t.import.customPlaceholder}
               />
             )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-[0.9375rem] font-medium text-ink-2">{t.import.cardSep}</span>
-            <Segmented
-              label={t.import.cardSep}
-              value={cardSep}
-              onChange={setCardSep}
-              options={[
-                { value: 'newline', label: t.import.newline },
-                { value: 'semicolon', label: ';' },
-                { value: 'custom', label: t.import.custom },
-              ]}
-            />
+          </SegmentedField>
+          <SegmentedField
+            label={t.import.cardSep}
+            value={cardSep}
+            onChange={setCardSep}
+            options={[
+              { value: 'newline', label: t.import.newline },
+              { value: 'semicolon', label: ';' },
+              { value: 'custom', label: t.import.custom },
+            ]}
+          >
             {cardSep === 'custom' && (
               <Input
                 aria-label={t.import.cardSep}
@@ -175,7 +166,7 @@ export function ImportSheet({
                 onChange={(e) => setCardCustom(e.target.value)}
               />
             )}
-          </div>
+          </SegmentedField>
         </div>
 
         <div>

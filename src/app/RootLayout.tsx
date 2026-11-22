@@ -1,9 +1,8 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import { ScrollRestoration, useLocation, useNavigationType, useOutlet } from 'react-router'
-import { softSpring } from '../design/motion'
+import { softSpring } from '@/design'
 
-/** Animates page changes. Study screens slide up, regular pages fade-slide sideways. */
 export function RootLayout() {
   const location = useLocation()
   const outlet = useOutlet()

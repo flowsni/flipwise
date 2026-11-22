@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
-import { t } from '../i18n/ru'
+import { t } from '@/i18n/ru'
 import { IconButton } from './Button'
 import { IconX } from './icons'
 import { ProgressBar } from './Progress'
 
-/** Distraction-free header for study screens: close, thin progress, "…" menu. */
 export function StudyBar({
   onClose,
   progress,
@@ -36,7 +35,6 @@ export function StudyBar({
   )
 }
 
-/** True when a keyboard shortcut should not fire (typing or a dialog is open). */
 export function shortcutsBlocked(e: KeyboardEvent): boolean {
   const el = e.target as HTMLElement | null
   if (e.defaultPrevented) return true

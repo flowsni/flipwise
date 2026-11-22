@@ -1,11 +1,10 @@
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef } from 'react'
-import type { Deck } from '../../db/types'
-import { Button } from '../../design/Button'
-import { IconCheck, IconX } from '../../design/icons'
-import { CountUp, Ring } from '../../design/Progress'
-import { t } from '../../i18n/ru'
-import { AnswerFeedback } from '../study/AnswerFeedback'
+import type { Deck } from '@/db'
+import { Button, IconCheck, IconX, SectionHeader } from '@/design'
+import { AnswerFeedback } from '@/features/study/AnswerFeedback'
+import { ResultRing } from '@/features/study/ResultRing'
+import { t } from '@/i18n/ru'
 import { gradeTest } from './testGenerator'
 import { langOf, type TestState } from './testState'
 
@@ -50,17 +49,12 @@ export function TestResults({
         >
           {t.test.resultsTitle}
         </h1>
-        <Ring
+        <ResultRing
           value={result.percent / 100}
           size={150}
           stroke={13}
           color={result.percent >= 80 ? 'var(--fw-good)' : 'var(--fw-coral)'}
-          animateFromZero
-        >
-          <span className="text-4xl font-bold">
-            <CountUp to={result.percent} suffix="%" />
-          </span>
-        </Ring>
+        />
         <p className="font-semibold">{t.test.correctOf(result.correct, result.total)}</p>
         <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row">
           {mistakes.length > 0 && (
@@ -88,9 +82,7 @@ export function TestResults({
       </div>
 
       <section aria-labelledby="mistakes-title" className="flex flex-col gap-3">
-        <h2 id="mistakes-title" className="text-lg font-semibold tracking-tight">
-          {t.test.mistakes}
-        </h2>
+        <SectionHeader id="mistakes-title" title={t.test.mistakes} />
         {mistakes.length === 0 && <p className="text-ink-2">{t.test.noMistakes}</p>}
         {mistakes.map((q) => {
           const given = state.answers[q.id] ?? ''

@@ -1,7 +1,4 @@
-/** «Примеры для всей колоды»: examples for many cards, several cards per request. */
-
-import { setExamplesIfUnchanged } from '../../db/decks'
-import type { Card, Deck, Level } from '../../db/types'
+import { type Card, type Deck, type Level, setExamplesIfUnchanged } from '@/db'
 import { AiError, type AiErrorCode } from './errors'
 import { call, type ProviderConfig } from './examples'
 import { type BatchResult, batchJsonSchema, buildBatchPrompt, parseBatchExamples } from './prompt'
@@ -14,7 +11,6 @@ export const BATCH_SIZE = 10
 export const RETRY_BATCH_SIZE = 5
 /** ~3 sentences with translations for 10 cards, with headroom. */
 export const BATCH_MAX_TOKENS = 6000
-/** Wait before the one retry after a rate limit or an overloaded provider. */
 export const RETRY_DELAY = 8000
 
 /** Errors after which more requests can't succeed: stop the whole run. */
@@ -31,7 +27,6 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
 }
 
 export interface BulkProgress {
-  /** Cards that got examples. */
   saved: number
   /** Cards dealt with: saved, or skipped because they were edited or deleted meanwhile. */
   done: number
@@ -41,9 +36,7 @@ export interface BulkProgress {
 export interface BulkOptions {
   level: Level
   signal?: AbortSignal
-  /** Called after every batch. */
   onProgress?: (progress: BulkProgress) => void
-  /** Injected in tests. */
   request?: (config: ProviderConfig, req: Parameters<typeof call>[1]) => Promise<string>
   wait?: (ms: number, signal?: AbortSignal) => Promise<void>
 }
@@ -54,9 +47,7 @@ export interface BulkResult {
   saved: number
   /** Edited or deleted during the run: left alone on purpose. */
   skipped: number
-  /** Cards without new examples because generation failed or stopped. */
   failed: number
-  /** Why the run stopped early, if it did. */
   error?: AiErrorCode
 }
 
@@ -114,7 +105,6 @@ export async function generateDeckExamples(
     }).then((raw) => parseBatchExamples(raw, batch))
   }
 
-  /** One batch with a single retry on rate limits and overloads; returns the cards left out. */
   const run = async (batch: readonly Card[], last: boolean): Promise<Card[]> => {
     let result: BatchResult
     try {
