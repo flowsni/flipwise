@@ -11,6 +11,8 @@ export interface MenuItem {
   onSelect: () => void
   danger?: boolean
   checked?: boolean
+  /** Stays open after a pick, so several options can be toggled in a row. */
+  keepOpen?: boolean
 }
 
 export interface MenuSection {
@@ -136,7 +138,7 @@ export function Menu({
                       : { role: 'menuitemcheckbox', 'aria-checked': item.checked })}
                     tabIndex={-1}
                     onClick={() => {
-                      close()
+                      if (!item.keepOpen) close()
                       item.onSelect()
                     }}
                     className={cx(

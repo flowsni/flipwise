@@ -7,8 +7,17 @@ import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
 import { fitClass } from '@/lib'
 import { ChoiceOptions } from './ChoiceOptions'
+import { FlashAnswer } from './FlashAnswer'
 import type { Feedback } from './types'
 import { WrittenAnswer } from './WrittenAnswer'
+
+// A flashcard answer is the user's own call, so there is no verdict to read before moving on.
+const CONTINUE_DELAY = { flashcard: 250, choice: 750, written: 950 }
+
+const LABELS = {
+  choice: t.learn.chooseAnswer,
+  written: t.learn.typeAnswer,
+}
 
 export function QuestionView({
   question,
@@ -41,7 +50,7 @@ export function QuestionView({
       animate(scope.current, { x: [0, -12, 12, -8, 8, -3, 0] }, { duration: 0.45 })
     }
     if (feedback.correct && feedback.match.verdict === 'correct') {
-      const timer = setTimeout(onContinue, question.kind === 'choice' ? 750 : 950)
+      const timer = setTimeout(onContinue, CONTINUE_DELAY[question.kind])
       return () => clearTimeout(timer)
     }
     continueRef.current?.focus()
@@ -68,48 +77,59 @@ export function QuestionView({
       transition={enterSpring}
       className="flex flex-1 flex-col gap-6"
     >
-      <div
-        className={cx(
-          'raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7',
-          // Phones: the question takes the top, the options sit in the thumb zone below.
-          question.kind === 'choice' && 'flex-1 sm:flex-none',
-        )}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
-            {question.kind === 'choice' ? t.learn.chooseAnswer : t.learn.typeAnswer}
-          </span>
-          <SpeakButton text={question.prompt} lang={promptLang} className="-mr-2" />
-        </div>
-        <p
-          lang={promptLang}
+      {question.kind !== 'flashcard' && (
+        <div
           className={cx(
-            'flex flex-1 items-center justify-center py-4 text-center leading-tight font-semibold tracking-tight break-words',
-            fitClass(question.prompt),
+            'raised relative flex min-h-44 flex-col rounded-[1.75rem] p-5 sm:min-h-52 sm:p-7',
+            // Phones: the question takes the top, the options sit in the thumb zone below.
+            question.kind === 'choice' && 'flex-1 sm:flex-none',
           )}
         >
-          {question.prompt}
-        </p>
-        {/* The verdict lives in the card, in a fixed slot: the options below never move. */}
-        {question.kind === 'choice' && (
-          <div className="flex min-h-16 flex-col items-center gap-1 text-center">
-            {feedback && (
-              <p
-                role="status"
-                className={cx('font-semibold', feedback.correct ? 'text-good' : 'text-bad')}
-              >
-                {feedback.correct ? t.learn.correct : t.learn.wrong}
-              </p>
-            )}
-            {feedback && !feedback.correct && (
-              <PickedMeaning picked={feedback.response} translate={translate} lang={answerLang} />
-            )}
+          <div className="flex items-center justify-between">
+            <span className="text-[0.8125rem] font-semibold tracking-wider text-ink-3 uppercase">
+              {LABELS[question.kind]}
+            </span>
+            <SpeakButton text={question.prompt} lang={promptLang} className="-mr-2" />
           </div>
-        )}
-      </div>
+          <p
+            lang={promptLang}
+            className={cx(
+              'flex flex-1 items-center justify-center py-4 text-center leading-tight font-semibold tracking-tight break-words',
+              fitClass(question.prompt),
+            )}
+          >
+            {question.prompt}
+          </p>
+          {/* The verdict lives in the card, in a fixed slot: the options below never move. */}
+          {question.kind === 'choice' && (
+            <div className="flex min-h-16 flex-col items-center gap-1 text-center">
+              {feedback && (
+                <p
+                  role="status"
+                  className={cx('font-semibold', feedback.correct ? 'text-good' : 'text-bad')}
+                >
+                  {feedback.correct ? t.learn.correct : t.learn.wrong}
+                </p>
+              )}
+              {feedback && !feedback.correct && (
+                <PickedMeaning picked={feedback.response} translate={translate} lang={answerLang} />
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div ref={scope}>
-        {question.kind === 'choice' ? (
+        {question.kind === 'flashcard' ? (
+          <FlashAnswer
+            prompt={question.prompt}
+            promptLang={promptLang}
+            answer={question.answer}
+            answerLang={answerLang}
+            feedback={feedback}
+            onAnswer={onAnswer}
+          />
+        ) : question.kind === 'choice' ? (
           <ChoiceOptions
             question={question}
             feedback={feedback}

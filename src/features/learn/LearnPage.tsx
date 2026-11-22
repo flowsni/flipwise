@@ -10,7 +10,7 @@ import {
   type Progress,
   recordAnswer,
 } from '@/db'
-import { IconRefresh, Menu } from '@/design'
+import { IconRefresh, Menu, useToast } from '@/design'
 import { StudyShell } from '@/features/study/StudyShell'
 import { type ScopeOptions, selectStudyCards } from '@/features/study/scope'
 import { useRestartUndo } from '@/features/study/useSavedSession'
@@ -19,20 +19,25 @@ import { useStudySession } from '@/features/study/useStudySession'
 import { langOf } from '@/features/test/testState'
 import { t } from '@/i18n/ru'
 import { useSetting } from '@/lib'
-import { LearnSetup } from './LearnSetup'
+import { LearnSetup, TYPE_LABELS } from './LearnSetup'
 import { Finished, RoundSummary } from './LearnSummaries'
 import {
   acceptLearnSession,
+  changeTypes,
   createLearnState,
   isFinished,
+  LEARN_TYPES,
   type LearnState,
+  type LearnType,
   MIN_CARDS,
   nextQuestion,
   overallProgress,
   overrideLastWrong,
+  persistedStage,
   roundProgress,
   startRound,
   submitAnswer,
+  typesOf,
 } from './learnEngine'
 import { QuestionView } from './QuestionView'
 import type { Feedback } from './QuestionView/types'
@@ -58,7 +63,9 @@ function Learn({
   progress: Map<string, Progress>
 }) {
   const back = useBack(`/deck/${deck.id}`)
+  const toast = useToast()
   const [answerWith, setAnswerWith] = useSetting<AnswerSide>('learn.answerWith', 'definition')
+  const [types, setTypes] = useSetting<LearnType[]>('learn.types', ['choice', 'written'])
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const answerLang = langOf(deck, answerWith)
   const promptLang = answerWith === 'term' ? deck.defLang : deck.termLang
@@ -83,21 +90,30 @@ function Learn({
 
   const start = (options: ScopeOptions) => {
     const ids = selectStudyCards(cards, progress, options)
-    persist(createLearnState(cards, answerWith, Math.random, {}, ids))
+    persist(
+      createLearnState(
+        cards,
+        answerWith,
+        types.filter((x) => LEARN_TYPES.includes(x)),
+        Math.random,
+        {},
+        ids,
+      ),
+    )
   }
 
   const restart = (side: AnswerSide = answerWith) => {
     if (!state) return
     if (!isFinished(state)) offerUndo(state)
     setFeedback(null)
-    persist(createLearnState(cards, side, Math.random, {}, state.order))
+    persist(createLearnState(cards, side, typesOf(state), Math.random, {}, state.order))
   }
 
   const answer = (response: string) => {
     if (!state?.current || feedback) return
     const outcome = submitAnswer(state, response, answerLang)
     const id = state.current.cardId
-    recordAnswer(id, deck.id, outcome.correct, outcome.state.stage[id])
+    recordAnswer(id, deck.id, outcome.correct, persistedStage(outcome.state, id))
     setFeedback({ correct: outcome.correct, match: outcome.match, response, before: state })
     persist(outcome.state)
   }
@@ -106,7 +122,7 @@ function Learn({
     if (!feedback) return
     const s = overrideLastWrong(feedback.before)
     const id = feedback.before.current!.cardId
-    overrideWrong(id, deck.id, s.stage[id])
+    overrideWrong(id, deck.id, persistedStage(s, id))
     setFeedback({ ...feedback, correct: true, match: { verdict: 'correct' } })
     persist(s)
   }
@@ -127,6 +143,8 @@ function Learn({
           progress={progress}
           answerWith={answerWith}
           onAnswerWith={setAnswerWith}
+          types={types}
+          onTypes={setTypes}
           onStart={start}
         />
       </StudyShell>
@@ -164,6 +182,29 @@ function Learn({
                   restart(side)
                 },
               })),
+            },
+            {
+              title: t.learn.types,
+              items: LEARN_TYPES.map((type) => {
+                const on = typesOf(state).includes(type)
+                return {
+                  label: TYPE_LABELS[type],
+                  checked: on,
+                  keepOpen: true,
+                  onSelect: () => {
+                    const next = on
+                      ? typesOf(state).filter((x) => x !== type)
+                      : [...typesOf(state), type]
+                    if (!next.length) {
+                      toast.show({ message: t.learn.needType, top: true })
+                      return
+                    }
+                    setTypes(next)
+                    setFeedback(null)
+                    persist(changeTypes(state, next, cards))
+                  },
+                }
+              }),
             },
             {
               items: [{ label: t.deck.restart, icon: <IconRefresh />, onSelect: () => restart() }],
