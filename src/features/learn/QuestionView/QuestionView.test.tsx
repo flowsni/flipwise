@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { LearnState } from '@/features/learn/learnEngine'
 import { t } from '@/i18n/ru'
 import { QuestionView } from '.'
@@ -19,6 +19,14 @@ const wrong = {
   before: {},
 } as unknown as Feedback
 
+// happy-dom's Animation.cancel() rejects `finished` unhandled; without native animate Motion runs in JS.
+const nativeAnimate = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')
+beforeAll(() => {
+  delete (Element.prototype as Partial<Element>).animate
+})
+afterAll(() => {
+  if (nativeAnimate) Object.defineProperty(Element.prototype, 'animate', nativeAnimate)
+})
 afterEach(cleanup)
 
 function view(feedback: Feedback | null) {
