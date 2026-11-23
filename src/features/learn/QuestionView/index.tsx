@@ -119,7 +119,7 @@ export function QuestionView({
         </div>
       )}
 
-      <div ref={scope}>
+      <div ref={scope} className={cx(question.kind === 'flashcard' && 'flex flex-1 flex-col')}>
         {question.kind === 'flashcard' ? (
           <FlashAnswer
             prompt={question.prompt}
@@ -142,7 +142,13 @@ export function QuestionView({
       </div>
 
       {/* Choice: room for «Продолжить» is reserved, so the options above don't jump up. */}
-      <div className={cx('flex flex-col gap-3', question.kind === 'choice' && 'min-h-14')}>
+      <div
+        className={cx(
+          'flex flex-col gap-3',
+          question.kind === 'choice' && 'min-h-14',
+          question.kind === 'flashcard' && 'empty:hidden',
+        )}
+      >
         {feedback && question.kind === 'written' && (
           <AnswerFeedback
             match={feedback.match}
@@ -152,27 +158,27 @@ export function QuestionView({
           />
         )}
         {feedback && !(feedback.correct && feedback.match.verdict === 'correct') && (
-          <div className="flex flex-wrap gap-3">
-            {!feedback.correct && question.kind === 'written' && feedback.response.trim() && (
-              <Button variant="soft" size="lg" onClick={onIWasRight}>
-                {t.learn.iWasRight}
+          <>
+            <div className="flex flex-wrap gap-3">
+              {!feedback.correct && question.kind === 'written' && feedback.response.trim() && (
+                <Button variant="soft" size="lg" onClick={onIWasRight}>
+                  {t.learn.iWasRight}
+                </Button>
+              )}
+              <Button
+                ref={continueRef}
+                variant="primary"
+                size="lg"
+                className="flex-1"
+                onClick={onContinue}
+              >
+                {t.learn.continue}
               </Button>
-            )}
-            <Button
-              ref={continueRef}
-              variant="primary"
-              size="lg"
-              className="flex-1"
-              onClick={onContinue}
-            >
-              {t.learn.continue}
-            </Button>
-          </div>
-        )}
-        {feedback && (
-          <p className="hidden text-center text-[0.8125rem] text-ink-3 md:block">
-            {t.learn.pressEnter}
-          </p>
+            </div>
+            <p className="hidden text-center text-[0.8125rem] text-ink-3 md:block">
+              {t.learn.pressEnter}
+            </p>
+          </>
         )}
       </div>
     </motion.section>

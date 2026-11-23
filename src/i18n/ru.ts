@@ -205,6 +205,8 @@ export const ru = {
     check: 'Проверить',
     dontKnow: 'Не знаю',
     know: 'Знаю',
+    showAnswer: 'Показать ответ',
+    flashKeys: 'Пробел — перевернуть · 1 не знаю · 2 знаю',
     flashcardLabel: 'Вспомните ответ',
     types: 'Типы вопросов',
     needType: 'Выберите хотя бы один тип',
