@@ -29,7 +29,7 @@ afterAll(() => {
 })
 afterEach(cleanup)
 
-function view(feedback: Feedback | null) {
+function view(feedback: Feedback | null, onContinue = vi.fn()) {
   render(
     <QuestionView
       question={question}
@@ -38,7 +38,7 @@ function view(feedback: Feedback | null) {
       feedback={feedback}
       translate={() => undefined}
       onAnswer={vi.fn()}
-      onContinue={vi.fn()}
+      onContinue={onContinue}
       onIWasRight={vi.fn()}
     />,
   )
@@ -57,10 +57,15 @@ describe('QuestionView flashcard', () => {
     expect(screen.getByRole('button', { name: t.learn.showAnswer })).toBeTruthy()
   })
 
-  it('after «Не знаю» offers only «Продолжить»', () => {
-    view(wrong)
-    expect(screen.getByRole('button', { name: t.learn.continue })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: t.learn.showAnswer })).toBeNull()
+  it('after «Не знаю» moves on by itself, without «Продолжить»', () => {
+    vi.useFakeTimers()
+    const onContinue = vi.fn()
+    view(wrong, onContinue)
+    expect(screen.queryByRole('button', { name: t.learn.continue })).toBeNull()
+    expect(screen.getByRole('button', { name: t.learn.dontKnow })).toBeTruthy()
+    vi.advanceTimersByTime(300)
+    expect(onContinue).toHaveBeenCalledOnce()
+    vi.useRealTimers()
   })
 
   it('keeps «Знаю» in place during the auto-advance after a correct answer', () => {

@@ -43,18 +43,23 @@ export function QuestionView({
   const reduce = useReducedMotion()
   const continueRef = useRef<HTMLButtonElement>(null)
 
-  // Wrong → shake; correct choice → quick auto-advance.
+  // A flashcard is graded by the user, who has just seen the answer: no shake, nothing to read.
+  const flashcard = question.kind === 'flashcard'
+  const autoContinue =
+    !!feedback && (flashcard || (feedback.correct && feedback.match.verdict === 'correct'))
+
+  // Wrong → shake; correct choice or any flashcard answer → quick auto-advance.
   useEffect(() => {
     if (!feedback) return
-    if (!feedback.correct && !reduce && scope.current) {
+    if (!feedback.correct && !flashcard && !reduce && scope.current) {
       animate(scope.current, { x: [0, -12, 12, -8, 8, -3, 0] }, { duration: 0.45 })
     }
-    if (feedback.correct && feedback.match.verdict === 'correct') {
+    if (autoContinue) {
       const timer = setTimeout(onContinue, CONTINUE_DELAY[question.kind])
       return () => clearTimeout(timer)
     }
     continueRef.current?.focus()
-  }, [feedback, animate, scope, reduce, onContinue, question.kind])
+  }, [feedback, autoContinue, flashcard, animate, scope, reduce, onContinue, question.kind])
 
   // 1–4 pick an option; Enter continues after feedback.
   useWindowKeydown((e) => {
@@ -119,7 +124,7 @@ export function QuestionView({
         </div>
       )}
 
-      <div ref={scope} className={cx(question.kind === 'flashcard' && 'flex flex-1 flex-col')}>
+      <div ref={scope} className={cx(flashcard && 'flex flex-1 flex-col')}>
         {question.kind === 'flashcard' ? (
           <FlashAnswer
             prompt={question.prompt}
@@ -146,7 +151,7 @@ export function QuestionView({
         className={cx(
           'flex flex-col gap-3',
           question.kind === 'choice' && 'min-h-14',
-          question.kind === 'flashcard' && 'empty:hidden',
+          flashcard && 'hidden',
         )}
       >
         {feedback && question.kind === 'written' && (
@@ -157,7 +162,7 @@ export function QuestionView({
             lang={answerLang}
           />
         )}
-        {feedback && !(feedback.correct && feedback.match.verdict === 'correct') && (
+        {feedback && !autoContinue && (
           <>
             <div className="flex flex-wrap gap-3">
               {!feedback.correct && question.kind === 'written' && feedback.response.trim() && (

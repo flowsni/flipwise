@@ -78,41 +78,36 @@ export function FlashAnswer({
           className="absolute top-3 right-3"
         />
       </div>
-      {/* Wrong answer: «Продолжить» takes this place. */}
-      {!(feedback && !feedback.correct) && (
-        <>
-          {/* Fixed-height slot: the action swaps in place, nothing jumps after the flip. */}
-          <div className="flex h-14 shrink-0 gap-3">
-            {seen || back ? (
-              <>
-                <Button
-                  variant="raised"
-                  size="lg"
-                  className="flex-1 !text-bad"
-                  onClick={() => onAnswer('dontknow')}
-                >
-                  {t.learn.dontKnow}
-                </Button>
-                <Button
-                  variant="raised"
-                  size="lg"
-                  className="flex-1 !text-good"
-                  onClick={() => onAnswer('know')}
-                >
-                  {t.learn.know}
-                </Button>
-              </>
-            ) : (
-              <Button variant="primary" size="lg" className="flex-1" onClick={flip}>
-                {t.learn.showAnswer}
-              </Button>
-            )}
-          </div>
-          <p className="-mt-3 hidden text-center text-[0.8125rem] text-ink-3 md:block">
-            {t.learn.flashKeys}
-          </p>
-        </>
-      )}
+      {/* Fixed-height slot: the action swaps in place, nothing jumps after the flip. */}
+      <div className="flex h-14 shrink-0 gap-3">
+        {seen || back ? (
+          <>
+            <Button
+              variant="raised"
+              size="lg"
+              className="flex-1 !text-bad"
+              onClick={() => onAnswer('dontknow')}
+            >
+              {t.learn.dontKnow}
+            </Button>
+            <Button
+              variant="raised"
+              size="lg"
+              className="flex-1 !text-good"
+              onClick={() => onAnswer('know')}
+            >
+              {t.learn.know}
+            </Button>
+          </>
+        ) : (
+          <Button variant="primary" size="lg" className="flex-1" onClick={flip}>
+            {t.learn.showAnswer}
+          </Button>
+        )}
+      </div>
+      <p className="-mt-3 hidden text-center text-[0.8125rem] text-ink-3 md:block">
+        {t.learn.flashKeys}
+      </p>
     </div>
   )
 }
