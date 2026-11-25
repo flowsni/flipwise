@@ -5,6 +5,7 @@ import { type Card, type Deck, db, type ExampleItem, type Level, updateCardExamp
 import { Button, cx, enterSpring, IconRefresh, IconTrash, Sheet, useToast } from '@/design'
 import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
+import { oneLine } from '@/lib'
 import { AiErrorBox } from './AiErrorBox'
 import { AiError, type AiErrorCode } from './errors'
 import { generateExamples } from './examples'
@@ -53,7 +54,7 @@ function ExamplesBody({
   const examplesLevel = examples?.level ?? deck.level
   const levelChanged = !!examples && level !== examplesLevel
   const definitionChanged =
-    examples?.definition !== undefined && examples.definition !== card.definition
+    examples?.definition !== undefined && oneLine(examples.definition) !== oneLine(card.definition)
 
   const generate = useCallback(async () => {
     if (!ai.provider || !ai.key) return

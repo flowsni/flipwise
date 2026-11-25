@@ -39,9 +39,10 @@ afterEach(async () => {
 async function renderSheet(
   cached: boolean,
   cachedDefinition?: string,
+  definition = 'слово',
 ): Promise<{ deck: Deck; card: Card }> {
   const deckId = await createDeck({ title: 'D', termLang: 'en', defLang: 'ru', level: 'B1' }, [
-    { term: 'word', definition: 'слово' },
+    { term: 'word', definition },
   ])
   let card = (await getDeckCards(deckId))[0]!
   if (cached) {
@@ -123,6 +124,12 @@ describe('ExamplesSheet level', () => {
     await renderSheet(true, 'старый перевод')
     await screen.findByText('Old')
     expect(screen.getByText(t.examples.definitionChanged)).toBeTruthy()
+  })
+
+  it('does not flag a translation that only differs by line breaks', async () => {
+    await renderSheet(true, 'a\nb', 'a b')
+    await screen.findByText('Old')
+    expect(screen.queryByText(t.examples.definitionChanged)).toBeNull()
   })
 
   it('does not flag examples whose translation matches or was never recorded', async () => {

@@ -31,6 +31,9 @@ function splitCards(text: string, sep: CardSeparator): string[] {
   return normalized.split(sep.custom.replace(/\\n/g, '\n'))
 }
 
+/** Inputs drop "\n"; multiline text from backups must be flattened the same way as imports. */
+export const oneLine = (s: string) => s.replace(/\s*\n\s*/g, ' ')
+
 export function parseImport(text: string, options: ImportOptions): ParseResult {
   const sep = termSepString(options.termSep).replace(/\\t/g, '\t')
   const cards: ParsedCard[] = []
@@ -44,10 +47,7 @@ export function parseImport(text: string, options: ImportOptions): ParseResult {
       continue
     }
     const term = rawChunk.slice(0, at).trim()
-    const definition = rawChunk
-      .slice(at + sep.length)
-      .replace(/\s*\n\s*/g, ' ')
-      .trim()
+    const definition = oneLine(rawChunk.slice(at + sep.length)).trim()
     if (!term || !definition) {
       skipped.push(chunk)
       continue

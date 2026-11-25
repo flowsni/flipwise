@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { guessOptions, parseImport } from './importParser'
+import { guessOptions, oneLine, parseImport } from './importParser'
+
+describe('oneLine', () => {
+  it('joins lines with a single space', () => {
+    expect(oneLine('a\nb')).toBe('a b')
+    expect(oneLine('a \n  b\n c')).toBe('a b c')
+    expect(oneLine('plain')).toBe('plain')
+  })
+})
 
 describe('parseImport', () => {
   it('parses Quizlet default export (tab + newline)', () => {
