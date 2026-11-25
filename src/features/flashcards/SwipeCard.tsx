@@ -2,6 +2,7 @@ import {
   AnimatePresence,
   animate,
   motion,
+  useIsPresent,
   useMotionValue,
   useReducedMotion,
   useTransform,
@@ -22,6 +23,8 @@ export type SwipeDir = 1 | -1 // 1 = know (right), -1 = still learning (left)
 export interface SwipeCardHandle {
   flip: () => void
   swipe: (dir: SwipeDir) => void
+  /** True from release until the card has been handed to `onSwiped`. */
+  leaving: () => boolean
 }
 
 export interface CardSide {
@@ -57,27 +60,64 @@ export const SwipeCard = forwardRef<
   const [flipped, setFlipped] = useState(false)
   const dragged = useRef(false)
   const leaving = useRef(false)
+  // A touch on the flying card would stop its animation, and `leaving` would never clear.
+  const [gone, setGone] = useState(false)
+  const isPresent = useIsPresent()
+  const present = useRef(isPresent)
+  present.current = isPresent
 
   useEffect(() => {
     if (enterFrom) animate(x, 0, enterSpring)
   }, [enterFrom, x])
 
+  const rootRef = useRef<HTMLDivElement>(null)
+  const unsubscribe = useRef<() => void>(() => {})
+  const onSwipedRef = useRef(onSwiped)
+  onSwipedRef.current = onSwiped
+  const handedOver = useRef(false)
+
+  // A stale onSwiped after unmount (restart mid-flight) would swipe the wrong card.
+  useEffect(
+    () => () => {
+      handedOver.current = true
+      unsubscribe.current()
+    },
+    [],
+  )
+
   const fly = (dir: SwipeDir, velocity = 0) => {
     if (leaving.current) return
     leaving.current = true
+    setGone(true)
+    const finish = () => {
+      // Not present: a restart or content switch removed this card mid-flight.
+      if (handedOver.current || !present.current) return
+      handedOver.current = true
+      unsubscribe.current()
+      onSwipedRef.current(dir)
+    }
     if (reduce) {
-      onSwiped(dir)
+      finish()
       return
     }
-    const distance = dir * (window.innerWidth / 2 + 520)
-    animate(x, distance, { duration: 0.32, ease: [0.4, 0, 0.9, 0.6], velocity }).then(() =>
-      onSwiped(dir),
-    )
+    const cardWidth = rootRef.current?.offsetWidth ?? 0
+    const half = window.innerWidth / 2
+    // Hand over once the card is almost off-screen: the next card starts before the exit ends.
+    unsubscribe.current = x.on('change', (v) => {
+      if (Math.abs(v) >= half + 0.7 * cardWidth) finish()
+    })
+    animate(x, dir * (half + cardWidth), {
+      type: 'spring',
+      velocity,
+      bounce: 0,
+      duration: 0.3,
+    }).then(finish) // fallback: jsdom has no layout, offsetWidth is 0
   }
 
   useImperativeHandle(ref, () => ({
     flip: () => setFlipped((f) => !f),
     swipe: (dir) => fly(dir),
+    leaving: () => leaving.current && !handedOver.current,
   }))
 
   const shown = flipped ? sides.back : sides.front
@@ -85,9 +125,10 @@ export const SwipeCard = forwardRef<
 
   return (
     <motion.div
+      ref={rootRef}
       className="absolute inset-0 touch-pan-y select-none [perspective:1600px]"
       style={{ x, rotate }}
-      drag="x"
+      drag={gone ? false : 'x'}
       dragMomentum={false}
       dragElastic={0.9}
       onPointerDown={() => {
