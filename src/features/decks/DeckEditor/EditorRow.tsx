@@ -60,6 +60,8 @@ export function EditorRow({
           placeholder={t.editor.term}
           lang={termLang}
           enterKeyHint="next"
+          autoCapitalize="none"
+          autoCorrect="off"
           value={row.term}
           aria-describedby={duplicateOf ? hintId : undefined}
           onChange={(e) => onChange({ term: e.target.value })}
@@ -71,6 +73,8 @@ export function EditorRow({
           placeholder={t.editor.definition}
           lang={defLang}
           enterKeyHint="next"
+          autoCapitalize="none"
+          autoCorrect="off"
           value={row.definition}
           onChange={(e) => onChange({ definition: e.target.value })}
           onPaste={onPaste}

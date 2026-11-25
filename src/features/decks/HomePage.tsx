@@ -50,7 +50,7 @@ export function HomePage() {
           </>
         }
       />
-      <main className="mx-auto max-w-5xl px-4 pt-4 pb-28 sm:px-6">
+      <main className="mx-auto max-w-5xl pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] pt-4 pb-28 sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
         <div className="mb-6 flex items-end justify-between gap-4">
           <h1 className="text-[2rem] leading-tight font-[750] tracking-[-0.03em] sm:text-[2.4rem]">
             {t.home.title}
@@ -127,7 +127,7 @@ function DeckTile({ summary }: { summary: DeckSummary }) {
       to={`/deck/${deck.id}`}
       whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
       transition={pressSpring}
-      className="raised relative flex flex-col justify-between overflow-hidden rounded-card p-5 transition-[translate] outline-offset-4 hover:-translate-y-[3px] sm:min-h-40"
+      className="raised relative flex flex-col justify-between overflow-hidden rounded-card p-5 select-none [-webkit-touch-callout:none] transition-[translate] outline-offset-4 hover:-translate-y-[3px] sm:min-h-40"
     >
       <span
         className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-coral/10 blur-2xl"

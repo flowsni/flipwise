@@ -128,7 +128,7 @@ function ModeTile({
   restartLabel?: string
 }) {
   const base =
-    'raised flex items-center gap-3 rounded-card p-4 sm:min-h-36 sm:flex-col sm:items-start sm:justify-between'
+    'raised flex items-center gap-3 rounded-card p-4 select-none [-webkit-touch-callout:none] sm:min-h-36 sm:flex-col sm:items-start sm:justify-between'
   if (disabled) {
     return (
       <div className={cx(base, 'opacity-55')} aria-disabled="true">

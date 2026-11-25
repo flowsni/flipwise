@@ -1,6 +1,9 @@
 export function fitClass(text: string): string {
   const n = text.length
-  if (n <= 14) return 'text-[2.6rem] sm:text-5xl'
+  // One long word cannot wrap, so it is capped by its own length, not the text's.
+  const word = Math.max(0, ...text.split(/\s+/).map((w) => w.length))
+  if (word > 20) return n <= 70 ? 'text-2xl' : n <= 140 ? 'text-xl' : 'text-lg'
+  if (n <= 14 && word <= 12) return 'text-[2.6rem] sm:text-5xl'
   if (n <= 32) return 'text-[2rem] sm:text-4xl'
   if (n <= 70) return 'text-2xl sm:text-3xl'
   if (n <= 140) return 'text-xl sm:text-2xl'

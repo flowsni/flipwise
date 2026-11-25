@@ -171,6 +171,14 @@
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  button,
+  a,
+  label,
+  [role="button"] {
+    touch-action: manipulation;
   }
 
   body {
@@ -181,7 +189,6 @@
     font-family: var(--font-sans);
     font-feature-settings: "ss01";
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior-y: none;
   }
 
   :focus-visible {

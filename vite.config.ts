@@ -17,7 +17,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      pwaAssets: { config: true, overrideManifestIcons: true },
+      pwaAssets: { config: true, overrideManifestIcons: true, injectThemeColor: false },
       manifest: {
         name: 'Flipwise',
         short_name: 'Flipwise',

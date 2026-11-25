@@ -75,7 +75,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       whileTap={{ scale: 0.9 }}
       transition={pressSpring}
       className={cx(
-        'inline-flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center rounded-full transition-colors select-none [-webkit-touch-callout:none] disabled:opacity-40',
         size === 'sm' && 'size-11',
         size === 'md' && 'size-12',
         size === 'lg' && 'size-14',

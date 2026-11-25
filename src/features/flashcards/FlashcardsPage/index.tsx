@@ -82,7 +82,11 @@ function Flashcards({
   const card = useCardHandle()
   const flash = useFlashSession({ deckId, cardsById, ids: selection.ids, content, shuffled })
   const { queue, index, history, picked, current, done } = flash
-  useFlashKeys({ deckId, currentId: flash.currentId, done, undo: flash.undo, card: card.ref })
+  // Undo while the card is still flying out would be followed by its late onSwiped.
+  const undo = () => {
+    if (!card.ref.current?.leaving()) flash.undo()
+  }
+  useFlashKeys({ deckId, currentId: flash.currentId, done, undo, card: card.ref })
 
   const empty = !selection.ids.length
 
@@ -120,7 +124,7 @@ function Flashcards({
   const contentSwitch = <ContentSwitch value={content} onChange={changeContent} mono={mono} />
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col overflow-x-clip">
       <StudyBar
         onClose={back}
         progress={queue.length ? index / queue.length : 0}
@@ -189,7 +193,7 @@ function Flashcards({
           <FlashControls
             canUndo={!!history.length}
             onSwipe={(dir) => card.ref.current?.swipe(dir)}
-            onUndo={flash.undo}
+            onUndo={undo}
           />
         </main>
       )}

@@ -36,7 +36,7 @@ export function CardRow({
   const text = (
     <>
       <span className="grid gap-0.5 sm:grid-cols-[2fr_3fr] sm:gap-4">
-        <span className="font-semibold break-words" lang={deck.termLang}>
+        <span className="font-semibold wrap-anywhere" lang={deck.termLang}>
           {card.term}
           <IconSparkles
             size={14}
@@ -47,7 +47,7 @@ export function CardRow({
             className={cx('ml-1.5 inline-block align-[-1px]', has ? 'text-primary' : 'text-ink-3')}
           />
         </span>
-        <span className="break-words text-ink-2" lang={deck.defLang}>
+        <span className="wrap-anywhere text-ink-2" lang={deck.defLang}>
           {card.definition}
         </span>
       </span>

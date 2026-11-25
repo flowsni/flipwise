@@ -116,7 +116,7 @@ export function ImportSheet({
           aria-label={t.import.title}
           rows={6}
           spellCheck={false}
-          className={`${inputClass} min-h-36 resize-y font-mono text-[0.9375rem] leading-relaxed`}
+          className={`${inputClass} min-h-36 resize-y font-mono text-base leading-relaxed`}
           onKeyDown={(e) => {
             // Let users type real tabs, like in a spreadsheet.
             if (e.key === 'Tab' && !e.shiftKey && termSep === 'tab') {
@@ -212,8 +212,8 @@ export function ImportSheet({
                       )}
                     >
                       <td className="px-3 py-2 text-ink-3 tabular-nums">{i + 1}</td>
-                      <td className="px-3 py-2 break-words">{c.term}</td>
-                      <td className="px-3 py-2 break-words text-ink-2">{c.definition}</td>
+                      <td className="px-3 py-2 wrap-anywhere">{c.term}</td>
+                      <td className="px-3 py-2 wrap-anywhere text-ink-2">{c.definition}</td>
                     </tr>
                   ))}
                 </tbody>
