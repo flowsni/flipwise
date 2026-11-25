@@ -56,3 +56,31 @@ test('leaving with unsaved changes opens a sheet; without changes it does not', 
   await expect(page).toHaveURL(/#\/deck\/big$/)
   await expect(page.getByText('saved term').first()).toBeVisible()
 })
+
+test('system back with unsaved changes opens the sheet instead of dropping them', async ({
+  page,
+}) => {
+  // Reached by clicking, not goto: a hash-only change leaves history entries without
+  // React Router's idx, and the blocker would reload the page instead of showing the sheet.
+  await page.goto('/')
+  await page.locator('main a[href="#/deck/big"]').click()
+  await page.getByRole('button', { name: 'Ещё' }).first().click()
+  await page.getByRole('menuitem', { name: 'Редактировать' }).click()
+  await page.locator('[data-row]').first().waitFor()
+
+  // Without edits system back leaves at once.
+  await page.goBack()
+  await expect(page).toHaveURL(/#\/deck\/big$/)
+  await page.goForward()
+  await expect(page).toHaveURL(/#\/deck\/big\/edit$/)
+  await page.locator('[data-row]').first().waitFor()
+
+  await page.locator('[data-row] input').first().fill('changed')
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page).toHaveURL(/#\/deck\/big\/edit$/)
+
+  await page.getByRole('button', { name: 'Выйти без сохранения' }).click()
+  await expect(page).toHaveURL(/#\/deck\/big$/)
+  await expect(page.getByRole('dialog')).toBeHidden()
+})

@@ -27,7 +27,7 @@ export type {
   ParseResult,
   TermSeparator,
 } from './importParser'
-export { guessOptions, parseImport } from './importParser'
+export { guessOptions, oneLine, parseImport } from './importParser'
 export type { Language } from './languages'
 export { englishLanguageName, LANGUAGES, languageName, speechSample } from './languages'
 export { MAX_CARDS } from './limits'

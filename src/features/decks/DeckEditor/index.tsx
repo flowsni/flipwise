@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useEffect, useRef, useState } from 'react'
+import { useBlocker, useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
 import { createDeck, type Deck, saveDeck, useDeck } from '@/db'
@@ -41,10 +41,23 @@ function EditorForm({ deck }: { deck?: Deck }) {
     text: '',
   })
   const [saving, setSaving] = useState(false)
-  const [leaving, setLeaving] = useState(false)
   const [query, setQuery] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
   const dirty = meta.dirty || rows.dirty
+  // A ref, not state: useBlocker registers its callback in a passive effect, so state set in
+  // the same tick as navigate() may not be seen yet.
+  const leaving = useRef(false)
+  const blocker = useBlocker(() => dirty && !leaving.current)
+
+  useEffect(() => {
+    if (!dirty) return
+    const h = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = '' // Chromium before 119 needs it
+    }
+    window.addEventListener('beforeunload', h)
+    return () => window.removeEventListener('beforeunload', h)
+  }, [dirty])
 
   const addRow = () => {
     if (rows.full) return
@@ -73,11 +86,6 @@ function EditorForm({ deck }: { deck?: Deck }) {
     fields[fields.indexOf(el) + 1]?.focus()
   }
 
-  const goBack = () => {
-    if (dirty) setLeaving(true)
-    else back()
-  }
-
   const save = async () => {
     if (!rows.loaded || saving) return
     if (!meta.title.trim()) {
@@ -101,9 +109,13 @@ function EditorForm({ deck }: { deck?: Deck }) {
     try {
       if (deck) {
         await saveDeck(deck.id, input, cards)
-        back()
+        leaving.current = true
+        // From the sheet: go where the blocked navigation was heading, not just one step back.
+        if (blocker.state === 'blocked') blocker.proceed()
+        else back()
       } else {
         const id = await createDeck(input, cards)
+        leaving.current = true
         navigate(`/deck/${id}`, { replace: true })
       }
     } finally {
@@ -120,7 +132,7 @@ function EditorForm({ deck }: { deck?: Deck }) {
     <form onSubmit={onSave} onKeyDown={onEnter} noValidate>
       <TopBar
         left={
-          <IconButton label={t.app.back} onClick={goBack}>
+          <IconButton label={t.app.back} onClick={back}>
             <IconChevronLeft />
           </IconButton>
         }
@@ -189,14 +201,11 @@ function EditorForm({ deck }: { deck?: Deck }) {
         onImport={(cards) => importRows(cards, importState.rowKey)}
       />
       <UnsavedSheet
-        open={leaving}
-        canSave={!!meta.title.trim()}
-        onClose={() => setLeaving(false)}
+        open={blocker.state === 'blocked'}
+        canSave={!!meta.title.trim() && !saving}
+        onClose={() => blocker.reset?.()}
         onSave={save}
-        onDiscard={() => {
-          setLeaving(false)
-          back()
-        }}
+        onDiscard={() => blocker.proceed?.()}
       />
     </form>
   )

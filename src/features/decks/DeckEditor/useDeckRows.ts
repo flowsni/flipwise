@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { type Deck, getDeckCards } from '@/db'
-import { MAX_CARDS, newId, type ParsedCard } from '@/lib'
+import { MAX_CARDS, newId, oneLine, type ParsedCard } from '@/lib'
 
 /** A card row of the editor. `key` identifies the row, `id` the stored card (absent when new). */
 export interface Row {
@@ -73,7 +73,13 @@ export function useDeckRows(deck?: Deck) {
     if (!deck) return
     getDeckCards(deck.id).then((cards) => {
       const rows = cards.length
-        ? cards.map((c) => ({ key: c.id, id: c.id, term: c.term, definition: c.definition }))
+        ? cards.map((c) => ({
+            key: c.id,
+            id: c.id,
+            term: c.term,
+            // Inputs drop "\n"; saving would otherwise glue the lines together.
+            definition: oneLine(c.definition),
+          }))
         : [emptyRow()]
       dispatch({ type: 'loaded', rows })
     })

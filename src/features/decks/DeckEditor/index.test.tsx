@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { createDeck, db, getDeckCards } from '@/db'
 import { ToastProvider } from '@/design'
@@ -36,21 +36,29 @@ const WORDS: [string, string][] = [
   ['lemon', 'лимон'],
 ]
 
+const routes = [
+  { path: '/new', element: <DeckEditor /> },
+  { path: '/deck/:deckId/edit', element: <DeckEditor /> },
+  { path: '/deck/:deckId', element: <p>deck page</p> },
+]
+
+// useBlocker needs a data router.
+function renderAt(entries: string[], index = entries.length - 1) {
+  const router = createMemoryRouter(routes, { initialEntries: entries, initialIndex: index })
+  render(
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>,
+  )
+  return router
+}
+
 async function renderEditor() {
   const deckId = await createDeck(
     { title: 'Fruit', termLang: 'en', defLang: 'ru', level: 'B1' },
     WORDS.map(([term, definition]) => ({ term, definition })),
   )
-  render(
-    <ToastProvider>
-      <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
-        <Routes>
-          <Route path="/deck/:deckId/edit" element={<DeckEditor />} />
-          <Route path="/deck/:deckId" element={<p>deck page</p>} />
-        </Routes>
-      </MemoryRouter>
-    </ToastProvider>,
-  )
+  renderAt([`/deck/${deckId}/edit`])
   await screen.findByLabelText(`${t.editor.term} 1`)
   return deckId
 }
@@ -165,15 +173,7 @@ describe('DeckEditor filter', () => {
       { title: 'Small', termLang: 'en', defLang: 'ru', level: 'B1' },
       WORDS.slice(0, 3).map(([term, definition]) => ({ term, definition })),
     )
-    render(
-      <ToastProvider>
-        <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
-          <Routes>
-            <Route path="/deck/:deckId/edit" element={<DeckEditor />} />
-          </Routes>
-        </MemoryRouter>
-      </ToastProvider>,
-    )
+    renderAt([`/deck/${deckId}/edit`])
     await screen.findByLabelText(`${t.editor.term} 1`)
     expect(screen.queryByLabelText(t.editor.filterPlaceholder)).toBeNull()
   })
@@ -240,16 +240,72 @@ describe('card limit', () => {
       { title: 'Big', termLang: 'en', defLang: 'ru', level: 'B1' },
       Array.from({ length: MAX_CARDS }, (_, i) => ({ term: `w${i}`, definition: `п${i}` })),
     )
-    render(
-      <ToastProvider>
-        <MemoryRouter initialEntries={[`/deck/${deckId}/edit`]}>
-          <Routes>
-            <Route path="/deck/:deckId/edit" element={<DeckEditor />} />
-          </Routes>
-        </MemoryRouter>
-      </ToastProvider>,
-    )
+    renderAt([`/deck/${deckId}/edit`])
     const add = await screen.findByRole('button', { name: t.editor.rowsFull })
     expect((add as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+describe('leaving the editor', () => {
+  it('opens the unsaved sheet on system back and stays on the edit route', async () => {
+    const deckId = await createDeck(
+      { title: 'Fruit', termLang: 'en', defLang: 'ru', level: 'B1' },
+      [{ term: 'apple', definition: 'яблоко' }],
+    )
+    const router = renderAt([`/deck/${deckId}`, `/deck/${deckId}/edit`])
+    fireEvent.change(await screen.findByLabelText(`${t.editor.term} 1`), {
+      target: { value: 'apples' },
+    })
+    await router.navigate(-1)
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(router.state.location.pathname).toBe(`/deck/${deckId}/edit`)
+
+    fireEvent.click(screen.getByRole('button', { name: t.editor.leaveWithoutSaving }))
+    await waitFor(() => expect(screen.getByText('deck page')).toBeTruthy())
+  })
+
+  it('«Сохранить и выйти» saves and leaves without being blocked again', async () => {
+    const deckId = await createDeck(
+      { title: 'Fruit', termLang: 'en', defLang: 'ru', level: 'B1' },
+      [{ term: 'apple', definition: 'яблоко' }],
+    )
+    const router = renderAt([`/deck/${deckId}`, `/deck/${deckId}/edit`])
+    fireEvent.change(await screen.findByLabelText(`${t.editor.term} 1`), {
+      target: { value: 'apples' },
+    })
+    await router.navigate(-1)
+    fireEvent.click(await screen.findByRole('button', { name: t.editor.saveAndLeave }))
+    await waitFor(() => expect(screen.getByText('deck page')).toBeTruthy())
+    expect((await getDeckCards(deckId))[0]!.term).toBe('apples')
+  })
+
+  it('«Сохранить и выйти» on a new deck creates it and opens its page', async () => {
+    const router = renderAt(['/', '/new'])
+    fireEvent.change(await screen.findByLabelText(t.editor.title), { target: { value: 'Fresh' } })
+    await router.navigate(-1)
+    fireEvent.click(await screen.findByRole('button', { name: t.editor.saveAndLeave }))
+    await waitFor(() => expect(screen.getByText('deck page')).toBeTruthy())
+    expect((await db.decks.toArray()).map((d) => d.title)).toEqual(['Fresh'])
+  })
+
+  it('does not block back without edits', async () => {
+    const deckId = await createDeck(
+      { title: 'Fruit', termLang: 'en', defLang: 'ru', level: 'B1' },
+      [{ term: 'apple', definition: 'яблоко' }],
+    )
+    const router = renderAt([`/deck/${deckId}`, `/deck/${deckId}/edit`])
+    await screen.findByLabelText(`${t.editor.term} 1`)
+    await router.navigate(-1)
+    await waitFor(() => expect(screen.getByText('deck page')).toBeTruthy())
+  })
+
+  it('loads a multiline definition as single-spaced text', async () => {
+    const deckId = await createDeck(
+      { title: 'Fruit', termLang: 'en', defLang: 'ru', level: 'B1' },
+      [{ term: 'apple', definition: 'a\nb' }],
+    )
+    renderAt([`/deck/${deckId}/edit`])
+    const input = (await screen.findByLabelText(`${t.editor.definition} 1`)) as HTMLInputElement
+    expect(input.value).toBe('a b')
   })
 })
