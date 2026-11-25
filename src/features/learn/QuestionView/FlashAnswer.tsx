@@ -139,7 +139,7 @@ function Face({
       <span
         lang={lang}
         className={cx(
-          'flex flex-1 items-center justify-center px-2 text-center leading-tight font-semibold tracking-tight break-words',
+          'flex flex-1 items-center justify-center px-2 text-center leading-tight font-semibold tracking-tight wrap-anywhere',
           fitClass(text),
         )}
       >

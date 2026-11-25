@@ -120,7 +120,7 @@ function Flashcards({
   const contentSwitch = <ContentSwitch value={content} onChange={changeContent} mono={mono} />
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col overflow-x-clip">
       <StudyBar
         onClose={back}
         progress={queue.length ? index / queue.length : 0}

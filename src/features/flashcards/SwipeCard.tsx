@@ -205,7 +205,7 @@ function Face({ side, back, hint }: { side: CardSide; back?: boolean; hint?: str
       <span
         lang={lang}
         className={cx(
-          'flex flex-1 items-center justify-center px-2 text-center break-words hyphens-auto',
+          'flex flex-1 items-center justify-center px-2 text-center wrap-anywhere hyphens-auto',
           sentence
             ? `leading-snug font-medium ${fitSentenceClass(stripMarks(text))}`
             : `leading-tight font-semibold tracking-tight ${fitClass(text)}`,

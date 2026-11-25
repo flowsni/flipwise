@@ -99,7 +99,7 @@ export function QuestionView({
           <p
             lang={promptLang}
             className={cx(
-              'flex flex-1 items-center justify-center py-4 text-center leading-tight font-semibold tracking-tight break-words',
+              'flex flex-1 items-center justify-center py-4 text-center leading-tight font-semibold tracking-tight wrap-anywhere',
               fitClass(question.prompt),
             )}
           >

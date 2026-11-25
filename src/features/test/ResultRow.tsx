@@ -49,13 +49,13 @@ export function ResultRow({
         {MARK[status]}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <p className="font-semibold break-words">
+        <p className="font-semibold wrap-anywhere">
           {q.prompt}
           {q.type === 'truefalse' && <span className="font-normal text-ink-2"> — {q.shown}</span>}
         </p>
         <p
           className={cx(
-            'text-[0.9375rem] break-words',
+            'text-[0.9375rem] wrap-anywhere',
             status === 'right' && 'text-good',
             status === 'almost' && 'text-sun-ink',
             status === 'wrong' && 'text-bad',

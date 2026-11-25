@@ -49,7 +49,7 @@ export function TestForm({
           </div>
           <p
             lang={promptLang}
-            className="text-xl leading-snug font-semibold break-words sm:text-2xl"
+            className="text-xl leading-snug font-semibold wrap-anywhere sm:text-2xl"
           >
             {q.prompt}
           </p>
@@ -75,7 +75,7 @@ export function TestForm({
             <>
               <p
                 lang={answerLang}
-                className="-mt-2 rounded-xl bg-surface-2 px-4 py-3 text-lg break-words"
+                className="-mt-2 rounded-xl bg-surface-2 px-4 py-3 text-lg wrap-anywhere"
               >
                 {q.shown}
               </p>
@@ -188,7 +188,7 @@ function OptionRadio({
       >
         {checked && <span className="size-2 rounded-full bg-surface" />}
       </span>
-      <span className="break-words">{children}</span>
+      <span className="wrap-anywhere">{children}</span>
     </label>
   )
 }

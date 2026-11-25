@@ -15,7 +15,7 @@ export function DeckHeader({
   return (
     <header className="mb-6 flex items-start gap-4">
       <div className="min-w-0 flex-1">
-        <h1 className="text-[1.9rem] leading-tight font-[750] tracking-[-0.03em] break-words sm:text-[2.2rem]">
+        <h1 className="text-[1.9rem] leading-tight font-[750] tracking-[-0.03em] wrap-anywhere sm:text-[2.2rem]">
           {deck.title}
         </h1>
         {deck.description && <p className="mt-1 text-ink-2">{deck.description}</p>}

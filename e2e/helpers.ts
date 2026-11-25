@@ -8,9 +8,9 @@ export async function openApp(page: Page) {
 }
 
 /** Writes a deck of `count` cards straight into IndexedDB (a third of them "hard"). */
-export async function seedDeck(page: Page, id: string, count: number) {
+export async function seedDeck(page: Page, id: string, count: number, term?: string) {
   await page.evaluate(
-    async ({ id, count }) => {
+    async ({ id, count, term }) => {
       const db = await new Promise<IDBDatabase>((resolve) => {
         const req = indexedDB.open('flipwise')
         req.onsuccess = () => resolve(req.result)
@@ -31,7 +31,7 @@ export async function seedDeck(page: Page, id: string, count: number) {
           id: `${id}${i}`,
           deckId: id,
           position: i,
-          term: `word number ${i}`,
+          term: term ?? `word number ${i}`,
           definition: `перевод слова ${i}`,
           createdAt: now,
           updatedAt: now,
@@ -52,7 +52,7 @@ export async function seedDeck(page: Page, id: string, count: number) {
         tx.oncomplete = resolve
       })
     },
-    { id, count },
+    { id, count, term },
   )
   await page.reload()
   await page.locator(`main a[href="#/deck/${id}"]`).waitFor()

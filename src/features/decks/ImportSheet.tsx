@@ -212,8 +212,8 @@ export function ImportSheet({
                       )}
                     >
                       <td className="px-3 py-2 text-ink-3 tabular-nums">{i + 1}</td>
-                      <td className="px-3 py-2 break-words">{c.term}</td>
-                      <td className="px-3 py-2 break-words text-ink-2">{c.definition}</td>
+                      <td className="px-3 py-2 wrap-anywhere">{c.term}</td>
+                      <td className="px-3 py-2 wrap-anywhere text-ink-2">{c.definition}</td>
                     </tr>
                   ))}
                 </tbody>

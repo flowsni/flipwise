@@ -54,7 +54,7 @@ export function ChoiceOptions({
             >
               {state === 'right' ? <IconCheck size={16} strokeWidth={3} /> : i + 1}
             </span>
-            <span className="break-words">{option}</span>
+            <span className="wrap-anywhere">{option}</span>
           </motion.button>
         )
       })}
