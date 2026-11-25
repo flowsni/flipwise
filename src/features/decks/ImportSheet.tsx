@@ -116,7 +116,7 @@ export function ImportSheet({
           aria-label={t.import.title}
           rows={6}
           spellCheck={false}
-          className={`${inputClass} min-h-36 resize-y font-mono text-[0.9375rem] leading-relaxed`}
+          className={`${inputClass} min-h-36 resize-y font-mono text-base leading-relaxed`}
           onKeyDown={(e) => {
             // Let users type real tabs, like in a spreadsheet.
             if (e.key === 'Tab' && !e.shiftKey && termSep === 'tab') {

@@ -109,3 +109,25 @@ test('touching the flying card does not freeze it', async ({ page }) => {
   await page.keyboard.press('ArrowRight')
   await expect(page.getByText('3 из 5', { exact: true })).toBeVisible()
 })
+
+test('Test: Enter moves to the next text field, on the last one it closes the keyboard', async ({
+  page,
+}) => {
+  await openApp(page)
+  await seedDeck(page, 'big', 12)
+  await page.goto('/#/deck/big/test')
+  await page.getByLabel('Выбор из вариантов').uncheck()
+  await page.getByLabel('Верно / неверно').uncheck()
+  await page.getByRole('button', { name: 'Начать тест' }).click()
+  const fields = page.locator('input[type="text"], input:not([type])')
+  await fields.first().waitFor()
+  expect(await fields.first().getAttribute('enterkeyhint')).toBe('next')
+  expect(await fields.last().getAttribute('enterkeyhint')).toBe('done')
+  await fields.first().focus()
+  await page.keyboard.press('Enter')
+  await expect(fields.nth(1)).toBeFocused()
+  await fields.last().focus()
+  await page.keyboard.press('Enter')
+  await expect(fields.last()).not.toBeFocused()
+  await expect(page).toHaveURL(/\/test/) // Enter did not submit the whole test
+})

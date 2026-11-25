@@ -21,6 +21,7 @@ export function TestForm({
   const answerLang = langOf(deck, state.config.answerWith)
   const promptLang = state.config.answerWith === 'term' ? deck.defLang : deck.termLang
   const set = (id: string, value: string) => onChange({ ...state.answers, [id]: value })
+  const lastWrittenId = state.questions.findLast((q) => q.type === 'written')?.id
   const unanswered = state.questions.filter((q) => !isAnswered(q, state.answers)).length
   // The first press only warns; it is armed for this exact number of unanswered questions.
   const [armedFor, setArmedFor] = useState<number | null>(null)
@@ -111,6 +112,7 @@ export function TestForm({
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
+              enterKeyHint={q.id === lastWrittenId ? 'done' : 'next'}
               spellCheck={false}
               onKeyDown={(e) => {
                 // Enter moves on instead of submitting the whole test.
@@ -118,14 +120,18 @@ export function TestForm({
                 e.preventDefault()
                 const current = e.currentTarget
                 const fields = [
-                  ...(current.form?.querySelectorAll<HTMLInputElement>('input') ?? []),
+                  ...(current.form?.querySelectorAll<HTMLInputElement>(
+                    'input:not([type="radio"])',
+                  ) ?? []),
                 ]
-                // First field after this one in document order.
-                fields
-                  .find(
-                    (el) => current.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING,
-                  )
-                  ?.focus()
+                // First text field after this one in document order.
+                const next = fields.find(
+                  (el) => current.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING,
+                )
+                if (!next) return current.blur()
+                // Plain focus() scrolls the field to the keyboard edge; centre it ourselves.
+                next.focus({ preventScroll: true })
+                next.scrollIntoView({ block: 'center' })
               }}
               className="h-12"
             />

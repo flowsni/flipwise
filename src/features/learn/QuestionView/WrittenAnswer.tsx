@@ -36,6 +36,7 @@ export function WrittenAnswer({
         autoComplete="off"
         autoCapitalize="off"
         autoCorrect="off"
+        enterKeyHint="done"
         spellCheck={false}
         className={cx(
           'h-14 text-lg',
