@@ -57,6 +57,34 @@ test('leaving with unsaved changes opens a sheet; without changes it does not', 
   await expect(page.getByText('saved term').first()).toBeVisible()
 })
 
+test('a late deck query does not wipe what was typed', async ({ page }) => {
+  await page.getByRole('button', { name: 'Назад' }).click()
+  await expect(page).toHaveURL(/#\/deck\/big$/)
+  // The editor now opens from the cached deck; deliver the fresh deck query 600 ms late, as on
+  // a busy phone, so it lands after typing.
+  await page.evaluate(() => {
+    const get = IDBObjectStore.prototype.get
+    IDBObjectStore.prototype.get = function (this: IDBObjectStore, key: IDBValidKey) {
+      const req = get.call(this, key)
+      if (this.name !== 'decks') return req
+      let handler: ((e: Event) => void) | null = null
+      Object.defineProperty(req, 'onsuccess', {
+        set: (fn) => {
+          handler = fn
+        },
+        get: () => handler,
+      })
+      req.addEventListener('success', (e) => setTimeout(() => handler?.call(req, e), 600))
+      return req
+    }
+  })
+  await page.goto('/#/deck/big/edit')
+  const first = page.locator('[data-row] input').first()
+  await first.fill('typed')
+  await page.waitForTimeout(1000)
+  await expect(first).toHaveValue('typed')
+})
+
 test('system back with unsaved changes opens the sheet instead of dropping them', async ({
   page,
 }) => {

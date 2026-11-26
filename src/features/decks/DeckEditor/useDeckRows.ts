@@ -69,9 +69,12 @@ export function useDeckRows(deck?: Deck) {
   )
   const focusKey = useRef<string | null>(null)
 
+  // By id, not by object: useDeck gives the cached deck first and then a fresh copy, and a
+  // second load would replace what the user has already typed.
+  const deckId = deck?.id
   useEffect(() => {
-    if (!deck) return
-    getDeckCards(deck.id).then((cards) => {
+    if (!deckId) return
+    getDeckCards(deckId).then((cards) => {
       const rows = cards.length
         ? cards.map((c) => ({
             key: c.id,
@@ -83,7 +86,7 @@ export function useDeckRows(deck?: Deck) {
         : [emptyRow()]
       dispatch({ type: 'loaded', rows })
     })
-  }, [deck])
+  }, [deckId])
 
   // Focus the row added by «Добавить карточку» once it is on screen.
   useEffect(() => {
