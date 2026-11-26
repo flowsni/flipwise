@@ -28,6 +28,7 @@ All four (check, typecheck, test, build) must pass before every commit; CI runs 
 - `src/lib` — pure helpers (answer matching, import parsing, backup, shuffle, storage)
 - `src/i18n/ru.ts` — **all** UI strings; never hard-code Russian text in components
 - `e2e/` — Playwright browser checks (navigation, layout jumps, perf at 4× CPU, PWA caching) + the manual iOS Simulator checklist in `e2e/README.md`
+- Как всё связано и почему — `docs/ARCHITECTURE.md` (обновлять вместе с изменением архитектуры)
 
 ## Structure rules
 

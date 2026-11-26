@@ -9,3 +9,6 @@ coverage
 /plans
 test-results
 playwright-report
+.env*
+.claude/settings.local.json
+.claude/worktrees
