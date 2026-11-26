@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import type { LearnCard } from '@/features/study/cards'
 import { seededRng } from '@/lib'
 import {
   changeTypes,
   createLearnState,
   isFinished,
   isLearned,
-  type LearnCard,
   type LearnType,
   nextQuestion,
   overallProgress,
   overrideLastWrong,
   persistedStage,
-  pickDistractors,
   ROUND_SIZE,
   roundProgress,
   startRound,
@@ -28,20 +27,6 @@ function answerCorrectly(state: ReturnType<typeof createLearnState>) {
   const q = state.current!
   return submitAnswer(state, q.answer)
 }
-
-describe('pickDistractors', () => {
-  it('never repeats the correct answer and dedupes', () => {
-    const rng = seededRng(1)
-    const out = pickDistractors('cat', ['Cat', 'dog', 'dog', 'cow', 'hippopotamus'], 3, rng)
-    expect(out).not.toContain('Cat')
-    expect(new Set(out).size).toBe(out.length)
-    expect(out).toHaveLength(3)
-  })
-  it('prefers similar length', () => {
-    const out = pickDistractors('cat', ['dog', 'a very long answer indeed', 'cow'], 2, () => 0)
-    expect(out).toEqual(['dog', 'cow'])
-  })
-})
 
 describe('learn engine', () => {
   it('starts a round of up to 7 cards with a choice question', () => {

@@ -50,6 +50,7 @@ export {
   spring,
 } from './motion'
 export { CountUp, ProgressBar, Ring } from './Progress'
+export { MotionLink, pressProps, tones } from './pressable'
 export { SearchField } from './SearchField'
 export { SectionHeader } from './SectionHeader'
 export { SegmentedField } from './SegmentedField'

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import { cx, IconBrain, IconCards } from '@/design'
-import { MotionLink, pressProps, tones } from '@/features/decks/DeckPage/ModeTiles'
+import { cx, IconBrain, IconCards, MotionLink, pressProps, tones } from '@/design'
 import { t } from '@/i18n/ru'
 
 /** Flashcards and Learn over the deck's hard words only; `cardCount` hides Learn below 2 cards. */

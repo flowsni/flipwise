@@ -10,17 +10,11 @@
  */
 
 import type { AnswerSide } from '@/db'
+import { answerOf, type LearnCard, pickDistractors, promptOf } from '@/features/study/cards'
 import { type MatchResult, matchAnswer, type Rng, shuffle } from '@/lib'
 
 export const ROUND_SIZE = 7
-export const MIN_CARDS = 2
 const CHOICES = 4
-
-export interface LearnCard {
-  id: string
-  term: string
-  definition: string
-}
 
 export type Stage = number
 
@@ -76,43 +70,6 @@ function ladderOf(state: Pick<LearnState, 'types'>): LearnType[] {
 export function persistedStage(state: LearnState, id: string): 0 | 1 | 2 {
   const stage = state.stage[id] ?? 0
   return isLearned(state, id) ? 2 : stage > 0 ? 1 : 0
-}
-
-function answerOf(card: LearnCard, side: AnswerSide): string {
-  return side === 'term' ? card.term : card.definition
-}
-
-function promptOf(card: LearnCard, side: AnswerSide): string {
-  return side === 'term' ? card.definition : card.term
-}
-
-/**
- * Picks wrong options from the same deck: unique answers that differ from the correct one,
- * preferring similar length.
- */
-export function pickDistractors(
-  correct: string,
-  pool: readonly string[],
-  count: number,
-  rng: Rng,
-): string[] {
-  const key = (s: string) => s.trim().toLowerCase()
-  const seen = new Set([key(correct)])
-  const candidates: string[] = []
-  for (const p of pool) {
-    const k = key(p)
-    if (!k || seen.has(k)) continue
-    seen.add(k)
-    candidates.push(p)
-  }
-  return candidates
-    .map((c) => ({
-      c,
-      score: Math.abs(c.length - correct.length) / Math.max(correct.length, 1) + rng() * 0.6,
-    }))
-    .sort((a, b) => a.score - b.score)
-    .slice(0, count)
-    .map((x) => x.c)
 }
 
 /**

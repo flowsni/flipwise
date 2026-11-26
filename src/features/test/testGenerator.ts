@@ -4,7 +4,7 @@
  */
 
 import type { AnswerSide } from '@/db'
-import { type LearnCard, pickDistractors } from '@/features/learn/learnEngine'
+import { answerOf, type LearnCard, pickDistractors, promptOf } from '@/features/study/cards'
 import { type MatchResult, matchAnswer, type Rng, shuffle } from '@/lib'
 
 export type QuestionType = 'choice' | 'truefalse' | 'written'
@@ -53,8 +53,6 @@ export function generateTest(
 ): TestQuestion[] {
   const types = config.types.length ? config.types : ['choice' as const]
   const side = config.answerWith
-  const answerOf = (c: LearnCard) => (side === 'term' ? c.term : c.definition)
-  const promptOf = (c: LearnCard) => (side === 'term' ? c.definition : c.term)
   const candidates = onlyCardIds ? cards.filter((c) => onlyCardIds.includes(c.id)) : cards
   const picked = shuffle(candidates, rng).slice(
     0,
@@ -68,9 +66,9 @@ export function generateTest(
 
   return picked.map((card, i) => {
     const type = typePlan[i]!
-    const answer = answerOf(card)
-    const base = { id: `q${i}`, cardId: card.id, type, prompt: promptOf(card), answer }
-    const pool = cards.filter((c) => c.id !== card.id).map(answerOf)
+    const answer = answerOf(card, side)
+    const base = { id: `q${i}`, cardId: card.id, type, prompt: promptOf(card, side), answer }
+    const pool = cards.filter((c) => c.id !== card.id).map((c) => answerOf(c, side))
     if (type === 'choice') {
       return { ...base, options: shuffle([answer, ...pickDistractors(answer, pool, 3, rng)], rng) }
     }
