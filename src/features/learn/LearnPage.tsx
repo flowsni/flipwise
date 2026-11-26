@@ -11,12 +11,12 @@ import {
   recordAnswer,
 } from '@/db'
 import { IconRefresh, Menu, useToast } from '@/design'
+import { langOf, MIN_CARDS, promptLangOf } from '@/features/study/cards'
 import { StudyShell } from '@/features/study/StudyShell'
 import { type ScopeOptions, selectStudyCards } from '@/features/study/scope'
 import { useRestartUndo } from '@/features/study/useSavedSession'
 import { useStudyRoute } from '@/features/study/useStudyRoute'
 import { useStudySession } from '@/features/study/useStudySession'
-import { langOf } from '@/features/test/testState'
 import { t } from '@/i18n/ru'
 import { useSetting } from '@/lib'
 import { LearnSetup, TYPE_LABELS } from './LearnSetup'
@@ -29,7 +29,6 @@ import {
   LEARN_TYPES,
   type LearnState,
   type LearnType,
-  MIN_CARDS,
   nextQuestion,
   overallProgress,
   overrideLastWrong,
@@ -68,7 +67,7 @@ function Learn({
   const [types, setTypes] = useSetting<LearnType[]>('learn.types', ['choice', 'written'])
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const answerLang = langOf(deck, answerWith)
-  const promptLang = answerWith === 'term' ? deck.defLang : deck.termLang
+  const promptLang = promptLangOf(deck, answerWith)
 
   const revive = (saved: LearnState): LearnState => {
     if (saved.answerWith !== answerWith) setAnswerWith(saved.answerWith)

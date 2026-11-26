@@ -14,14 +14,13 @@ import {
   IconUpload,
   Logo,
   LogoMark,
-  pressSpring,
+  MotionLink,
+  pressProps,
   Ring,
   TopBar,
 } from '@/design'
 import { t } from '@/i18n/ru'
 import { InstallHint } from './InstallHint'
-
-const MotionLink = motion.create(Link)
 
 export function HomePage() {
   const decks = useDeckSummaries()
@@ -125,8 +124,7 @@ function DeckTile({ summary }: { summary: DeckSummary }) {
   return (
     <MotionLink
       to={`/deck/${deck.id}`}
-      whileTap={{ scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' }}
-      transition={pressSpring}
+      {...pressProps}
       className="raised relative flex flex-col justify-between overflow-hidden rounded-card p-5 select-none [-webkit-touch-callout:none] transition-[translate] outline-offset-4 hover:-translate-y-[3px] sm:min-h-40"
     >
       <span

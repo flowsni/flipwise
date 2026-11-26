@@ -1,7 +1,7 @@
 import { NotFound } from '@/app/RouteError'
 import { useBack } from '@/app/useBack'
 import { type Card, type Deck, overrideWrong, type Progress, recordAnswer } from '@/db'
-import { MIN_CARDS } from '@/features/learn/learnEngine'
+import { langOf, MIN_CARDS } from '@/features/study/cards'
 import { StudyShell } from '@/features/study/StudyShell'
 import { useRestartUndo } from '@/features/study/useSavedSession'
 import { useStudyRoute } from '@/features/study/useStudyRoute'
@@ -11,7 +11,7 @@ import { TestForm } from './TestForm'
 import { TestResults } from './TestResults'
 import { TestSetup } from './TestSetup'
 import { generateTest, gradeTest, isAnswered, type TestConfig } from './testGenerator'
-import { acceptTestSession, langOf, type TestState } from './testState'
+import { acceptTestSession, type TestState } from './testState'
 
 export function TestPage() {
   const route = useStudyRoute({ minCards: MIN_CARDS })

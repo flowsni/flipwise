@@ -2,10 +2,11 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import type { Deck } from '@/db'
 import { Button, cx, Input } from '@/design'
+import { langOf, promptLangOf } from '@/features/study/cards'
 import { SpeakButton } from '@/features/tts/SpeakButton'
 import { t } from '@/i18n/ru'
 import { isAnswered } from './testGenerator'
-import { langOf, type TestState } from './testState'
+import type { TestState } from './testState'
 
 export function TestForm({
   deck,
@@ -19,7 +20,7 @@ export function TestForm({
   onSubmit: () => void
 }) {
   const answerLang = langOf(deck, state.config.answerWith)
-  const promptLang = state.config.answerWith === 'term' ? deck.defLang : deck.termLang
+  const promptLang = promptLangOf(deck, state.config.answerWith)
   const set = (id: string, value: string) => onChange({ ...state.answers, [id]: value })
   const lastWrittenId = state.questions.findLast((q) => q.type === 'written')?.id
   const unanswered = state.questions.filter((q) => !isAnswered(q, state.answers)).length

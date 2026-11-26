@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { LearnCard } from '@/features/learn/learnEngine'
+import type { LearnCard } from '@/features/study/cards'
 import { seededRng } from '@/lib'
 import { defaultQuestionCount, generateTest, gradeTest } from './testGenerator'
 

@@ -1,4 +1,3 @@
-import type { AnswerSide, Deck } from '@/db'
 import type { TestConfig, TestQuestion } from './testGenerator'
 
 export interface TestState {
@@ -12,8 +11,4 @@ export interface TestState {
 
 export function acceptTestSession(s: Partial<TestState>): boolean {
   return s.version === 1 && s.phase === 'taking' && !!s.questions?.length
-}
-
-export function langOf(deck: Deck, side: AnswerSide) {
-  return side === 'term' ? deck.termLang : deck.defLang
 }

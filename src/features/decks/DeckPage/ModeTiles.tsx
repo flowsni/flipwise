@@ -2,24 +2,21 @@ import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { StudyMode } from '@/db'
-import { cx, IconBrain, IconCards, IconChevronRight, IconClipboard, pressSpring } from '@/design'
+import {
+  cx,
+  IconBrain,
+  IconCards,
+  IconChevronRight,
+  IconClipboard,
+  MotionLink,
+  pressProps,
+  tones,
+} from '@/design'
 import type { SessionProgress } from '@/features/study/sessionProgress'
 import { t } from '@/i18n/ru'
 
-export const MotionLink = motion.create(Link)
 /** CSS `translate` is its own property, so it doesn't fight motion's transform from `whileTap`. */
 const hoverLift = 'transition-[translate] hover:-translate-y-[3px]'
-
-export const tones = {
-  coral: 'bg-coral/15 text-primary',
-  plum: 'bg-plum-soft text-plum-ink',
-  sun: 'bg-sun-soft text-sun-ink',
-}
-
-export const pressProps = {
-  whileTap: { scale: 0.97, boxShadow: 'var(--fw-shadow-pressed)' },
-  transition: pressSpring,
-}
 
 export function ModeTiles({
   deckId,

@@ -2,11 +2,12 @@ import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef } from 'react'
 import type { Deck } from '@/db'
 import { Button, SectionHeader } from '@/design'
+import { langOf } from '@/features/study/cards'
 import { ResultRing } from '@/features/study/ResultRing'
 import { t } from '@/i18n/ru'
 import { ResultRow, type Status } from './ResultRow'
 import { gradeTest } from './testGenerator'
-import { langOf, type TestState } from './testState'
+import type { TestState } from './testState'
 
 const ORDER: Record<Status, number> = { wrong: 0, almost: 1, right: 2 }
 
