@@ -76,14 +76,15 @@ export const SwipeCard = forwardRef<
   onSwipedRef.current = onSwiped
   const handedOver = useRef(false)
 
-  // A stale onSwiped after unmount (restart mid-flight) would swipe the wrong card.
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    // StrictMode re-runs setup after cleanup without discarding refs.
+    handedOver.current = false
+    return () => {
+      // A stale onSwiped after unmount (restart mid-flight) would swipe the wrong card.
       handedOver.current = true
       unsubscribe.current()
-    },
-    [],
-  )
+    }
+  }, [])
 
   const fly = (dir: SwipeDir, velocity = 0) => {
     if (leaving.current) return

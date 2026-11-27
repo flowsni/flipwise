@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createDeck, db, type ExampleItem } from '@/db'
 import { ToastProvider } from '@/design'
 import { t } from '@/i18n/ru'
@@ -64,13 +65,15 @@ async function renderDeck(
     }
   }
   render(
-    <ToastProvider>
-      <MemoryRouter initialEntries={[`/deck/${deckId}/flashcards${options.query ?? ''}`]}>
-        <Routes>
-          <Route path="/deck/:deckId/flashcards" element={<FlashcardsPage />} />
-        </Routes>
-      </MemoryRouter>
-    </ToastProvider>,
+    <StrictMode>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[`/deck/${deckId}/flashcards${options.query ?? ''}`]}>
+          <Routes>
+            <Route path="/deck/:deckId/flashcards" element={<FlashcardsPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
+    </StrictMode>,
   )
   return deckId
 }
@@ -113,9 +116,11 @@ describe('FlashcardsPage', () => {
   it('marks consecutive cards without flipping them, by button and by arrow key', async () => {
     await renderDeck()
     await screen.findByRole('button', { name: cardLabel('one') })
+    using put = vi.spyOn(IDBObjectStore.prototype, 'put')
 
     fireEvent.click(screen.getByRole('button', { name: t.flash.know }))
     await screen.findByRole('button', { name: cardLabel('two') }, { timeout: 3000 })
+    expect(screen.getByText(t.study.progress(2, 3))).toBeTruthy()
     // Let the previous card finish its exit and unmount.
     await new Promise((r) => setTimeout(r, 300))
 
@@ -130,6 +135,26 @@ describe('FlashcardsPage', () => {
       const flashes = (await db.progress.toArray()).map((p) => p.flash).sort()
       expect(flashes).toEqual(['known', 'known', 'learning'])
     })
+    await settle()
+    expect(put.mock.contexts).toEqual(Array(3).fill(expect.objectContaining({ name: 'progress' })))
+  })
+
+  it('ignores a swipe still animating when the round restarts', async () => {
+    await renderDeck()
+    await screen.findByRole('button', { name: cardLabel('one') })
+    fireEvent.click(screen.getByRole('button', { name: t.study.options }))
+    const restart = await screen.findByRole('menuitem', { name: t.flash.restart })
+
+    fireEvent.click(screen.getByRole('button', { name: t.flash.know }))
+    fireEvent.click(restart)
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: cardLabel('one') })).toHaveLength(1),
+    )
+    await settle()
+
+    expect(shownCard().getAttribute('aria-label')).toBe(cardLabel('one'))
+    expect(screen.getByText(t.study.progress(1, 3))).toBeTruthy()
+    expect(await db.progress.count()).toBe(0)
   })
 
   describe('sentences', () => {
@@ -224,9 +249,13 @@ describe('FlashcardsPage', () => {
       fireEvent.click(await screen.findByRole('button', { name: cardLabel('one') }))
       await screen.findByRole('button', { name: cardLabel('один') })
 
+      fireEvent.click(screen.getByRole('button', { name: t.flash.know }))
       fireEvent.click(screen.getByRole('radio', { name: t.flash.sentences }))
       await screen.findByRole('button', { name: cardLabel('У меня одна кошка') }, { timeout: 3000 })
+      await settle()
+      expect(shownCard().getAttribute('aria-label')).toBe(cardLabel('У меня одна кошка'))
       expect(screen.getByText(t.study.progress(1, 2))).toBeTruthy()
+      expect(await db.progress.count()).toBe(0)
     })
 
     it('is unavailable for monolingual decks', async () => {
