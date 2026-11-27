@@ -12,3 +12,10 @@ playwright-report
 .env*
 .claude/settings.local.json
 .claude/worktrees
+audit/
+
+# Local coding-agent files
+/AGENTS.md
+/.agents/
+/.codex/
+/.github/hooks/impeccable.json
